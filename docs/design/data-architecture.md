@@ -182,29 +182,76 @@ These serve as:
 
 Raw source text stored in Neo4j (or GCS if too large for git).
 
-## Pipeline (simple-first)
+## Pipeline
+
+```
+fetch → parse → chunk → embed → extract → review → load
+```
 
 ```python
 # 1. Fetch
-source = fetch(url)  # → {uri, raw_text, title, type, ...}
+source = fetch(url)  # → {uri, raw_content, mime_type, title, ...}
 
-# 2. Chunk
-chunks = chunk(source)  # → [{text, position}, ...]
+# 2. Parse (format normalization)
+structured_text = parse(source)  # → clean text with structural metadata
+# - PDF/DOCX: GCP Document AI Layout Parser (preserves headers, tables, hierarchy)
+# - HTML: Readability extraction (strips nav/ads, keeps structure)
+# - Markdown/text: Pass-through with section detection
+# - Images/diagrams: Gemini vision extraction (if needed)
 
-# 3. Embed
-for chunk in chunks:
-    chunk.embedding = embed(chunk.text)  # Gemini embedding
+# 3. Chunk (semantic, not arbitrary)
+chunks = chunk(structured_text)  # → [{text, position, section_heading}, ...]
+# - Section-aware: respect document hierarchy (don't split mid-paragraph)
+# - Overlap: sliding window with overlap for context continuity
+# - Size: target ~500 tokens per chunk (tunable)
 
-# 4. Extract
+# 4. Embed
+embeddings = embed_batch(chunks)  # Gemini embedding (batched)
+
+# 5. Extract
 entities, edges = extract(chunks, ontology)  # Gemini Flash structured output
 
-# 5. Review
+# 6. Review
 # Alan approves/edits in YAML or via chat
 
-# 6. Load
-load_to_neo4j(source, chunks, entities, edges)  # Cypher MERGE
+# 7. Load
+load_to_neo4j(source, chunks, entities, edges)  # Cypher MERGE (UNWIND for batch)
 save_to_yaml(entities, edges)  # Git canonical files
 ```
+
+## Batch Processing Design
+
+For scale (hundreds of documents):
+
+### Job queue
+Each source progresses through pipeline stages independently:
+```
+source_uri | status                | stage      | error | attempts | updated_at
+-----------+-----------------------+------------+-------+----------+-----------
+url_1      | complete              | loaded     |       | 1        | ...
+url_2      | processing            | embedding  |       | 1        | ...
+url_3      | failed                | parsing    | 429   | 3        | ...
+url_4      | pending_review        | extracted  |       | 1        | ...
+```
+
+Storage: SQLite (simple, local) or Cloud Tasks (if we need distributed).
+
+### Batching strategy
+- **Embedding**: Batch API calls (up to 250 texts per request with Gemini)
+- **Extraction**: Parallelize across chunks (Gemini Flash is cheap + fast)
+- **Neo4j writes**: UNWIND batches of nodes/edges in single transactions
+- **Fetch**: Rate-limit per domain, respect robots.txt
+
+### Idempotency
+- `content_hash` (SHA256 of raw content) on every source
+- Re-crawl skips unchanged sources (hash match → skip parse/chunk/embed/extract)
+- Changed source → re-process from parse step, mark old chunks/edges as superseded
+
+### Error handling
+- Per-stage retry with exponential backoff
+- Failed stage doesn't block other sources
+- Dead letter after N attempts → flag for manual review
+- Each stage is independently resumable (don't re-run earlier stages)
 
 ## Next Steps
 - [ ] Define ontology v1 (node types, edge types, properties)
