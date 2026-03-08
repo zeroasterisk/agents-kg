@@ -1,0 +1,10 @@
+id: aaif
+type: organization
+name: Agentic AI Foundation
+aliases: [AAIF, Agentic AI Foundation Working Group]
+description: Working group/foundation focused on standards and interoperability for agentic AI systems.
+metadata:
+  context: Forum where agent identity, passport concepts, and cross-project alignment are discussed
+tags: [standards, working-group, agentic-ai, interoperability]
+created: 2026-03-08
+updated: 2026-03-08

@@ -1,0 +1,28 @@
+id: aaif-cisco-identity-post
+date: "2026-03-08"
+source_type: forum_post
+forum: AAIF working group
+author:
+  affiliation: Cisco
+  name: unknown  # Not specified in the post
+addressed_to: Dom
+raw_text: |
+  Hi Dom — we've implemented a concept "Agent Identity Badge" that may be
+  aligned with proposed Passport concept within AGNTCY - another Linux
+  Foundation project. We may be able to build on the work already underway
+  to accelerate progress. Do check out:
+  https://docs.agntcy.org/identity/identity/#well-known-identifiers
+  https://github.com/agntcy/identity
+  https://github.com/agntcy/identity-service/
+key_claims:
+  - Cisco has implemented "Agent Identity Badge" concept
+  - It may align with AAIF's proposed "Passport" concept
+  - AGNTCY is a Linux Foundation project (not just Cisco anymore)
+  - Suggests building on existing AGNTCY work to accelerate
+entities_mentioned:
+  - agntcy
+  - agntcy-identity
+  - agent-identity-badge
+  - agent-passport
+  - aaif
+  - cisco

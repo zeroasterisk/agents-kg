@@ -1,0 +1,35 @@
+# Relationships between entities
+# Format: subject → predicate → object
+
+relations:
+  - subject: cisco
+    predicate: created
+    object: agntcy
+    note: Via Outshift R&D arm
+
+  - subject: agntcy
+    predicate: donated_to
+    object: linux-foundation
+    date: "2025-07-29"
+
+  - subject: agntcy-identity
+    predicate: part_of
+    object: agntcy
+
+  - subject: agent-identity-badge
+    predicate: defined_by
+    object: agntcy-identity
+
+  - subject: agent-identity-badge
+    predicate: potentially_aligned_with
+    object: agent-passport
+    note: Cisco proposed alignment in AAIF working group discussion
+
+  - subject: agntcy-identity
+    predicate: references
+    object: a2a
+    note: Uses A2A Agent Cards as well-known identifier convention
+
+  - subject: agent-passport
+    predicate: proposed_in
+    object: aaif

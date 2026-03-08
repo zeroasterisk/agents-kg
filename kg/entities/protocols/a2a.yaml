@@ -1,0 +1,17 @@
+id: a2a
+type: protocol
+name: Agent-to-Agent Protocol (A2A)
+description: Google's protocol for agent interoperability. Defines Agent Cards for discovery at well-known paths, task-based communication via JSON-RPC.
+url: https://a2a-protocol.org
+metadata:
+  creator: google
+  repo: https://github.com/a2aproject/A2A
+  key_concepts:
+    - Agent Card (/.well-known/agent.json)
+    - Task-based communication
+    - JSON-RPC transport
+  referenced_by:
+    - agntcy-identity  # Uses A2A Agent Cards as well-known identifier convention
+tags: [protocol, interoperability, google, agent-cards, discovery]
+created: 2026-03-08
+updated: 2026-03-08

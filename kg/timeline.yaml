@@ -1,0 +1,25 @@
+# Timeline of events in the agentic web ecosystem
+
+events:
+  - date: "2025-07-29"
+    type: donation
+    title: AGNTCY donated to Linux Foundation
+    actors: [cisco, linux-foundation]
+    description: Cisco donates AGNTCY project to Linux Foundation. 75+ companies involved.
+    source: https://www.linuxfoundation.org/press/linux-foundation-welcomes-the-agntcy-project
+
+  - date: "2026-03-08"
+    type: discussion
+    title: Cisco proposes Agent Identity Badge alignment with AAIF Passport
+    actors: [cisco, aaif, agntcy]
+    context: AAIF working group post
+    description: |
+      Cisco representative posted in AAIF working group, noting that their
+      "Agent Identity Badge" concept may align with the proposed "Passport"
+      concept within AGNTCY (Linux Foundation project). Suggested building
+      on existing work to accelerate progress.
+    references:
+      - https://docs.agntcy.org/identity/identity/#well-known-identifiers
+      - https://github.com/agntcy/identity
+      - https://github.com/agntcy/identity-service
+    source: AAIF working group post (Cisco representative, addressed to "Dom")

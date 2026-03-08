@@ -1,0 +1,43 @@
+id: agntcy-identity
+type: project
+name: AGNTCY Identity
+description: |
+  Secure, verifiable agent identity system. Assigns universally unique IDs backed by
+  Verifiable Credentials (VCs). Supports BYOID via IdPs (Okta, Entra, Auth0, Google)
+  and well-known identifiers (A2A Agent Cards). Also supports W3C DIDs.
+url: https://github.com/agntcy/identity
+metadata:
+  docs: https://spec.identity.agntcy.org
+  concepts_docs: https://docs.agntcy.org/identity/identity/
+  parent_project: agntcy
+  language: Go
+  components:
+    - name: Issuer CLI
+      description: Manage identities, vaults, credentials via CLI
+    - name: Node Backend
+      description: Backend server for identity management and metadata
+    - name: Identity Service
+      url: https://github.com/agntcy/identity-service
+  key_concepts:
+    agent_identity_structure:
+      - id: Universally unique identifier per agent
+      - resolver_metadata: "1:1 linked to ID, enables automated resolution and verification"
+      - agent_badge: "1:n linked to ID, contains Verifiable Credentials"
+    identity_assignment:
+      conventions:
+        - IdP accounts (Okta, Microsoft AD, Entra ID, Duo, Ping, Auth0, Google)
+        - Well-known identifiers (A2A protocol Agent Cards at /.well-known/agent.json)
+      standards:
+        - W3C Decentralized Identifiers (DIDs)
+        - W3C Verifiable Credentials (VCs)
+    applies_to:
+      - Agents
+      - MCP Servers
+      - Multi-Agent Systems (MASs)
+  properties:
+    - Open (no centralized authority)
+    - Collision-free (universally unique)
+    - Verifiable (backed by VCs)
+tags: [identity, verifiable-credentials, DIDs, authentication, agent-cards, A2A]
+created: 2026-03-08
+updated: 2026-03-08

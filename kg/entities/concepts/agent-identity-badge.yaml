@@ -1,0 +1,26 @@
+id: agent-identity-badge
+type: concept
+name: Agent Identity Badge
+description: |
+  A Verifiable Credential (VC) linked to an agent's unique identifier.
+  Contains the agent's ID, schema definition (e.g. OASF), and metadata
+  for authentication, MFA, and locators. Agents use badges for secure
+  presentation, verification, and trust across multi-agent systems.
+  One agent can have multiple badges for task-specific access.
+metadata:
+  proposed_by: cisco
+  project: agntcy-identity
+  related_concepts:
+    - agent-passport  # AAIF concept, potentially aligned
+    - verifiable-credentials
+    - agent-card
+  standard: W3C Verifiable Credentials Data Model 2.0
+  contents:
+    - Agent ID
+    - Schema definition (OASF)
+    - Authentication metadata
+    - Locators
+    - MFA configuration
+tags: [identity, trust, verifiable-credentials, authentication]
+created: 2026-03-08
+updated: 2026-03-08

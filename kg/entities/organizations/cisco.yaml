@@ -1,0 +1,11 @@
+id: cisco
+type: organization
+name: Cisco
+description: Networking/infrastructure company. Created AGNTCY via Outshift R&D arm, donated to Linux Foundation.
+url: https://cisco.com
+metadata:
+  division: Outshift (R&D)
+  role_in_agentic: Creator and donor of AGNTCY project
+tags: [infrastructure, networking, agent-identity]
+created: 2026-03-08
+updated: 2026-03-08

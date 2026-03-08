@@ -1,0 +1,14 @@
+id: agent-passport
+type: concept
+name: Agent Passport
+description: |
+  Proposed concept within AAIF for portable agent identity/credentials.
+  Potentially aligned with AGNTCY's Agent Identity Badge concept.
+  Details TBD — mentioned in AAIF working group discussions.
+metadata:
+  proposed_in: aaif
+  potentially_aligned_with: agent-identity-badge
+  status: proposed/discussed
+tags: [identity, trust, portable-credentials, aaif]
+created: 2026-03-08
+updated: 2026-03-08
