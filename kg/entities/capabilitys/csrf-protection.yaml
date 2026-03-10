@@ -1,0 +1,5 @@
+aliases: []
+description: Protection against Cross-Site Request Forgery attacks
+id: capability:csrf-protection
+name: CSRF protection
+type: Capability

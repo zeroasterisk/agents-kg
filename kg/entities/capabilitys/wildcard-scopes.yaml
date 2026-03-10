@@ -1,0 +1,8 @@
+aliases:
+- '*'
+- all
+- full-access
+description: Using wildcard or omnibus scopes (*, all, full-access)
+id: capability:wildcard-scopes
+name: Wildcard scopes
+type: Capability

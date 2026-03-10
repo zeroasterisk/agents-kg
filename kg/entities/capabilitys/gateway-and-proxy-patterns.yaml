@@ -1,0 +1,6 @@
+aliases: []
+description: Well-defined behavior when a client does not connect directly to a server
+  but routes through an intermediary.
+id: capability:gateway-and-proxy-patterns
+name: Gateway and proxy patterns
+type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- SSRF
+description: An attack where an attacker can induce an MCP client to make HTTP requests
+  to unintended destinations
+id: capability:server-side-request-forgery
+name: Server-Side Request Forgery
+type: Capability

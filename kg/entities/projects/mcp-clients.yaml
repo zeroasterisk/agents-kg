@@ -1,0 +1,6 @@
+aliases: []
+description: Clients interacting with the MCP Server
+id: project:mcp-clients
+kind: client
+name: MCP Clients
+type: Project

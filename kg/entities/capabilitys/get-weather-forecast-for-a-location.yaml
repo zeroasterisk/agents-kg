@@ -1,0 +1,5 @@
+aliases: []
+description: Get weather forecast for a location
+id: capability:get-weather-forecast-for-a-location
+name: get_forecast
+type: Capability

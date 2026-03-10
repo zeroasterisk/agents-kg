@@ -1,0 +1,6 @@
+aliases: []
+description: Error messages reveal information about internal network topology and
+  services
+id: capability:internal-network-reconnaissance
+name: Internal network reconnaissance
+type: Capability

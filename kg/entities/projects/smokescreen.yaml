@@ -1,0 +1,6 @@
+aliases: []
+description: Egress proxy that prevents SSRF by design
+id: project:smokescreen
+kind: tool
+name: Smokescreen
+type: Project

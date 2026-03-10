@@ -1,0 +1,6 @@
+aliases: []
+description: Working group owning the Server Card format and its distribution
+id: group:server-card-wg
+kind: wg
+name: Server Card WG
+type: Group

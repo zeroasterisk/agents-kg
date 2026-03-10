@@ -40,19 +40,23 @@ def cli():
 @cli.command()
 @click.argument("url", required=False)
 @click.option("--from", "from_file", type=click.Path(exists=True), help="File with one URL per line")
-def ingest(url, from_file):
+@click.option("--file", "local_file", type=click.Path(exists=True), help="Local file (PDF, markdown, text)")
+def ingest(url, from_file, local_file):
     """Add source(s) to the ingestion queue."""
     db = get_db()
     urls = []
 
     if url:
         urls.append(url)
+    if local_file:
+        import os
+        urls.append(os.path.abspath(local_file))
     if from_file:
         with open(from_file) as f:
             urls.extend(line.strip() for line in f if line.strip() and not line.startswith("#"))
 
     if not urls:
-        click.echo("Error: provide a URL or --from file", err=True)
+        click.echo("Error: provide a URL, --file, or --from file", err=True)
         sys.exit(1)
 
     added = 0
@@ -81,10 +85,11 @@ def process():
         try:
             from neo4j import GraphDatabase
             neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
-            neo4j_driver.verify_connectivity()
+            neo4j_driver.verify_connectivity(timeout=5)
             click.echo(f"Connected to Neo4j at {neo4j_uri}")
         except Exception as e:
             click.echo(f"Neo4j not available ({e}), will export YAML only")
+            neo4j_driver = None
 
     click.echo("Processing pipeline...")
     try:

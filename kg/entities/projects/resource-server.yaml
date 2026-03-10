@@ -1,0 +1,6 @@
+aliases: []
+description: Downstream Resource Server
+id: project:resource-server
+kind: server
+name: Resource Server
+type: Project

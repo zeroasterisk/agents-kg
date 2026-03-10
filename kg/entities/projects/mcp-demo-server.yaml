@@ -1,0 +1,6 @@
+aliases: []
+description: A demo server for MCP
+id: project:mcp-demo-server
+kind: tool
+name: MCP Demo Server
+type: Project

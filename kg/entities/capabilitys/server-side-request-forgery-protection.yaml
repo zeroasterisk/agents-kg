@@ -1,0 +1,6 @@
+aliases:
+- SSRF
+description: Protection against Server-Side Request Forgery (SSRF) attacks
+id: capability:server-side-request-forgery-protection
+name: Server-Side Request Forgery Protection
+type: Capability

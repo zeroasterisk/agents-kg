@@ -1,0 +1,6 @@
+aliases: []
+description: Defines the communication mechanisms and channels that enable data exchange
+  between clients and servers
+id: capability:transport-layer
+name: Transport layer
+type: Capability

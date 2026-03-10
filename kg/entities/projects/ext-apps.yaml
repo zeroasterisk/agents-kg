@@ -1,0 +1,5 @@
+aliases: []
+description: Extension mechanism
+id: project:ext-apps
+name: ext-apps
+type: Project

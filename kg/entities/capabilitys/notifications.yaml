@@ -1,0 +1,6 @@
+aliases: []
+description: The protocol supports real-time notifications to enable dynamic updates
+  between servers and clients.
+id: capability:notifications
+name: Notifications
+type: Capability

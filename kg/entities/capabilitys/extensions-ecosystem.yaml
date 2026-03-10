@@ -1,0 +1,6 @@
+aliases: []
+description: Maturing ext-auth and ext-apps tracks, investigating a Skills primitive
+  for composed capabilities, and adding first-class extension support to the registry
+id: capability:extensions-ecosystem
+name: Extensions Ecosystem
+type: Capability

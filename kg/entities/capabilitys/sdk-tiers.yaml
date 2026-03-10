@@ -1,0 +1,5 @@
+aliases: []
+description: Tiering system introduced in SEP-1730
+id: capability:sdk-tiers
+name: SDK Tiers
+type: Capability

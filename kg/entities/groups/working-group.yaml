@@ -1,0 +1,6 @@
+aliases: []
+description: A group working on the Model Context Protocol.
+id: group:working-group
+kind: wg
+name: Working Group
+type: Group

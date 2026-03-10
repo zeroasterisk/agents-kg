@@ -1,0 +1,6 @@
+aliases: []
+description: Framework for building agents
+id: project:beeai
+kind: framework
+name: BeeAI
+type: Project

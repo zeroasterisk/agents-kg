@@ -1,0 +1,6 @@
+aliases: []
+description: Organization under which MCP operates
+id: organization:linux-foundation
+kind: foundation
+name: Linux Foundation
+type: Organization

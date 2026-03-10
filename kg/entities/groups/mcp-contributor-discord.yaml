@@ -1,0 +1,6 @@
+aliases: []
+description: Discord channel for MCP contributors
+id: group:mcp-contributor-discord
+kind: tsc
+name: MCP Contributor Discord
+type: Group

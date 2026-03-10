@@ -1,0 +1,7 @@
+aliases: []
+description: Enables servers to provide core functionality including tools for AI
+  actions, resources for context data, and prompts for interaction templates from
+  and to the client
+id: capability:server-features
+name: Server features
+type: Capability

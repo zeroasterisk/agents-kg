@@ -1,0 +1,6 @@
+aliases: []
+description: An authentication layer on top of OAuth 2.0
+id: protocol:openid-connect
+kind: standard
+name: OpenID Connect
+type: Protocol

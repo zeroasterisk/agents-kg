@@ -1,0 +1,6 @@
+aliases: []
+description: A tool related to Model Context Protocol
+id: project:mcp-inspector
+kind: tool
+name: MCP Inspector
+type: Project

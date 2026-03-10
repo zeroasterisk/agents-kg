@@ -1,0 +1,6 @@
+aliases: []
+description: For cloning repositories and submitting changes
+id: project:git
+kind: tool
+name: Git
+type: Project

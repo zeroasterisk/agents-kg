@@ -1,0 +1,6 @@
+aliases: []
+description: A tool to execute packages
+id: project:npx
+kind: tool
+name: npx
+type: Project

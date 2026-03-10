@@ -1,0 +1,5 @@
+aliases: []
+description: Mechanism for clients to understand what tools are available on the server
+id: capability:tool-discovery
+name: Tool Discovery
+type: Capability

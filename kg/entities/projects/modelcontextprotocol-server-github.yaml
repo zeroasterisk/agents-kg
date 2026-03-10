@@ -1,0 +1,6 @@
+aliases: []
+description: Github server for Model Context Protocol
+id: project:modelcontextprotocol-server-github
+kind: library
+name: '@modelcontextprotocol/server-github'
+type: Project

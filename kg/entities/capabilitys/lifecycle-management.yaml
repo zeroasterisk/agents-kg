@@ -1,0 +1,6 @@
+aliases: []
+description: Handles connection initialization, capability negotiation, and connection
+  termination between clients and servers
+id: capability:lifecycle-management
+name: Lifecycle management
+type: Capability

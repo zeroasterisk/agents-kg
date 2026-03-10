@@ -1,0 +1,5 @@
+aliases: []
+description: Validation of the redirect URI in authorization requests
+id: capability:redirect-uri-validation
+name: Redirect URI Validation
+type: Capability

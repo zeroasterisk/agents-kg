@@ -1,0 +1,6 @@
+aliases: []
+description: Durable execution wrappers that enable deferred result retrieval and
+  status tracking for MCP requests.
+id: capability:tasks
+name: Tasks
+type: Capability

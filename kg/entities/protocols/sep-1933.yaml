@@ -1,0 +1,7 @@
+aliases:
+- Workload Identity Federation
+description: Workload Identity Federation
+id: protocol:sep-1933
+kind: spec
+name: SEP-1933
+type: Protocol

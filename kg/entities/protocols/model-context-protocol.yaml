@@ -1,0 +1,7 @@
+aliases:
+- MCP
+description: A protocol for client-server communication
+id: project:model-context-protocol
+kind: spec
+name: Model Context Protocol
+type: Protocol

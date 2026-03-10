@@ -1,0 +1,5 @@
+aliases: []
+description: Begin with only baseline scopes (or those specified by initial WWW-Authenticate)
+id: capability:baseline-scopes
+name: Baseline scopes
+type: Capability

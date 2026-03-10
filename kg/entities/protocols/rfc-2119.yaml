@@ -1,0 +1,6 @@
+aliases: []
+description: Keywords for use in RFCs to Indicate Requirement Levels
+id: protocol:rfc-2119
+kind: rfc
+name: RFC 2119
+type: Protocol

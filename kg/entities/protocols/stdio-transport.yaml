@@ -1,0 +1,8 @@
+aliases: []
+description: Uses standard input/output streams for direct process communication between
+  local processes on the same machine, providing optimal performance with no network
+  overhead.
+id: protocol:stdio-transport
+kind: spec
+name: Stdio transport
+type: Protocol

@@ -1,0 +1,6 @@
+aliases: []
+description: Software Development Kit
+id: project:sdk
+kind: sdk
+name: SDK
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: MCP’s tool discovery mechanism
+id: project:mcp
+kind: platform
+name: MCP
+type: Project

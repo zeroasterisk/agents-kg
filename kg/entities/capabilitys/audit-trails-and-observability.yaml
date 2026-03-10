@@ -1,0 +1,6 @@
+aliases: []
+description: End-to-end visibility into what a client requested and what a server
+  did, in a form enterprises can feed into their existing logging and compliance pipelines.
+id: capability:audit-trails-and-observability
+name: Audit trails and observability
+type: Capability

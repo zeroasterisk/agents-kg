@@ -1,0 +1,6 @@
+aliases: []
+description: A program that provides context to MCP clients
+id: project:mcp-server
+kind: platform
+name: MCP Server
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: Framework for building agents
+id: project:google-adk
+kind: framework
+name: Google ADK
+type: Project

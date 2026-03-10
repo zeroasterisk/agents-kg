@@ -1,0 +1,6 @@
+aliases: []
+description: Memory server for Model Context Protocol
+id: project:modelcontextprotocol-server-memory
+kind: library
+name: '@modelcontextprotocol/server-memory'
+type: Project

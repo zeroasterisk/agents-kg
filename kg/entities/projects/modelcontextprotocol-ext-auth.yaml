@@ -1,0 +1,7 @@
+aliases: []
+description: Extensions for supplementary authorization mechanisms beyond the core
+  specification.
+id: project:modelcontextprotocol-ext-auth
+kind: library
+name: modelcontextprotocol/ext-auth
+type: Project

@@ -1,0 +1,5 @@
+aliases: []
+description: Returning entire scope catalog in every challenge
+id: capability:scope-catalog
+name: Scope catalog
+type: Capability

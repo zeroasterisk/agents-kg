@@ -1,0 +1,6 @@
+aliases: []
+description: Add two numbers together
+id: project:addition-tool
+kind: tool
+name: Addition Tool
+type: Project

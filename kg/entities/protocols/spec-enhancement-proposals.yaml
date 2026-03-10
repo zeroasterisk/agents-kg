@@ -1,0 +1,7 @@
+aliases:
+- SEPs
+description: SEPs
+id: protocol:spec-enhancement-proposals
+kind: rfc
+name: Spec Enhancement Proposals
+type: Protocol

@@ -1,0 +1,6 @@
+aliases: []
+description: The ability for MCP clients to dynamically register and each get their
+  own client_id.
+id: capability:dynamic-client-registration
+name: dynamic client registration
+type: Capability

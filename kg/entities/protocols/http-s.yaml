@@ -1,0 +1,6 @@
+aliases: []
+description: Standardized Communication
+id: protocol:http-s
+kind: standard
+name: HTTP(S)
+type: Protocol

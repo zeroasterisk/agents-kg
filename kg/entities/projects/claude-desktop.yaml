@@ -1,0 +1,6 @@
+aliases: []
+description: An AI application.
+id: project:claude-desktop
+kind: platform
+name: Claude Desktop
+type: Project

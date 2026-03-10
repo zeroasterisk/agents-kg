@@ -1,0 +1,6 @@
+aliases: []
+description: Filesystem server implementation for Model Context Protocol
+id: project:modelcontextprotocol-server-filesystem
+kind: library
+name: '@modelcontextprotocol/server-filesystem'
+type: Project

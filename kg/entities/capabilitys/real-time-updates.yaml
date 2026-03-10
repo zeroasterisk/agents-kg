@@ -1,0 +1,5 @@
+aliases: []
+description: Notifications for real-time updates
+id: capability:real-time-updates
+name: real-time updates
+type: Capability

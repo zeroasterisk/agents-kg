@@ -1,0 +1,6 @@
+aliases: []
+description: JSON schema for validation
+id: project:json-schema
+kind: tool
+name: JSON schema
+type: Project

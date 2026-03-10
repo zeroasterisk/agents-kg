@@ -1,0 +1,6 @@
+aliases: []
+description: Log elevation events (scope requested, granted subset) with correlation
+  IDs
+id: capability:elevation-events
+name: Elevation events
+type: Capability

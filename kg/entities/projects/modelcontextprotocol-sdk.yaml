@@ -1,0 +1,6 @@
+aliases: []
+description: A software development kit
+id: project:modelcontextprotocol-sdk
+kind: sdk
+name: '@modelcontextprotocol/sdk'
+type: Project

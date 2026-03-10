@@ -1,0 +1,5 @@
+aliases: []
+description: The MCP client acts as a proxy, bypassing network perimeter controls
+id: capability:firewall-bypass
+name: Firewall bypass
+type: Capability

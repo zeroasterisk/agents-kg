@@ -1,0 +1,6 @@
+aliases: []
+description: A tool for transferring data with URLs
+id: project:curl
+kind: tool
+name: curl
+type: Project

@@ -1,0 +1,7 @@
+aliases:
+- Specification Enhancement Proposal
+description: Specification Enhancement Proposal
+id: protocol:sep
+kind: standard
+name: SEP
+type: Protocol

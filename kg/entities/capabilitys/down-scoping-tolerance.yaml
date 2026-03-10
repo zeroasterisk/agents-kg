@@ -1,0 +1,6 @@
+aliases: []
+description: Server should accept reduced scope tokens; auth server MAY issue a subset
+  of requested scopes
+id: capability:down-scoping-tolerance
+name: Down-scoping tolerance
+type: Capability

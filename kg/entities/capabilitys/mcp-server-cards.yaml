@@ -1,0 +1,7 @@
+aliases: []
+description: A standard for exposing structured server metadata via a .well-known
+  URL, so browsers, crawlers, and registries can discover a server’s capabilities
+  without connecting to it.
+id: capability:mcp-server-cards
+name: MCP Server Cards
+type: Capability

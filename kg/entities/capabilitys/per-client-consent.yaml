@@ -1,0 +1,5 @@
+aliases: []
+description: Mechanism to obtain consent from the user for each client.
+id: capability:per-client-consent
+name: Per-Client Consent
+type: Capability

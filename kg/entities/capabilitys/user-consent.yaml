@@ -1,0 +1,5 @@
+aliases: []
+description: Explicit consent from the user before forwarding to third-party authorization.
+id: capability:user-consent
+name: user consent
+type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: Define how sessions are created, resumed, and migrated so that server
+  restarts and scale-out events are transparent to connected clients.
+id: capability:scalable-session-handling
+name: Scalable session handling
+type: Capability

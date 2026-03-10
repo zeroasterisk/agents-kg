@@ -1,0 +1,6 @@
+aliases: []
+description: TypeScript definitions for Node.js
+id: project:types-node
+kind: library
+name: '@types/node'
+type: Project

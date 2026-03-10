@@ -1,0 +1,6 @@
+aliases: []
+description: Working group channel
+id: group:auth-wg
+kind: wg
+name: '#auth-wg'
+type: Group

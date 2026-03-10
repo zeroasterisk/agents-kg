@@ -1,0 +1,8 @@
+aliases: []
+description: An open standard for access delegation, commonly used as a way for Internet
+  users to grant websites or applications access to their information on other websites
+  but without giving them the passwords
+id: protocol:oauth
+kind: spec
+name: OAuth
+type: Protocol

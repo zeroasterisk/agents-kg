@@ -12,6 +12,7 @@ dependencies = [
     "readability-lxml>=0.8",
     "lxml-html-clean>=0.4",
     "prefect>=3.6.21",
+    "pymupdf>=1.27.2",
 ]
 
 [project.scripts]

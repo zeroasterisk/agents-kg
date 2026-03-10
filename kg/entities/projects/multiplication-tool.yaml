@@ -1,0 +1,6 @@
+aliases: []
+description: Multiply two numbers together
+id: project:multiplication-tool
+kind: tool
+name: Multiplication Tool
+type: Project

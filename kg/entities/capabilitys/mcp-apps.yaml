@@ -1,0 +1,6 @@
+aliases: []
+description: Allows MCP Servers to display interactive UI elements (charts, forms,
+  video players) inline within conversations
+id: capability:mcp-apps
+name: MCP Apps
+type: Capability

@@ -1,0 +1,7 @@
+aliases: []
+description: Finer-grained least-privilege scopes, clearer guidance on avoiding OAuth
+  mix-up attacks, secure credential management on both client and server, and a community-driven
+  vulnerability disclosure program
+id: capability:security-authorization
+name: Security & Authorization
+type: Capability

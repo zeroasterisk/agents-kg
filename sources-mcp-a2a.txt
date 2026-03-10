@@ -1,0 +1,27 @@
+# MCP Documentation Sources
+https://modelcontextprotocol.io/docs/getting-started/intro
+https://modelcontextprotocol.io/docs/learn/architecture
+https://modelcontextprotocol.io/docs/learn/client-concepts
+https://modelcontextprotocol.io/docs/learn/server-concepts
+https://modelcontextprotocol.io/docs/develop/build-client
+https://modelcontextprotocol.io/docs/develop/build-server
+https://modelcontextprotocol.io/docs/develop/connect-local-servers
+https://modelcontextprotocol.io/docs/develop/connect-remote-servers
+https://modelcontextprotocol.io/docs/sdk
+https://modelcontextprotocol.io/docs/tools/inspector
+https://modelcontextprotocol.io/docs/tutorials/security/authorization
+https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices
+https://modelcontextprotocol.io/community/design-principles
+https://modelcontextprotocol.io/community/governance
+https://modelcontextprotocol.io/community/contributing
+https://modelcontextprotocol.io/extensions/overview
+https://modelcontextprotocol.io/extensions/apps/overview
+https://modelcontextprotocol.io/extensions/auth/overview
+https://modelcontextprotocol.io/clients
+https://modelcontextprotocol.io/examples
+https://modelcontextprotocol.io/development/roadmap
+# A2A Documentation Sources
+https://github.com/a2aproject/A2A
+https://github.com/a2aproject/A2A/blob/main/specification/json/a2a.json
+https://a2aprotocol.ai
+https://a2aprotocol.ai/blog

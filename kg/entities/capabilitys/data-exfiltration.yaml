@@ -1,0 +1,6 @@
+aliases: []
+description: Internal service responses may be reflected back to attackers through
+  error messages or OAuth flows
+id: capability:data-exfiltration
+name: Data exfiltration
+type: Capability

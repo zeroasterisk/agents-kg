@@ -1,0 +1,5 @@
+aliases: []
+description: Client advertised capabilities
+id: capability:client-capabilities
+name: Client Capabilities
+type: Capability

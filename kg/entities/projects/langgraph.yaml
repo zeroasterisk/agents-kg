@@ -1,0 +1,6 @@
+aliases: []
+description: Framework for building agents
+id: project:langgraph
+kind: framework
+name: LangGraph
+type: Project

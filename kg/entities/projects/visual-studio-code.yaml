@@ -1,0 +1,6 @@
+aliases: []
+description: An MCP host
+id: project:visual-studio-code
+kind: tool
+name: Visual Studio Code
+type: Project

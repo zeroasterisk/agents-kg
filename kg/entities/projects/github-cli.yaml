@@ -1,0 +1,7 @@
+aliases:
+- CLI
+description: GitHub Command Line Interface
+id: project:github-cli
+kind: tool
+name: GitHub CLI
+type: Project

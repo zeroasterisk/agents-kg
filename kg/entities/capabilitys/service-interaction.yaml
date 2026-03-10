@@ -1,0 +1,6 @@
+aliases: []
+description: POST requests (e.g., to token endpoints) can trigger mutations on internal
+  services
+id: capability:service-interaction
+name: Service interaction
+type: Capability

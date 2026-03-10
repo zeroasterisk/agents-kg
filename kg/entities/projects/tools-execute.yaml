@@ -1,0 +1,6 @@
+aliases: []
+description: A new RPC method
+id: project:tools-execute
+kind: tool
+name: tools/execute
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: authorization specification
+id: protocol:authorization-specification
+kind: spec
+name: authorization specification
+type: Protocol

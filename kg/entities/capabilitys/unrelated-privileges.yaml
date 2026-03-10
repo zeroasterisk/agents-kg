@@ -1,0 +1,5 @@
+aliases: []
+description: Bundling unrelated privileges to preempt future prompts
+id: capability:unrelated-privileges
+name: Unrelated privileges
+type: Capability

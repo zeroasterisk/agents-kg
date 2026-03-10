@@ -50,30 +50,39 @@ def _on_stage_failure(task, task_run, state):
     on_failure=[_on_stage_failure],
     persist_result=True,
 )
-def run_fetch(db: Database, source: dict) -> bool:
+def run_fetch(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
     log = get_run_logger()
     log.info("Fetching source %d: %s", source["id"], source["uri"])
-    return fetch.run(db, source)
+    res = fetch.run(db, source)
+    db.close()
+    return res
 
 
 @task(
     name="parse",
     on_failure=[_on_stage_failure],
 )
-def run_parse(db: Database, source: dict) -> bool:
+def run_parse(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
     log = get_run_logger()
     log.info("Parsing source %d", source["id"])
-    return parse.run(db, source)
+    res = parse.run(db, source)
+    db.close()
+    return res
 
 
 @task(
     name="chunk",
     on_failure=[_on_stage_failure],
 )
-def run_chunk(db: Database, source: dict) -> bool:
+def run_chunk(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
     log = get_run_logger()
     log.info("Chunking source %d", source["id"])
-    return chunk.run(db, source)
+    res = chunk.run(db, source)
+    db.close()
+    return res
 
 
 @task(
@@ -84,10 +93,13 @@ def run_chunk(db: Database, source: dict) -> bool:
     on_failure=[_on_stage_failure],
     persist_result=True,
 )
-def run_embed(db: Database, source: dict) -> bool:
+def run_embed(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
     log = get_run_logger()
     log.info("Embedding source %d", source["id"])
-    return embed.run(db, source)
+    res = embed.run(db, source)
+    db.close()
+    return res
 
 
 @task(
@@ -98,10 +110,13 @@ def run_embed(db: Database, source: dict) -> bool:
     on_failure=[_on_stage_failure],
     persist_result=True,
 )
-def run_extract(db: Database, source: dict) -> bool:
+def run_extract(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
     log = get_run_logger()
     log.info("Extracting entities from source %d", source["id"])
-    return extract.run(db, source)
+    res = extract.run(db, source)
+    db.close()
+    return res
 
 
 @task(
@@ -109,10 +124,13 @@ def run_extract(db: Database, source: dict) -> bool:
     on_failure=[_on_stage_failure],
     persist_result=True,
 )
-def run_load(db: Database, source: dict, neo4j_driver=None) -> bool:
+def run_load(db_path: str, source: dict, neo4j_driver=None) -> bool:
+    db = Database(db_path)
     log = get_run_logger()
     log.info("Loading source %d to graph", source["id"])
-    return load.run(db, source, neo4j_driver=neo4j_driver)
+    res = load.run(db, source, neo4j_driver=neo4j_driver)
+    db.close()
+    return res
 
 
 TASK_MAP = {
@@ -131,8 +149,9 @@ STAGE_ORDER = ["fetch", "parse", "chunk", "embed", "extract", "review", "load"]
 # Source extraction summary (artifact helper)
 # ---------------------------------------------------------------------------
 
-def _source_artifact(db: Database, source_id: int, source_uri: str):
+def _source_artifact(db_path: str, source_id: int, source_uri: str):
     """Create a markdown artifact summarizing what was extracted from a source."""
+    db = Database(db_path)
     entities = db.conn.execute(
         "SELECT entity_id, name, type, kind FROM entities WHERE source_id = ?", (source_id,)
     ).fetchall()
@@ -158,6 +177,8 @@ def _source_artifact(db: Database, source_id: int, source_uri: str):
     if not entities and not edges:
         lines.append("*No entities or edges extracted.*")
 
+    db.close()
+
     try:
         create_markdown_artifact(
             key=f"source-{source_id}-extraction",
@@ -174,7 +195,7 @@ def _source_artifact(db: Database, source_id: int, source_uri: str):
 
 @flow(name="process-source", log_prints=True)
 def process_source(
-    db: Database,
+    db_path: str,
     source_id: int,
     source_uri: str,
     neo4j_driver=None,
@@ -187,7 +208,10 @@ def process_source(
     result = {"stages_completed": 0, "failed": False}
 
     while True:
+        db = Database(db_path)
         source = db.get_source(source_id)
+        db.close()
+
         if not source:
             log.warning("Source %d not found", source_id)
             result["failed"] = True
@@ -209,9 +233,9 @@ def process_source(
 
         try:
             if stage == "load":
-                made_progress = task_fn(db, source, neo4j_driver=neo4j_driver)
+                made_progress = task_fn(db_path, source, neo4j_driver=neo4j_driver)
             else:
-                made_progress = task_fn(db, source)
+                made_progress = task_fn(db_path, source)
 
             if made_progress:
                 result["stages_completed"] += 1
@@ -219,12 +243,14 @@ def process_source(
                 break
         except Exception as e:
             log.error("Stage %s failed for source %d: %s", stage, source_id, e)
+            db = Database(db_path)
             db.fail_source(source_id, f"[{stage}] {e}")
+            db.close()
             result["failed"] = True
             break
 
     # Create extraction artifact
-    _source_artifact(db, source_id, source_uri)
+    _source_artifact(db_path, source_id, source_uri)
 
     return result
 
@@ -241,6 +267,7 @@ def process_all(
     """Process all pending sources. Returns summary stats."""
     log = get_run_logger()
     sources = db.get_pending_sources()
+    db_path = db.path
 
     stats = {"processed": 0, "failed": 0, "skipped": 0, "sources": len(sources)}
     log.info("Found %d pending sources", len(sources))
@@ -248,7 +275,7 @@ def process_all(
     for source in sources:
         log.info("Starting source %d: %s", source["id"], source["uri"][:80])
         result = process_source(
-            db=db,
+            db_path=db_path,
             source_id=source["id"],
             source_uri=source["uri"],
             neo4j_driver=neo4j_driver,

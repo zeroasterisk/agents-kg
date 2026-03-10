@@ -1,0 +1,7 @@
+aliases: []
+description: Data sources that provide contextual information to AI applications (e.g.,
+  file contents, database records, API responses)
+id: project:resources
+kind: tool
+name: Resources
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: Stateful HTTP server that handles MCP requests.
+id: project:server-b
+kind: tool
+name: Server B
+type: Project

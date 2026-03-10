@@ -1,0 +1,6 @@
+aliases: []
+description: A tool related to modelcontextprotocol.
+id: project:modelcontextprotocol-inspector
+kind: tool
+name: '@modelcontextprotocol/inspector'
+type: Project

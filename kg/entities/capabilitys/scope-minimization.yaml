@@ -1,0 +1,6 @@
+aliases: []
+description: Poor scope design increases token compromise impact, elevates user friction,
+  and obscures audit trails.
+id: capability:scope-minimization
+name: Scope Minimization
+type: Capability

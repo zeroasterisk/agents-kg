@@ -1,0 +1,7 @@
+aliases:
+- Model Context Protocol
+description: Model Context Protocol
+id: protocol:mcp
+kind: spec
+name: MCP
+type: Protocol

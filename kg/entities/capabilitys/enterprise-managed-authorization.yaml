@@ -1,0 +1,5 @@
+aliases: []
+description: Framework for enterprise environments requiring centralized access control.
+id: capability:enterprise-managed-authorization
+name: Enterprise-Managed Authorization
+type: Capability

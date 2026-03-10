@@ -1,0 +1,6 @@
+aliases: []
+description: A based exchange protocol that defines the message structure and semantics
+id: protocol:json-rpc-2.0
+kind: spec
+name: JSON-RPC 2.0
+type: Protocol

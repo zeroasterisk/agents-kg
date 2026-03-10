@@ -1,0 +1,6 @@
+aliases: []
+description: Runs the Sentry MCP server
+id: organization:sentry
+kind: company
+name: Sentry
+type: Organization

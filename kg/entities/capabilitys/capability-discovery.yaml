@@ -1,0 +1,6 @@
+aliases: []
+description: The capabilities object allows each party to declare what features they
+  support
+id: capability:capability-discovery
+name: Capability Discovery
+type: Capability

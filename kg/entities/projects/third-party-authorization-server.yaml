@@ -1,0 +1,7 @@
+aliases: []
+description: Authorization server that protects the third-party API. It may lack dynamic
+  client registration support, requiring the MCP proxy to use a static client ID for
+  all requests.
+id: project:third-party-authorization-server
+name: Third-Party Authorization Server
+type: Project

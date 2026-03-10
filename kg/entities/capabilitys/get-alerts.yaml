@@ -1,0 +1,5 @@
+aliases: []
+description: Get weather alerts for a state
+id: capability:get-alerts
+name: get_alerts
+type: Capability

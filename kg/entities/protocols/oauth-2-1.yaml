@@ -1,0 +1,6 @@
+aliases: []
+description: OAuth 2.1 standard
+id: protocol:oauth-2-1
+kind: standard
+name: OAuth 2.1
+type: Protocol

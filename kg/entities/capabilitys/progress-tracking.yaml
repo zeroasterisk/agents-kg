@@ -1,0 +1,5 @@
+aliases: []
+description: Progress tracking for long-running operations
+id: capability:progress-tracking
+name: progress tracking
+type: Capability

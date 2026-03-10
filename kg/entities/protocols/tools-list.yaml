@@ -1,0 +1,6 @@
+aliases: []
+description: Request to discover available tools
+id: protocol:tools-list
+kind: rfc
+name: tools/list
+type: Protocol

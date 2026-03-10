@@ -1,0 +1,6 @@
+aliases: []
+description: Language-specific SDK.
+id: project:language-specific-sdk
+kind: sdk
+name: language-specific SDK
+type: Project

@@ -1,0 +1,7 @@
+aliases: []
+description: Recommendations for blocking requests to private and reserved IP address
+  ranges
+id: protocol:rfc-9728
+kind: rfc
+name: RFC 9728
+type: Protocol

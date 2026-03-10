@@ -1,0 +1,6 @@
+aliases: []
+description: An example server
+id: project:example-server
+kind: tool
+name: example-server
+type: Project

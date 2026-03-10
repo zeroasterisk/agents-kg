@@ -1,0 +1,6 @@
+aliases: []
+description: JSON based RPC protocol version 2.0
+id: protocol:json-rpc-2-0
+kind: protocol
+name: JSON-RPC 2.0
+type: Protocol

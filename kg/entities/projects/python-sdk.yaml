@@ -1,0 +1,6 @@
+aliases: []
+description: Python Software Development Kit
+id: project:python-sdk
+kind: sdk
+name: Python SDK
+type: Project

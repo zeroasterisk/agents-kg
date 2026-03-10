@@ -1,0 +1,6 @@
+aliases: []
+description: The source of truth for the protocol
+id: project:typescript-schema
+kind: tool
+name: TypeScript schema
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: Interactive UI applications that render inside MCP hosts
+id: project:mcp-apps
+kind: tool
+name: MCP Apps
+type: Project

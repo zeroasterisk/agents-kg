@@ -1,0 +1,7 @@
+aliases: []
+description: An MCP server that connects MCP clients to third-party APIs, offering
+  MCP features while delegating operations and acting as a single OAuth client to
+  the third-party API server.
+id: project:mcp-proxy-server
+name: MCP Proxy Server
+type: Project

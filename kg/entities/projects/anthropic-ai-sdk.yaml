@@ -1,0 +1,6 @@
+aliases: []
+description: A software development kit
+id: project:anthropic-ai-sdk
+kind: sdk
+name: '@anthropic-ai/sdk'
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: A typed superset of JavaScript that compiles to plain JavaScript.
+id: project:typescript
+kind: tool
+name: typescript
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: Python SDK for MCP
+id: project:mcp-python-sdk
+kind: sdk
+name: MCP Python SDK
+type: Project

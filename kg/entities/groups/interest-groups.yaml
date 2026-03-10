@@ -1,0 +1,6 @@
+aliases: []
+description: A group with shared interests
+id: group:interest-groups
+kind: sig
+name: Interest Groups
+type: Group

@@ -1,0 +1,7 @@
+aliases: []
+description: An anti-pattern where an MCP server accepts tokens from an MCP client
+  without validating that the tokens were properly issued to the MCP server and passes
+  them through to the downstream API.
+id: capability:token-passthrough
+name: Token passthrough
+type: Capability

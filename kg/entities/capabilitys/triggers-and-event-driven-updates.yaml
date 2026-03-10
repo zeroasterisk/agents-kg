@@ -1,0 +1,7 @@
+aliases: []
+description: A standardized callback mechanism (webhooks or similar) would let servers
+  proactively notify clients when new data is available, with defined ordering guarantees
+  across all transports.
+id: capability:triggers-and-event-driven-updates
+name: Triggers and Event-Driven Updates
+type: Capability

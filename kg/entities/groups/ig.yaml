@@ -1,0 +1,6 @@
+aliases: []
+description: Interest Group
+id: group:ig
+kind: sig
+name: IG
+type: Group

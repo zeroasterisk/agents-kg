@@ -1,0 +1,6 @@
+aliases: []
+description: An AI application
+id: project:ai-application
+kind: tool
+name: AI application
+type: Project

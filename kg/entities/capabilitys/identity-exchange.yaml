@@ -1,0 +1,6 @@
+aliases: []
+description: The clientInfo and serverInfo objects provide identification and versioning
+  information for debugging and compatibility purposes.
+id: capability:identity-exchange
+name: Identity Exchange
+type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: A server that runs locally
+id: project:filesystem-server
+kind: tool
+name: filesystem server
+type: Project

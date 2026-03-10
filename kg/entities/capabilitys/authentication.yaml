@@ -1,0 +1,5 @@
+aliases: []
+description: The process of verifying the identity of a user or device.
+id: capability:authentication
+name: Authentication
+type: Capability

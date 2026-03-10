@@ -1,0 +1,8 @@
+aliases:
+- Agent2Agent
+description: Agent2Agent (A2A) is an open protocol enabling communication and interoperability
+  between opaque agentic applications
+id: project:a2a
+kind: protocol
+name: A2A
+type: Project

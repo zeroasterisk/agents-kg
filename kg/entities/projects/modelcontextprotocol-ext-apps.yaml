@@ -1,0 +1,6 @@
+aliases: []
+description: Extensions for interactive UI elements in conversational MCP clients.
+id: project:modelcontextprotocol-ext-apps
+kind: library
+name: modelcontextprotocol/ext-apps
+type: Project

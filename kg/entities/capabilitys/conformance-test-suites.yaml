@@ -1,0 +1,6 @@
+aliases: []
+description: Automated verification that clients, servers, and SDKs correctly implement
+  the specification
+id: capability:conformance-test-suites
+name: Conformance Test Suites
+type: Capability

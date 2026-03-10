@@ -1,0 +1,6 @@
+aliases: []
+description: An MCP server that runs locally
+id: project:local-filesystem-server
+kind: tool
+name: local filesystem server
+type: Project

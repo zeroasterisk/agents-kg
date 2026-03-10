@@ -1,0 +1,7 @@
+aliases:
+- Cross-App Access
+description: Paved paths away from static client secrets and toward SSO-integrated
+  flows, so IT can manage MCP access the same way they manage everything else.
+id: capability:enterprise-managed-auth
+name: Enterprise-managed auth
+type: Capability

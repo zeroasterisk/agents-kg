@@ -1,0 +1,6 @@
+aliases: []
+description: Language model that can access a unified tool registry
+id: project:llm
+kind: library
+name: LLM
+type: Project

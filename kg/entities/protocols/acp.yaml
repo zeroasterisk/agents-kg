@@ -1,0 +1,8 @@
+aliases:
+- Agent Communication Protocol
+description: Agent Communication Protocol for local/edge autonomy in AI multi-agent
+  systems
+id: protocol:acp
+kind: protocol
+name: ACP
+type: Protocol

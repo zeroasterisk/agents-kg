@@ -1,0 +1,6 @@
+aliases: []
+description: The protocolVersion field (e.g., “2025-06-18”) ensures both client and
+  server are using compatible protocol versions.
+id: capability:protocol-version-negotiation
+name: Protocol Version Negotiation
+type: Capability

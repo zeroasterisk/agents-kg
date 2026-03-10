@@ -1,0 +1,5 @@
+aliases: []
+description: A dependency
+id: project:dotenv
+name: dotenv
+type: Project

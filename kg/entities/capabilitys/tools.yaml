@@ -1,0 +1,6 @@
+aliases: []
+description: The server supports the tools primitive AND can send tools/list_changed
+  notifications when its tool list changes
+id: capability:tools
+name: tools
+type: Capability

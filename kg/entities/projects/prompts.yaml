@@ -1,0 +1,7 @@
+aliases: []
+description: Reusable templates that help structure interactions with language models
+  (e.g., system prompts, few-shot examples)
+id: project:prompts
+kind: tool
+name: Prompts
+type: Project

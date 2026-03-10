@@ -1,0 +1,6 @@
+aliases: []
+description: An AI application.
+id: project:claude-code
+kind: platform
+name: Claude Code
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: AI tool
+id: project:chatgpt
+kind: tool
+name: ChatGPT
+type: Project

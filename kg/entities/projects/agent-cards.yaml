@@ -1,0 +1,7 @@
+aliases:
+- AgentCard
+description: 'Agent Discovery: Via Agent Cards detailing capabilities and connection
+  info.'
+id: project:agent-cards
+name: Agent Cards
+type: Project

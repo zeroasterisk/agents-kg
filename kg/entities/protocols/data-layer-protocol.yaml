@@ -1,0 +1,6 @@
+aliases: []
+description: Protocol for the data layer.
+id: protocol:data-layer-protocol
+kind: protocol
+name: data layer protocol
+type: Protocol

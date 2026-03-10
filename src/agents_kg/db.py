@@ -94,7 +94,7 @@ def content_hash(text: str) -> str:
 
 class Database:
     def __init__(self, db_path: str = DEFAULT_DB):
-        self.db_path = db_path
+        self.path = db_path
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA journal_mode=WAL")

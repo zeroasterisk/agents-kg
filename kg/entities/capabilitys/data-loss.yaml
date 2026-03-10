@@ -1,0 +1,6 @@
+aliases: []
+description: Attackers or bugs in legitimate servers could lead to irrecoverable data
+  loss on the host machine.
+id: capability:data-loss
+name: Data loss
+type: Capability

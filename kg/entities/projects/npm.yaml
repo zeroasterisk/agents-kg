@@ -1,0 +1,6 @@
+aliases: []
+description: a package manager for JavaScript
+id: project:npm
+kind: tool
+name: npm
+type: Project

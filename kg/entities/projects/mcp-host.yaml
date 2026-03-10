@@ -1,0 +1,6 @@
+aliases: []
+description: The AI application that coordinates and manages one or multiple MCP clients
+id: project:mcp-host
+kind: platform
+name: MCP Host
+type: Project

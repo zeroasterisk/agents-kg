@@ -1,0 +1,6 @@
+aliases: []
+description: AI tool
+id: project:claude
+kind: tool
+name: Claude
+type: Project

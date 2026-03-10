@@ -1,0 +1,7 @@
+aliases: []
+description: Optional additions to the specification that define capabilities beyond
+  the core protocol.
+id: project:mcp-extensions
+kind: library
+name: MCP Extensions
+type: Project

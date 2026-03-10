@@ -1,0 +1,5 @@
+aliases: []
+description: The process of verifying access rights.
+id: capability:authorization
+name: Authorization
+type: Capability

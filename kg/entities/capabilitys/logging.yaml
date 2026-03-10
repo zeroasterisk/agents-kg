@@ -1,0 +1,6 @@
+aliases: []
+description: Enables servers to send log messages to clients for debugging and monitoring
+  purposes.
+id: capability:logging
+name: Logging
+type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: Treating claimed scopes in token as sufficient without server-side authorization
+  logic
+id: capability:server-side-authorization
+name: Server-side authorization
+type: Capability

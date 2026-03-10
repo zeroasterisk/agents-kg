@@ -1,0 +1,5 @@
+aliases: []
+description: Attackers can execute any command with MCP client privileges.
+id: capability:arbitrary-code-execution
+name: Arbitrary code execution
+type: Capability

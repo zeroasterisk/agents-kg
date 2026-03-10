@@ -1,0 +1,6 @@
+aliases: []
+description: National Weather Service
+id: organization:nws
+kind: standards_body
+name: NWS
+type: Organization

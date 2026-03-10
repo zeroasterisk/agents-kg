@@ -1,0 +1,6 @@
+aliases: []
+description: A malicious package
+id: project:malicious-package
+kind: library
+name: malicious-package
+type: Project

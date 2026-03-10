@@ -1,0 +1,6 @@
+aliases: []
+description: Evolve Streamable HTTP to run statelessly across multiple server instances
+  and behave correctly behind load balancers and proxies.
+id: capability:next-generation-transport
+name: Next-generation transport
+type: Capability

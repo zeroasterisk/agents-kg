@@ -1,0 +1,6 @@
+aliases:
+- tools
+description: A tool available to the AI application
+id: capability:tool
+name: Tool
+type: Capability

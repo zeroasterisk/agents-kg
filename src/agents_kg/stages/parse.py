@@ -52,7 +52,10 @@ def run(db, source: dict) -> bool:
         raise RuntimeError("No raw_text to parse")
 
     source_type = source.get("type", "html")
-    if source_type == "html" and not _is_markdown(raw):
+    if source_type == "pdf":
+        # PDF text from pymupdf — clean up whitespace, detect structure
+        parsed = re.sub(r'\n{3,}', '\n\n', raw).strip()
+    elif source_type == "html" and not _is_markdown(raw):
         parsed = _html_to_text(raw)
     else:
         parsed = raw  # markdown passthrough

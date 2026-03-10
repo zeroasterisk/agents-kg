@@ -1,0 +1,6 @@
+aliases: []
+description: The protected resource server that provides the actual API functionality.
+  Access to this API requires tokens issued by the third-party authorization server.
+id: project:third-party-api
+name: Third-Party API
+type: Project
