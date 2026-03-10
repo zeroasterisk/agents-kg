@@ -4,7 +4,19 @@ import logging
 import struct
 from ..db import Database
 
-log = logging.getLogger(__name__)
+try:
+    from prefect.logging import get_run_logger as _get_logger
+except ImportError:
+    _get_logger = None
+
+
+def _log():
+    if _get_logger:
+        try:
+            return _get_logger()
+        except Exception:
+            pass
+    return logging.getLogger(__name__)
 
 EMBEDDING_MODEL = "text-embedding-004"
 BATCH_SIZE = 100
@@ -18,7 +30,7 @@ def run(db: Database, source: dict) -> bool:
     source_id = source["id"]
     chunks = db.get_unembedded_chunks(source_id)
     if not chunks:
-        log.info("All chunks already embedded for source %d", source_id)
+        _log().info("All chunks already embedded for source %d", source_id)
         db.update_source(source_id, stage="extract", status="processing")
         return True
 
@@ -39,7 +51,7 @@ def run(db: Database, source: dict) -> bool:
         batch = chunks[i:i + BATCH_SIZE]
         texts = [c["text"] for c in batch]
 
-        log.info("Embedding batch %d-%d of %d chunks", i, i + len(batch), len(chunks))
+        _log().info("Embedding batch %d-%d of %d chunks", i, i + len(batch), len(chunks))
         result = client.models.embed_content(
             model=EMBEDDING_MODEL,
             contents=texts,

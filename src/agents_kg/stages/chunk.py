@@ -3,7 +3,19 @@
 import logging
 import re
 
-log = logging.getLogger(__name__)
+try:
+    from prefect.logging import get_run_logger as _get_logger
+except ImportError:
+    _get_logger = None
+
+
+def _log():
+    if _get_logger:
+        try:
+            return _get_logger()
+        except Exception:
+            pass
+    return logging.getLogger(__name__)
 
 TARGET_TOKENS = 500
 MAX_TOKENS = 800
@@ -79,6 +91,6 @@ def run(db, source: dict) -> bool:
             db.add_chunk(source_id, full_text, position, section_heading=h or None, token_count=tokens)
             position += 1
 
-    log.info("Created %d chunks for source %d", position, source_id)
+    _log().info("Created %d chunks for source %d", position, source_id)
     db.update_source(source_id, stage="embed", status="processing")
     return True

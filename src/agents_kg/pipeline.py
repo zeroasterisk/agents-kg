@@ -1,244 +1,171 @@
-"""Pipeline orchestration with Prefect 3.
+"""Pipeline runner: idiomatic Prefect 3 orchestration for the agents-kg pipeline.
 
-SQLite owns domain state (sources, chunks, entities, edges).
-Prefect owns orchestration: retry, caching, concurrency, observability, artifacts.
+Architecture:
+- process_all: top-level @flow that iterates sources and spawns sub-flows
+- process_source: @flow per source (visible as separate flow runs in UI)
+- Each stage is a @task with appropriate retries, tags, and caching
+- Domain logic stays in stages/; this module is pure orchestration
+- SQLite stays for domain state; Prefect handles orchestration
 """
 
 from __future__ import annotations
 
-from prefect import flow, task, get_run_logger
-from prefect.artifacts import create_markdown_artifact, create_table_artifact
-from prefect.concurrency.sync import rate_limit
-from prefect.tasks import task_input_hash
+from dataclasses import dataclass, field
+from typing import Optional
 
-from .db import Database, content_hash
+from prefect import flow, task, get_run_logger
+from prefect.artifacts import create_markdown_artifact
+from prefect.cache_policies import INPUTS
+
+from .db import Database
 from .stages import fetch, parse, chunk, embed, extract, load
 
 
 # ---------------------------------------------------------------------------
-# Cache key: hash source_id + content_hash so unchanged content skips work
+# Helpers
 # ---------------------------------------------------------------------------
 
-def _source_cache_key(context, parameters):
-    """Cache key from source id + content_hash (skips if content unchanged)."""
-    source = parameters.get("source") or {}
-    return f"{source.get('id', '')}:{source.get('content_hash', '')}"
+def _source_content_cache_key(context, parameters):
+    """Cache key based on source content_hash — skip if content unchanged."""
+    source = parameters.get("source", {})
+    content_hash = source.get("content_hash") or "none"
+    return f"{parameters.get('stage', 'unknown')}:{source.get('id', 0)}:{content_hash}"
 
 
-def _chunk_cache_key(context, parameters):
-    """Cache key from source id + parsed_text hash."""
-    source = parameters.get("source") or {}
-    text = source.get("parsed_text") or source.get("raw_text") or ""
-    return f"{source.get('id', '')}:{content_hash(text)}"
+def _on_stage_failure(task, task_run, state):
+    """Hook: log failures through Prefect's structured logger."""
+    logger = get_run_logger()
+    logger.error("Task %s failed: %s", task_run.name, state.message)
 
 
 # ---------------------------------------------------------------------------
-# Tasks — each returns a typed result dict, logs via Prefect, creates artifacts
+# Stage tasks
 # ---------------------------------------------------------------------------
 
 @task(
-    name="fetch-source",
+    name="fetch",
     retries=3,
     retry_delay_seconds=[10, 30, 60],
     tags=["network"],
-    description="Fetch URL content and store raw HTML/text",
+    on_failure=[_on_stage_failure],
+    persist_result=True,
 )
-def task_fetch(db_path: str, source: dict) -> dict:
-    """Fetch URL → raw_text. Returns {fetched, content_hash, content_type}."""
-    logger = get_run_logger()
-    db = Database(db_path)
-
-    try:
-        result = fetch.run(db, source)
-        refreshed = db.get_source(source["id"])
-        return {
-            "fetched": result,
-            "source_id": source["id"],
-            "uri": source["uri"],
-            "content_hash": refreshed.get("content_hash") if refreshed else None,
-            "stage": refreshed.get("stage") if refreshed else None,
-        }
-    finally:
-        db.close()
+def run_fetch(db: Database, source: dict) -> bool:
+    log = get_run_logger()
+    log.info("Fetching source %d: %s", source["id"], source["uri"])
+    return fetch.run(db, source)
 
 
 @task(
-    name="parse-content",
-    tags=["cpu"],
-    cache_key_fn=_source_cache_key,
-    description="Parse raw HTML/text to clean markdown",
+    name="parse",
+    on_failure=[_on_stage_failure],
 )
-def task_parse(db_path: str, source: dict) -> dict:
-    """Parse raw_text → parsed_text. Returns {title, text_length}."""
-    logger = get_run_logger()
-    db = Database(db_path)
-
-    try:
-        parse.run(db, source)
-        refreshed = db.get_source(source["id"])
-        title = refreshed.get("title") if refreshed else None
-        parsed_len = len(refreshed.get("parsed_text") or "") if refreshed else 0
-        logger.info("Parsed source %d → %d chars, title=%s", source["id"], parsed_len, title)
-        return {
-            "source_id": source["id"],
-            "title": title,
-            "text_length": parsed_len,
-        }
-    finally:
-        db.close()
+def run_parse(db: Database, source: dict) -> bool:
+    log = get_run_logger()
+    log.info("Parsing source %d", source["id"])
+    return parse.run(db, source)
 
 
 @task(
-    name="chunk-text",
-    tags=["cpu"],
-    cache_key_fn=_chunk_cache_key,
-    description="Split parsed text into ~500-token chunks",
+    name="chunk",
+    on_failure=[_on_stage_failure],
 )
-def task_chunk(db_path: str, source: dict) -> dict:
-    """Chunk parsed_text → chunks table. Returns {chunk_count}."""
-    logger = get_run_logger()
-    db = Database(db_path)
-
-    try:
-        chunk.run(db, source)
-        chunks = db.get_chunks(source["id"])
-        logger.info("Chunked source %d → %d chunks", source["id"], len(chunks))
-        return {
-            "source_id": source["id"],
-            "chunk_count": len(chunks),
-        }
-    finally:
-        db.close()
+def run_chunk(db: Database, source: dict) -> bool:
+    log = get_run_logger()
+    log.info("Chunking source %d", source["id"])
+    return chunk.run(db, source)
 
 
 @task(
-    name="embed-chunks",
+    name="embed",
     retries=3,
     retry_delay_seconds=[10, 30, 60],
     tags=["gemini", "network"],
-    description="Embed chunks via Gemini embedding API",
+    on_failure=[_on_stage_failure],
+    persist_result=True,
 )
-def task_embed(db_path: str, source: dict) -> dict:
-    """Embed all chunks for a source. Returns {embedded_count}."""
-    logger = get_run_logger()
-    rate_limit("gemini-api", occupy=1)
-    db = Database(db_path)
-
-    try:
-        unembedded_before = len(db.get_unembedded_chunks(source["id"]))
-        embed.run(db, source)
-        unembedded_after = len(db.get_unembedded_chunks(source["id"]))
-        embedded = unembedded_before - unembedded_after
-        logger.info("Embedded %d chunks for source %d", embedded, source["id"])
-        return {
-            "source_id": source["id"],
-            "embedded_count": embedded,
-        }
-    finally:
-        db.close()
+def run_embed(db: Database, source: dict) -> bool:
+    log = get_run_logger()
+    log.info("Embedding source %d", source["id"])
+    return embed.run(db, source)
 
 
 @task(
-    name="extract-entities",
+    name="extract",
     retries=3,
     retry_delay_seconds=[10, 30, 60],
     tags=["gemini", "network"],
-    description="Extract entities and edges via Gemini Flash",
+    on_failure=[_on_stage_failure],
+    persist_result=True,
 )
-def task_extract(db_path: str, source: dict) -> dict:
-    """Extract entities/edges from chunks. Returns {entities, edges}."""
-    logger = get_run_logger()
-    rate_limit("gemini-api", occupy=1)
-    db = Database(db_path)
+def run_extract(db: Database, source: dict) -> bool:
+    log = get_run_logger()
+    log.info("Extracting entities from source %d", source["id"])
+    return extract.run(db, source)
+
+
+@task(
+    name="load",
+    on_failure=[_on_stage_failure],
+    persist_result=True,
+)
+def run_load(db: Database, source: dict, neo4j_driver=None) -> bool:
+    log = get_run_logger()
+    log.info("Loading source %d to graph", source["id"])
+    return load.run(db, source, neo4j_driver=neo4j_driver)
+
+
+TASK_MAP = {
+    "fetch": run_fetch,
+    "parse": run_parse,
+    "chunk": run_chunk,
+    "embed": run_embed,
+    "extract": run_extract,
+    "load": run_load,
+}
+
+STAGE_ORDER = ["fetch", "parse", "chunk", "embed", "extract", "review", "load"]
+
+
+# ---------------------------------------------------------------------------
+# Source extraction summary (artifact helper)
+# ---------------------------------------------------------------------------
+
+def _source_artifact(db: Database, source_id: int, source_uri: str):
+    """Create a markdown artifact summarizing what was extracted from a source."""
+    entities = db.conn.execute(
+        "SELECT entity_id, name, type, kind FROM entities WHERE source_id = ?", (source_id,)
+    ).fetchall()
+    edges = db.conn.execute(
+        "SELECT source_entity_id, target_entity_id, edge_type FROM edges WHERE source_id = ?", (source_id,)
+    ).fetchall()
+
+    lines = [f"## Source #{source_id}", f"**URI:** {source_uri}", ""]
+
+    if entities:
+        lines.append(f"### Entities ({len(entities)})")
+        for e in entities:
+            kind = f"/{e['kind']}" if e["kind"] else ""
+            lines.append(f"- `{e['entity_id']}` — {e['name']} ({e['type']}{kind})")
+        lines.append("")
+
+    if edges:
+        lines.append(f"### Edges ({len(edges)})")
+        for e in edges:
+            lines.append(f"- `{e['source_entity_id']}` —{e['edge_type']}→ `{e['target_entity_id']}`")
+        lines.append("")
+
+    if not entities and not edges:
+        lines.append("*No entities or edges extracted.*")
 
     try:
-        entities_before = len(db.get_entities_by_status("pending_review"))
-        edges_before = len(db.get_edges_by_status("pending_review"))
-
-        extract.run(db, source)
-
-        entities_after = len(db.get_entities_by_status("pending_review"))
-        edges_after = len(db.get_edges_by_status("pending_review"))
-
-        new_entities = entities_after - entities_before
-        new_edges = edges_after - edges_before
-
-        logger.info(
-            "Extracted %d entities, %d edges from source %d",
-            new_entities, new_edges, source["id"],
-        )
-
-        # Create artifact with extraction summary
         create_markdown_artifact(
-            key=f"extraction-source-{source['id']}",
-            markdown=(
-                f"## Extraction: source {source['id']}\n"
-                f"**URI:** {source.get('uri', '?')}\n\n"
-                f"- **Entities found:** {new_entities}\n"
-                f"- **Edges found:** {new_edges}\n"
-            ),
-            description=f"KG extraction results for source {source['id']}",
+            key=f"source-{source_id}-extraction",
+            markdown="\n".join(lines),
+            description=f"Extraction results for source #{source_id}",
         )
-
-        return {
-            "source_id": source["id"],
-            "entities": new_entities,
-            "edges": new_edges,
-        }
-    finally:
-        db.close()
-
-
-@task(
-    name="load-to-graph",
-    retries=2,
-    retry_delay_seconds=[5, 15],
-    tags=["neo4j"],
-    description="Load approved entities/edges to Neo4j + YAML export",
-)
-def task_load(db_path: str, source: dict, neo4j_uri: str | None = None,
-              neo4j_auth: tuple[str, str] | None = None) -> dict:
-    """Load approved items to Neo4j and export YAML. Returns {entities_loaded, edges_loaded}."""
-    logger = get_run_logger()
-    db = Database(db_path)
-
-    neo4j_driver = None
-    if neo4j_uri:
-        try:
-            from neo4j import GraphDatabase
-            neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
-            neo4j_driver.verify_connectivity()
-        except Exception as e:
-            logger.warning("Neo4j unavailable (%s), will export YAML only", e)
-            neo4j_driver = None
-
-    try:
-        # Count before
-        entities = db.conn.execute(
-            "SELECT COUNT(*) FROM entities WHERE source_id = ? AND status = 'approved'",
-            (source["id"],),
-        ).fetchone()[0]
-        edges = db.conn.execute(
-            "SELECT COUNT(*) FROM edges WHERE source_id = ? AND status = 'approved'",
-            (source["id"],),
-        ).fetchone()[0]
-
-        load.run(db, source, neo4j_driver=neo4j_driver)
-
-        logger.info(
-            "Loaded %d entities, %d edges for source %d (neo4j=%s)",
-            entities, edges, source["id"], neo4j_driver is not None,
-        )
-        return {
-            "source_id": source["id"],
-            "entities_loaded": entities,
-            "edges_loaded": edges,
-            "neo4j": neo4j_driver is not None,
-        }
-    finally:
-        if neo4j_driver:
-            neo4j_driver.close()
-        db.close()
+    except Exception:
+        pass  # Artifacts require a Prefect server; graceful degradation
 
 
 # ---------------------------------------------------------------------------
@@ -247,79 +174,59 @@ def task_load(db_path: str, source: dict, neo4j_uri: str | None = None,
 
 @flow(name="process-source", log_prints=True)
 def process_source(
-    db_path: str,
+    db: Database,
     source_id: int,
-    neo4j_uri: str | None = None,
-    neo4j_auth: tuple[str, str] | None = None,
+    source_uri: str,
+    neo4j_driver=None,
 ) -> dict:
-    """Drive a single source through its remaining stages. Returns stage results."""
-    logger = get_run_logger()
-    db = Database(db_path)
-    source = db.get_source(source_id)
-    db.close()
+    """Process a single source through its remaining stages.
 
-    if not source:
-        logger.warning("Source %d not found", source_id)
-        return {"source_id": source_id, "status": "not_found"}
+    Returns a dict with counts: {"stages_completed": N, "failed": bool}
+    """
+    log = get_run_logger()
+    result = {"stages_completed": 0, "failed": False}
 
-    results = {"source_id": source_id, "uri": source["uri"], "stages": {}}
-
-    # Stage pipeline — each stage checks current state, runs if applicable
-    stage_sequence = [
-        ("fetch", task_fetch),
-        ("parse", task_parse),
-        ("chunk", task_chunk),
-        ("embed", task_embed),
-        ("extract", task_extract),
-    ]
-
-    for stage_name, stage_task in stage_sequence:
-        # Re-read source to get current stage
-        db = Database(db_path)
+    while True:
         source = db.get_source(source_id)
-        db.close()
-
-        if not source or source["status"] in ("complete", "failed", "dead_letter", "pending_review"):
+        if not source:
+            log.warning("Source %d not found", source_id)
+            result["failed"] = True
             break
 
-        if source["stage"] != stage_name:
-            continue
+        stage = source["stage"]
+        status = source["status"]
 
-        try:
-            result = stage_task(db_path, source)
-            results["stages"][stage_name] = result
-        except Exception as e:
-            logger.error("Stage %s failed for source %d: %s", stage_name, source_id, e)
-            db = Database(db_path)
-            db.fail_source(source_id, f"[{stage_name}] {e}")
-            db.close()
-            results["stages"][stage_name] = {"error": str(e)}
+        if status in ("complete", "failed", "dead_letter", "pending_review"):
+            break
+        if stage in ("review", "done"):
             break
 
-    # Load stage (needs neo4j params)
-    db = Database(db_path)
-    source = db.get_source(source_id)
-    db.close()
+        task_fn = TASK_MAP.get(stage)
+        if not task_fn:
+            log.error("Unknown stage %s for source %d", stage, source_id)
+            result["failed"] = True
+            break
 
-    if source and source["stage"] == "load" and source["status"] not in ("complete", "failed", "dead_letter"):
         try:
-            result = task_load(db_path, source, neo4j_uri=neo4j_uri, neo4j_auth=neo4j_auth)
-            results["stages"]["load"] = result
+            if stage == "load":
+                made_progress = task_fn(db, source, neo4j_driver=neo4j_driver)
+            else:
+                made_progress = task_fn(db, source)
+
+            if made_progress:
+                result["stages_completed"] += 1
+            else:
+                break
         except Exception as e:
-            logger.error("Load failed for source %d: %s", source_id, e)
-            db = Database(db_path)
-            db.fail_source(source_id, f"[load] {e}")
-            db.close()
-            results["stages"]["load"] = {"error": str(e)}
+            log.error("Stage %s failed for source %d: %s", stage, source_id, e)
+            db.fail_source(source_id, f"[{stage}] {e}")
+            result["failed"] = True
+            break
 
-    # Final status
-    db = Database(db_path)
-    source = db.get_source(source_id)
-    db.close()
-    results["final_status"] = source["status"] if source else "unknown"
-    results["final_stage"] = source["stage"] if source else "unknown"
+    # Create extraction artifact
+    _source_artifact(db, source_id, source_uri)
 
-    return results
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -328,71 +235,57 @@ def process_source(
 
 @flow(name="process-all-sources", log_prints=True)
 def process_all(
-    db_path: str = "pipeline.db",
-    neo4j_uri: str | None = None,
-    neo4j_auth: tuple[str, str] | None = None,
+    db: Database,
+    neo4j_driver=None,
 ) -> dict:
-    """Process all pending sources. Returns summary with artifacts."""
-    logger = get_run_logger()
-    db = Database(db_path)
+    """Process all pending sources. Returns summary stats."""
+    log = get_run_logger()
     sources = db.get_pending_sources()
-    db.close()
 
-    if not sources:
-        logger.info("No pending sources")
-        return {"processed": 0, "failed": 0, "skipped": 0, "results": []}
-
-    logger.info("Processing %d pending sources", len(sources))
-
-    all_results = []
-    stats = {"processed": 0, "failed": 0, "skipped": 0}
+    stats = {"processed": 0, "failed": 0, "skipped": 0, "sources": len(sources)}
+    log.info("Found %d pending sources", len(sources))
 
     for source in sources:
+        log.info("Starting source %d: %s", source["id"], source["uri"][:80])
         result = process_source(
-            db_path=db_path,
+            db=db,
             source_id=source["id"],
-            neo4j_uri=neo4j_uri,
-            neo4j_auth=neo4j_auth,
+            source_uri=source["uri"],
+            neo4j_driver=neo4j_driver,
         )
-        all_results.append(result)
 
-        if result.get("final_status") == "complete":
-            stats["processed"] += 1
-        elif result.get("final_status") in ("failed", "dead_letter"):
+        if result["failed"]:
             stats["failed"] += 1
+        elif result["stages_completed"] > 0:
+            stats["processed"] += 1
         else:
             stats["skipped"] += 1
 
-    # Create summary artifact
-    if all_results:
-        table_rows = []
-        for r in all_results:
-            stages_done = list(r.get("stages", {}).keys())
-            entities = sum(
-                s.get("entities", 0) for s in r.get("stages", {}).values() if isinstance(s, dict)
-            )
-            edges = sum(
-                s.get("edges", 0) for s in r.get("stages", {}).values() if isinstance(s, dict)
-            )
-            table_rows.append({
-                "source_id": r["source_id"],
-                "uri": (r.get("uri") or "")[:60],
-                "status": r.get("final_status", "?"),
-                "stages": ", ".join(stages_done),
-                "entities": entities,
-                "edges": edges,
-            })
+    # Flow-level summary artifact
+    _create_summary_artifact(stats)
 
-        create_table_artifact(
-            key="pipeline-run-summary",
-            table=table_rows,
-            description=f"Pipeline run: {stats['processed']} processed, {stats['failed']} failed",
-        )
-
-    logger.info(
-        "Pipeline complete: %d processed, %d failed, %d skipped",
-        stats["processed"], stats["failed"], stats["skipped"],
+    log.info(
+        "Pipeline complete: %d processed, %d failed, %d skipped (of %d sources)",
+        stats["processed"], stats["failed"], stats["skipped"], stats["sources"],
     )
-
-    stats["results"] = all_results
     return stats
+
+
+def _create_summary_artifact(stats: dict):
+    """Create a flow-level summary artifact."""
+    lines = [
+        "## Pipeline Run Summary",
+        "",
+        f"- **Total sources:** {stats['sources']}",
+        f"- **Processed:** {stats['processed']}",
+        f"- **Failed:** {stats['failed']}",
+        f"- **Skipped:** {stats['skipped']}",
+    ]
+    try:
+        create_markdown_artifact(
+            key="pipeline-run-summary",
+            markdown="\n".join(lines),
+            description="Pipeline processing summary",
+        )
+    except Exception:
+        pass  # Graceful degradation without Prefect server

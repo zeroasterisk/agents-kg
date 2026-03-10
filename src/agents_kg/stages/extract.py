@@ -5,7 +5,19 @@ import logging
 import hashlib
 from ..db import Database
 
-log = logging.getLogger(__name__)
+try:
+    from prefect.logging import get_run_logger as _get_logger
+except ImportError:
+    _get_logger = None
+
+
+def _log():
+    if _get_logger:
+        try:
+            return _get_logger()
+        except Exception:
+            pass
+    return logging.getLogger(__name__)
 
 EXTRACT_MODEL = "gemini-2.0-flash"
 
@@ -83,7 +95,7 @@ def run(db: Database, source: dict) -> bool:
     total_edges = 0
 
     for chunk in chunks:
-        log.info("Extracting from chunk %d (source %d)", chunk["id"], source_id)
+        _log().info("Extracting from chunk %d (source %d)", chunk["id"], source_id)
 
         try:
             response = client.models.generate_content(
@@ -98,7 +110,7 @@ def run(db: Database, source: dict) -> bool:
 
             data = json.loads(response.text)
         except (json.JSONDecodeError, Exception) as e:
-            log.warning("Extraction failed for chunk %d: %s", chunk["id"], e)
+            _log().warning("Extraction failed for chunk %d: %s", chunk["id"], e)
             continue
 
         for ent in data.get("entities", []):
@@ -128,6 +140,6 @@ def run(db: Database, source: dict) -> bool:
             )
             total_edges += 1
 
-    log.info("Extracted %d entities, %d edges from source %d", total_entities, total_edges, source_id)
+    _log().info("Extracted %d entities, %d edges from source %d", total_entities, total_edges, source_id)
     db.update_source(source_id, stage="review", status="pending_review")
     return True

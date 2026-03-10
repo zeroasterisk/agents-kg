@@ -3,7 +3,19 @@
 import logging
 import re
 
-log = logging.getLogger(__name__)
+try:
+    from prefect.logging import get_run_logger as _get_logger
+except ImportError:
+    _get_logger = None
+
+
+def _log():
+    if _get_logger:
+        try:
+            return _get_logger()
+        except Exception:
+            pass
+    return logging.getLogger(__name__)
 
 
 def _html_to_text(html: str) -> str:
@@ -14,7 +26,7 @@ def _html_to_text(html: str) -> str:
         summary = doc.summary()
         title = doc.title()
     except Exception:
-        log.warning("readability failed, falling back to basic strip")
+        _log().warning("readability failed, falling back to basic strip")
         summary = html
         title = ""
 

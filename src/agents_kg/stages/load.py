@@ -6,7 +6,19 @@ import yaml
 from pathlib import Path
 from ..db import Database
 
-log = logging.getLogger(__name__)
+try:
+    from prefect.logging import get_run_logger as _get_logger
+except ImportError:
+    _get_logger = None
+
+
+def _log():
+    if _get_logger:
+        try:
+            return _get_logger()
+        except Exception:
+            pass
+    return logging.getLogger(__name__)
 
 YAML_DIR = "kg/entities"
 
@@ -73,7 +85,7 @@ def _export_yaml(entity: dict, base_dir: str = YAML_DIR):
 
     with open(file_path, "w") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
-    log.info("Exported %s", file_path)
+    _log().info("Exported %s", file_path)
 
 
 def run(db: Database, source: dict, neo4j_driver=None) -> bool:
@@ -88,7 +100,7 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
     ).fetchall()
 
     if not entities and not edges:
-        log.info("No approved items to load for source %d", source_id)
+        _log().info("No approved items to load for source %d", source_id)
         return True
 
     # Export YAML (always works)
@@ -105,11 +117,11 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
                 for edge in edges:
                     q, p = _edge_to_cypher(dict(edge))
                     session.run(q, p)
-            log.info("Loaded %d entities, %d edges to Neo4j", len(entities), len(edges))
+            _log().info("Loaded %d entities, %d edges to Neo4j", len(entities), len(edges))
         except Exception as e:
-            log.error("Neo4j load failed (data saved in SQLite): %s", e)
+            _log().error("Neo4j load failed (data saved in SQLite): %s", e)
     else:
-        log.info("Neo4j not configured, skipping graph load (YAML exported)")
+        _log().info("Neo4j not configured, skipping graph load (YAML exported)")
 
     db.update_source(source_id, stage="done", status="complete")
     return True

@@ -4,13 +4,26 @@ import logging
 import httpx
 from ..db import Database, content_hash
 
-log = logging.getLogger(__name__)
+try:
+    from prefect.logging import get_run_logger as _get_logger
+except ImportError:
+    _get_logger = None
+
+
+def _log():
+    if _get_logger:
+        try:
+            return _get_logger()
+        except Exception:
+            pass
+    return logging.getLogger(__name__)
 
 
 def run(db: Database, source: dict) -> bool:
     """Fetch URL, store raw_text, compute content_hash. Returns True on success."""
     uri = source["uri"]
     source_id = source["id"]
+    log = _log()
     log.info("Fetching %s", uri)
 
     try:
@@ -25,7 +38,7 @@ def run(db: Database, source: dict) -> bool:
 
     # Idempotency: skip if content unchanged
     if source.get("content_hash") == new_hash:
-        log.info("Content unchanged for %s, skipping", uri)
+        _log().info("Content unchanged for %s, skipping", uri)
         db.update_source(source_id, status="complete", stage="done")
         return False
 
