@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import sys
 import click
 from .db import Database
@@ -16,6 +17,26 @@ logging.basicConfig(
 
 def get_db():
     return Database()
+
+
+def get_neo4j_driver():
+    """Create Neo4j driver from env vars or defaults. Returns None if unavailable."""
+    try:
+        from neo4j import GraphDatabase
+    except ImportError:
+        return None
+
+    uri = os.environ.get("NEO4J_URI", "bolt://agents-kg-neo4j:7687")
+    user = os.environ.get("NEO4J_USER", "neo4j")
+    password = os.environ.get("NEO4J_PASSWORD", "agents-kg-2026")
+
+    try:
+        driver = GraphDatabase.driver(uri, auth=(user, password))
+        driver.verify_connectivity()
+        return driver
+    except Exception:
+        logging.getLogger(__name__).debug("Neo4j not available, skipping graph load")
+        return None
 
 
 @click.group()
@@ -61,9 +82,12 @@ def ingest(url, from_file):
 def process():
     """Process all pending sources through the pipeline."""
     db = get_db()
+    neo4j_driver = get_neo4j_driver()
     click.echo("Processing pipeline...")
-    stats = process_all(db)
+    stats = process_all(db, neo4j_driver=neo4j_driver)
     click.echo(f"Done: {stats['processed']} processed, {stats['failed']} failed, {stats['skipped']} skipped")
+    if neo4j_driver:
+        neo4j_driver.close()
     db.close()
 
 
