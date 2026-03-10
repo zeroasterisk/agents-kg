@@ -8,8 +8,8 @@
 | **Group** | tsc, wg, sig, task_force, team, division | Internal structures. Recursive via `PART_OF` edges. A WG can be inside a TSC inside an Org. |
 | **Person** | — | Named individuals. Repo is private. |
 | **Project** | framework, sdk, library, tool, platform | Software/code. ADK, LangGraph, CrewAI, AutoGen. |
-| **Protocol** | spec, standard, rfc, draft | The specification document, versioned. A2A spec, MCP spec, ACP spec. |
-| **Capability** | — | Concepts and capabilities: identity, discovery, tool use, streaming, orchestration. |
+| **Protocol** | spec, standard, rfc, draft | The specification document. Each version is a separate node (e.g. `protocol:a2a-v1.0`, `protocol:a2a-v1.1`) linked by `SUPERSEDES` edges. |
+| **Capability** | — | Concepts and capabilities: identity, discovery, tool use, streaming, orchestration. Recursive via `PART_OF` (e.g. "did-based-identity" PART_OF "identity"). |
 | **Source** | webpage, paper, spec, repo, announcement, conversation | A retrievable document used as evidence. |
 | **Chunk** | — | Text segment from a Source. Atomic unit of provenance. |
 
