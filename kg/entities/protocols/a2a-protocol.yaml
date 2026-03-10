@@ -1,0 +1,7 @@
+aliases:
+- Agent2Agent Communication
+description: Protocol for Agent2Agent Communication
+id: protocol:a2a-protocol
+kind: spec
+name: A2A Protocol
+type: Protocol

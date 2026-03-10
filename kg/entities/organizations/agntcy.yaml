@@ -1,25 +1,6 @@
-id: agntcy
-type: organization
+aliases: []
+description: An organization
+id: organization:agntcy
+kind: foundation
 name: AGNTCY
-aliases: [AGNTCY Project]
-description: Open source infrastructure for multi-agent system interoperability — discovery, identity, messaging, and observability for AI agents across vendors and frameworks.
-url: https://agntcy.org
-metadata:
-  parent: linux-foundation
-  origin: cisco-outshift
-  donated_date: "2025-07-29"
-  member_count: 75+
-  founding_members: [Cisco, Dell]
-  focus_areas:
-    - Agent identity and authentication
-    - Agent discovery
-    - Secure messaging (SLIM protocol)
-    - Observability
-    - Multi-Agent System orchestration
-  repos:
-    - https://github.com/agntcy/identity
-    - https://github.com/agntcy/identity-service
-    - https://github.com/agntcy/docs
-tags: [linux-foundation, identity, multi-agent, open-source, infrastructure]
-created: 2026-03-08
-updated: 2026-03-08
+type: Organization
