@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 import click
-from .db import Database
+from .db import Database, DEFAULT_DB
 from .pipeline import process_all
 
 logging.basicConfig(
@@ -15,28 +15,20 @@ logging.basicConfig(
 )
 
 
+def get_db_path() -> str:
+    return os.environ.get("KG_DB_PATH", DEFAULT_DB)
+
+
 def get_db():
-    return Database()
+    return Database(get_db_path())
 
 
-def get_neo4j_driver():
-    """Create Neo4j driver from env vars or defaults. Returns None if unavailable."""
-    try:
-        from neo4j import GraphDatabase
-    except ImportError:
-        return None
-
+def get_neo4j_config() -> tuple[str | None, tuple[str, str] | None]:
+    """Return (uri, auth) from env vars or defaults. Returns (None, None) if not configured."""
     uri = os.environ.get("NEO4J_URI", "bolt://agents-kg-neo4j:7687")
     user = os.environ.get("NEO4J_USER", "neo4j")
     password = os.environ.get("NEO4J_PASSWORD", "agents-kg-2026")
-
-    try:
-        driver = GraphDatabase.driver(uri, auth=(user, password))
-        driver.verify_connectivity()
-        return driver
-    except Exception:
-        logging.getLogger(__name__).debug("Neo4j not available, skipping graph load")
-        return None
+    return uri, (user, password)
 
 
 @click.group()
@@ -81,14 +73,16 @@ def ingest(url, from_file):
 @cli.command()
 def process():
     """Process all pending sources through the pipeline."""
-    db = get_db()
-    neo4j_driver = get_neo4j_driver()
+    db_path = get_db_path()
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+
     click.echo("Processing pipeline...")
-    stats = process_all(db, neo4j_driver=neo4j_driver)
+    stats = process_all(
+        db_path=db_path,
+        neo4j_uri=neo4j_uri,
+        neo4j_auth=neo4j_auth,
+    )
     click.echo(f"Done: {stats['processed']} processed, {stats['failed']} failed, {stats['skipped']} skipped")
-    if neo4j_driver:
-        neo4j_driver.close()
-    db.close()
 
 
 @cli.command()
