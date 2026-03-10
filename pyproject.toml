@@ -24,6 +24,11 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agents_kg"]
 
+[tool.pytest.ini_options]
+markers = [
+    "e2e: end-to-end tests requiring live Neo4j and/or Gemini API",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",

@@ -73,16 +73,27 @@ def ingest(url, from_file):
 @cli.command()
 def process():
     """Process all pending sources through the pipeline."""
-    db_path = get_db_path()
+    db = get_db()
     neo4j_uri, neo4j_auth = get_neo4j_config()
 
+    neo4j_driver = None
+    if neo4j_uri:
+        try:
+            from neo4j import GraphDatabase
+            neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+            neo4j_driver.verify_connectivity()
+            click.echo(f"Connected to Neo4j at {neo4j_uri}")
+        except Exception as e:
+            click.echo(f"Neo4j not available ({e}), will export YAML only")
+
     click.echo("Processing pipeline...")
-    stats = process_all(
-        db_path=db_path,
-        neo4j_uri=neo4j_uri,
-        neo4j_auth=neo4j_auth,
-    )
-    click.echo(f"Done: {stats['processed']} processed, {stats['failed']} failed, {stats['skipped']} skipped")
+    try:
+        stats = process_all(db=db, neo4j_driver=neo4j_driver)
+        click.echo(f"Done: {stats['processed']} processed, {stats['failed']} failed, {stats['skipped']} skipped")
+    finally:
+        db.close()
+        if neo4j_driver:
+            neo4j_driver.close()
 
 
 @cli.command()
