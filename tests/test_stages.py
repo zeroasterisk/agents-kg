@@ -353,23 +353,26 @@ class TestExtractStage:
         assert edges[0]["edge_type"] == "DEVELOPS"
 
         updated = db.get_source(sid)
-        assert updated["stage"] == "review"
-        assert updated["status"] == "pending_review"
+        assert updated["stage"] == "resolve"
+        assert updated["status"] == "processing"
 
     def test_ontology_conformance(self, db):
         """Verify extracted types match ontology."""
         VALID_NODE_TYPES = {"Organization", "Group", "Person", "Project", "Protocol", "Capability", "Source", "Chunk"}
-        VALID_EDGE_TYPES = {"MEMBER_OF", "GOVERNS", "DEVELOPS", "IMPLEMENTS", "COMPETES_WITH", "ADDRESSES", "AUTHORED", "CHAIRS", "SPONSORS", "PART_OF", "SUPERSEDES", "FROM_SOURCE", "CONTRIBUTES_TO", "DEFINES", "COMPLEMENTS"}
+        VALID_EDGE_TYPES = {"MEMBER_OF", "GOVERNS", "DEVELOPS", "IMPLEMENTS", "COMPETES_WITH", "ADDRESSES", "AUTHORED", "CHAIRS", "SPONSORS", "PART_OF", "SUPERSEDES", "CONTRIBUTES_TO", "DEFINES", "COMPLEMENTS"}
 
-        from agents_kg.stages.extract import SYSTEM_PROMPT
+        from agents_kg.stages.extract import VALID_EDGE_TYPES as CODE_EDGES, VALID_ENTITY_TYPES as CODE_TYPES
 
-        # Verify the system prompt mentions all node types
+        # Verify the code constants include all expected types
         for nt in ["Organization", "Group", "Person", "Project", "Protocol", "Capability"]:
-            assert nt in SYSTEM_PROMPT, f"Node type {nt} missing from extraction prompt"
+            assert nt in CODE_TYPES, f"Node type {nt} missing from VALID_ENTITY_TYPES"
 
         # Verify edge types
         for et in ["MEMBER_OF", "GOVERNS", "DEVELOPS", "IMPLEMENTS", "COMPETES_WITH", "ADDRESSES", "PART_OF", "SUPERSEDES"]:
-            assert et in SYSTEM_PROMPT, f"Edge type {et} missing from extraction prompt"
+            assert et in CODE_EDGES, f"Edge type {et} missing from VALID_EDGE_TYPES"
+
+        # Verify FROM_SOURCE is NOT in the valid edge types (it was a hallucinated type)
+        assert "FROM_SOURCE" not in CODE_EDGES
 
     def test_no_chunks_raises(self, db):
         from agents_kg.stages.extract import run

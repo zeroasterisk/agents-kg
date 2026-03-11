@@ -21,55 +21,101 @@ def _log():
 
 EXTRACT_MODEL = "gemini-2.0-flash"
 
-SYSTEM_PROMPT = """You are a knowledge graph extraction engine for the agentic web ecosystem.
+SYSTEM_PROMPT_TEMPLATE = """You are a knowledge graph extraction engine for the agentic web ecosystem.
 
-Given a text chunk, extract entities and relationships according to this ontology:
+Given a text chunk, extract entities and relationships according to this ontology.
 
-NODE TYPES:
-- Organization (kind: company, standards_body, foundation, consortium)
-- Group (kind: tsc, wg, sig, task_force, team)
-- Person
-- Project (kind: framework, sdk, library, tool, platform)
-- Protocol (kind: spec, standard, rfc, draft)
-- Capability (recursive via PART_OF)
+## NODE TYPES (use ONLY these):
+- Organization: A legal entity, standards body, or consortium (kind: company, standards_body, foundation, consortium)
+- Group: A committee, working group, or team WITHIN an organization (kind: tsc, wg, sig, task_force, team)
+- Person: A named individual human (NOT roles like "domain expert" or "human expert")
+- Project: Runnable code — has a repo, releases, or deployable artifacts (kind: framework, sdk, library, tool, platform)
+- Protocol: A specification document — has a version, authors, formal status (kind: spec, standard, rfc, draft)
+- Capability: A feature or ability that something provides — always describe what it DOES, not what it IS
 
-EDGE TYPES:
-MEMBER_OF, GOVERNS, DEVELOPS, IMPLEMENTS, COMPETES_WITH, ADDRESSES, AUTHORED, CHAIRS, SPONSORS, PART_OF, SUPERSEDES, FROM_SOURCE, CONTRIBUTES_TO, DEFINES, COMPLEMENTS
+## TYPE DISAMBIGUATION (critical):
+- "MCP" the specification → protocol:mcp
+- "MCP SDK" the code library → project:mcp-sdk-typescript or project:mcp-sdk-python
+- "MCP support" as a feature → capability:tool-use (or a more specific capability)
+- "Google" the company → organization:google
+- "Vertex AI" the platform → project:vertex-ai
+- A named technique (ReAct, CoT, RAG) → Project/framework, NOT Capability
+- An abstract ability (reasoning, planning, tool use) → Capability
+- Example agents in a whitepaper (e.g. "SalesAgent", "MarketingAgent") → DO NOT extract as entities (they are illustrative, not real projects)
+- Generic roles ("domain expert", "human expert", "product manager") → DO NOT extract as Person entities
+- Headings, section titles, book titles → DO NOT extract as entities
 
-Respond with valid JSON matching this schema:
-{
+## EDGE TYPES (use ONLY these 14):
+MEMBER_OF, GOVERNS, DEVELOPS, IMPLEMENTS, COMPETES_WITH, ADDRESSES, AUTHORED, CHAIRS, SPONSORS, PART_OF, SUPERSEDES, CONTRIBUTES_TO, DEFINES, COMPLEMENTS
+
+## EDGE DIRECTION RULES:
+- Person —AUTHORED→ Protocol/Project (person is the author)
+- Person —MEMBER_OF→ Organization/Group
+- Organization —DEVELOPS→ Project (org creates the project)
+- Project —IMPLEMENTS→ Protocol (code implements a spec)
+- Protocol —DEFINES→ Capability (spec defines a capability)
+- Capability —PART_OF→ Capability (sub-capability)
+- Organization —SPONSORS→ Protocol/Project
+
+## KNOWN ENTITIES (prefer these over creating new ones):
+{seed_entities}
+
+## OUTPUT FORMAT:
+Respond with valid JSON:
+{{
   "entities": [
-    {
+    {{
       "entity_id": "type:kebab-case-name",
       "name": "Display Name",
       "type": "Organization|Group|Person|Project|Protocol|Capability",
       "kind": "specific kind or null",
-      "description": "Brief description",
+      "description": "One sentence description",
       "aliases": ["alt name 1"]
-    }
+    }}
   ],
   "edges": [
-    {
+    {{
       "source_entity_id": "type:name",
       "target_entity_id": "type:name",
       "edge_type": "DEVELOPS",
       "confidence": 0.9,
-      "properties": {}
-    }
+      "properties": {{}}
+    }}
   ]
-}
+}}
 
-Rules:
-- Use kebab-case for entity_id, prefixed with type (e.g., "organization:google", "project:a2a")
+## RULES:
+- REUSE known entity_ids from the list above when they match
+- Use kebab-case for entity_id, prefixed with lowercase type (e.g., "organization:google")
 - Only extract what's explicitly stated or strongly implied
 - Set confidence 0.5-1.0 based on how explicit the relationship is
-- If nothing relevant found, return {"entities": [], "edges": []}
+- DO NOT extract illustrative examples, hypothetical agents, or generic roles
+- DO NOT invent edge types — use ONLY the 14 listed above
+- If nothing relevant found, return {{"entities": [], "edges": []}}
+- Prefer fewer, high-quality extractions over many low-quality ones
 """
+
+
+VALID_EDGE_TYPES = {
+    "MEMBER_OF", "GOVERNS", "DEVELOPS", "IMPLEMENTS", "COMPETES_WITH",
+    "ADDRESSES", "AUTHORED", "CHAIRS", "SPONSORS", "PART_OF",
+    "SUPERSEDES", "CONTRIBUTES_TO", "DEFINES", "COMPLEMENTS",
+}
+
+VALID_ENTITY_TYPES = {
+    "Organization", "Group", "Person", "Project", "Protocol", "Capability",
+}
 
 
 def _make_edge_id(src: str, tgt: str, edge_type: str) -> str:
     raw = f"{src}|{edge_type}|{tgt}"
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
+def _build_system_prompt() -> str:
+    """Build the system prompt with seed entities injected."""
+    from ..seed import format_seed_for_prompt
+    return SYSTEM_PROMPT_TEMPLATE.format(seed_entities=format_seed_for_prompt())
 
 
 def run(db: Database, source: dict) -> bool:
@@ -91,6 +137,8 @@ def run(db: Database, source: dict) -> bool:
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)
 
+    system_prompt = _build_system_prompt()
+
     total_entities = 0
     total_edges = 0
 
@@ -102,7 +150,7 @@ def run(db: Database, source: dict) -> bool:
                 model=EXTRACT_MODEL,
                 contents=f"Extract entities and relationships from this text:\n\n{chunk['text']}",
                 config={
-                    "system_instruction": SYSTEM_PROMPT,
+                    "system_instruction": system_prompt,
                     "response_mime_type": "application/json",
                     "temperature": 0.1,
                 },
@@ -114,10 +162,14 @@ def run(db: Database, source: dict) -> bool:
             continue
 
         for ent in data.get("entities", []):
+            etype = ent.get("type", "")
+            if etype not in VALID_ENTITY_TYPES:
+                _log().warning("Skipping entity with invalid type %r: %s", etype, ent.get("entity_id"))
+                continue
             db.add_entity(
                 entity_id=ent["entity_id"],
                 name=ent["name"],
-                entity_type=ent["type"],
+                entity_type=etype,
                 kind=ent.get("kind"),
                 description=ent.get("description"),
                 aliases=ent.get("aliases"),
@@ -127,12 +179,17 @@ def run(db: Database, source: dict) -> bool:
             total_entities += 1
 
         for edge in data.get("edges", []):
-            edge_id = _make_edge_id(edge["source_entity_id"], edge["target_entity_id"], edge["edge_type"])
+            edge_type = edge.get("edge_type", "")
+            if edge_type not in VALID_EDGE_TYPES:
+                _log().warning("Skipping edge with invalid type %r: %s -> %s",
+                             edge_type, edge.get("source_entity_id"), edge.get("target_entity_id"))
+                continue
+            edge_id = _make_edge_id(edge["source_entity_id"], edge["target_entity_id"], edge_type)
             db.add_edge(
                 edge_id=edge_id,
                 source_entity_id=edge["source_entity_id"],
                 target_entity_id=edge["target_entity_id"],
-                edge_type=edge["edge_type"],
+                edge_type=edge_type,
                 properties=edge.get("properties"),
                 confidence=edge.get("confidence", 0.5),
                 chunk_id=chunk["id"],
@@ -141,5 +198,5 @@ def run(db: Database, source: dict) -> bool:
             total_edges += 1
 
     _log().info("Extracted %d entities, %d edges from source %d", total_entities, total_edges, source_id)
-    db.update_source(source_id, stage="review", status="pending_review")
+    db.update_source(source_id, stage="resolve", status="processing")
     return True

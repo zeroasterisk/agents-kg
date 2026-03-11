@@ -18,7 +18,7 @@ from prefect.artifacts import create_markdown_artifact
 from prefect.cache_policies import INPUTS
 
 from .db import Database
-from .stages import fetch, parse, chunk, embed, extract, load
+from .stages import fetch, parse, chunk, embed, extract, resolve, load
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +120,19 @@ def run_extract(db_path: str, source: dict) -> bool:
 
 
 @task(
+    name="resolve",
+    on_failure=[_on_stage_failure],
+)
+def run_resolve(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
+    log = get_run_logger()
+    log.info("Resolving entities for source %d", source["id"])
+    res = resolve.run(db, source)
+    db.close()
+    return res
+
+
+@task(
     name="load",
     on_failure=[_on_stage_failure],
     persist_result=True,
@@ -139,10 +152,11 @@ TASK_MAP = {
     "chunk": run_chunk,
     "embed": run_embed,
     "extract": run_extract,
+    "resolve": run_resolve,
     "load": run_load,
 }
 
-STAGE_ORDER = ["fetch", "parse", "chunk", "embed", "extract", "review", "load"]
+STAGE_ORDER = ["fetch", "parse", "chunk", "embed", "extract", "resolve", "review", "load"]
 
 
 # ---------------------------------------------------------------------------
