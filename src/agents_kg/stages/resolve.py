@@ -76,6 +76,7 @@ def run(db: Database, source: dict) -> bool:
 
     if not entities:
         log.info("No entities to resolve for source %d", source_id)
+        db.update_source(source_id, stage="review", status="pending_review")
         return True
 
     # Build seed index for canonical matching
