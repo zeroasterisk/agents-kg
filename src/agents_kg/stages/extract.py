@@ -37,6 +37,7 @@ Given a text chunk, extract entities and relationships according to this ontolog
 - "MCP" the specification → protocol:mcp
 - "MCP SDK" the code library → project:mcp-sdk-typescript or project:mcp-sdk-python
 - "MCP support" as a feature → capability:tool-use (or a more specific capability)
+- "ACP" is overloaded. Distinguish between IBM's ACP (protocol:ibm-acp), OpenAI's payments ACP (protocol:openai-acp), and Zed's local stdio ACP (protocol:zed-acp).
 - "Google" the company → organization:google
 - "Vertex AI" the platform → project:vertex-ai
 - A named technique (ReAct, CoT, RAG) → Project/framework, NOT Capability
