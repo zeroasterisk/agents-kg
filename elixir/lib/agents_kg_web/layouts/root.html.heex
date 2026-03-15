@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <title>Agents KG Audit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer type="text/javascript" src="https://unpkg.com/phoenix@1.7.14/priv/static/phoenix.js"></script>
+    <script defer type="text/javascript" src="https://unpkg.com/phoenix_live_view@1.0.0-rc.6/priv/static/phoenix_live_view.js"></script>
+    <script>
+      window.onload = function() {
+        let liveSocket = new window.LiveView.LiveSocket("/live", window.Phoenix.Socket)
+        liveSocket.connect()
+      }
+    </script>
+  </head>
+  <body class="bg-gray-100 p-8">
+    <%= @inner_content %>
+  </body>
+</html>

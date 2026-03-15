@@ -3,4 +3,3 @@ defmodule AgentsKgWeb.Layouts do
 
   embed_templates "layouts/*"
 end
-

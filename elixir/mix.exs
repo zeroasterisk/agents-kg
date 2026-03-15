@@ -31,6 +31,7 @@ defmodule AgentsKg.MixProject do
       {:phoenix, "~> 1.7"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_view, "~> 1.0"},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:bandit, "~> 1.0"}
     ]
   end

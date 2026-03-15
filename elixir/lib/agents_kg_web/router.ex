@@ -1,6 +1,5 @@
 defmodule AgentsKgWeb.Router do
-  use Phoenix.Router
-  import Phoenix.LiveView.Router
+  use AgentsKgWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -11,10 +10,13 @@ defmodule AgentsKgWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :api do
+    plug :accepts, ["json"]
+  end
+
   scope "/", AgentsKgWeb do
     pipe_through :browser
 
-    live "/", AuditLive
+    live "/", AuditLive, :index
   end
 end
-

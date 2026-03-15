@@ -11,7 +11,7 @@ defmodule AgentsKg.Application do
       AgentsKg.Repo,
       {Phoenix.PubSub, name: AgentsKg.PubSub},
       {Oban, Application.fetch_env!(:agents_kg, Oban)},
-      # AgentsKgWeb.Endpoint
+      AgentsKgWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
