@@ -210,13 +210,17 @@ defmodule AgentsKg.Loader.Worker do
   end
 
   defp mark_source_complete(source, status, stage, error) do
-    source
-    |> Source.changeset(%{
-      status: status,
-      stage: stage,
-      error: error
-    })
-    |> Repo.update!()
+    updated_source =
+      source
+      |> Source.changeset(%{
+        status: status,
+        stage: stage,
+        error: error
+      })
+      |> Repo.update!()
+
+    Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+    updated_source
   end
 
   @doc """

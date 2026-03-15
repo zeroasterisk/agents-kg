@@ -16,7 +16,10 @@ defmodule AgentsKg.Parser.Worker do
         process_source(source)
 
       %Source{} = source ->
-        Logger.info("Source #{id} already processed or not in processing/parse state: #{source.stage}/#{source.status}")
+        Logger.info(
+          "Source #{id} already processed or not in processing/parse state: #{source.stage}/#{source.status}"
+        )
+
         :ok
     end
   end
@@ -44,7 +47,9 @@ defmodule AgentsKg.Parser.Worker do
         })
 
       case Repo.update(changeset) do
-        {:ok, _} -> :ok
+        {:ok, _} -> 
+        Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+        :ok
         {:error, reason} -> {:error, reason}
       end
     end
@@ -79,9 +84,34 @@ defmodule AgentsKg.Parser.Worker do
   end
 
   defp html_to_text(html) do
+    script_path = Path.expand("scripts/parse_html.py", File.cwd!())
+    python_exec = Path.expand("../.venv/bin/python3", File.cwd!())
+
+    if File.exists?(python_exec) and File.exists?(script_path) do
+      tmp_file = Path.join(System.tmp_dir!(), "parse_#{System.unique_integer([:positive])}.html")
+      File.write!(tmp_file, html)
+
+      try do
+        {output, 0} = System.cmd(python_exec, [script_path, tmp_file], stderr_to_stdout: true)
+        output
+      rescue
+        e ->
+          Logger.warning("Python HTML parsing failed: #{inspect(e)}, falling back to Floki")
+          floki_html_to_text(html)
+      after
+        File.rm(tmp_file)
+      end
+    else
+      Logger.warning("Python parser dependencies not found, falling back to Floki")
+      floki_html_to_text(html)
+    end
+  end
+
+  defp floki_html_to_text(html) do
     {title, summary} =
       try do
         doc = Floki.parse_document!(html)
+
         title =
           case Floki.find(doc, "title") do
             [] -> ""

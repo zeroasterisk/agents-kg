@@ -1,6 +1,6 @@
 defmodule AgentsKg.Triage.Worker do
   use Oban.Worker, queue: :default, max_attempts: 3
-  
+
   alias AgentsKg.Repo
   alias AgentsKg.Entity
   alias AgentsKg.Triage.Agent
@@ -13,20 +13,30 @@ defmodule AgentsKg.Triage.Worker do
 
       %Entity{status: "pending_review"} = entity ->
         agent_opts = if args["mock"], do: [model: "mock"], else: []
-        
+
         case Agent.run(entity, agent_opts) do
           {:ok, status, merged_into} ->
             changeset = Entity.changeset(entity, %{status: status, merged_into: merged_into})
+
             case Repo.update(changeset) do
-              {:ok, _entity} -> :ok
-              {:error, changeset} -> {:error, changeset}
+              {:ok, entity} ->
+                # Re-trigger orchestrator for the source
+                Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => entity.source_id}))
+                :ok
+
+              {:error, changeset} ->
+                {:error, changeset}
             end
 
           {:error, reason, text} ->
             _ = reason
             _ = text
             require Logger
-            Logger.warning("Failed to parse decision for entity #{id}. Reason: #{inspect(reason)}. Text: #{inspect(text)}")
+
+            Logger.warning(
+              "Failed to parse decision for entity #{id}. Reason: #{inspect(reason)}. Text: #{inspect(text)}"
+            )
+
             {:error, :parse_failure}
         end
 
@@ -35,13 +45,13 @@ defmodule AgentsKg.Triage.Worker do
         :ok
     end
   end
-  
+
   @doc """
   Enqueue jobs for all pending entities.
   """
   def enqueue_pending do
     import Ecto.Query
-    
+
     Entity
     |> where(status: "pending_review")
     |> select([e], e.id)

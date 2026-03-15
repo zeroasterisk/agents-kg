@@ -16,7 +16,10 @@ defmodule AgentsKg.Fetcher.Worker do
         process_source(source)
 
       %Source{} = source ->
-        Logger.info("Source #{id} already processed or not in pending/fetch state: #{source.stage}/#{source.status}")
+        Logger.info(
+          "Source #{id} already processed or not in pending/fetch state: #{source.stage}/#{source.status}"
+        )
+
         :ok
     end
   end
@@ -31,32 +34,38 @@ defmodule AgentsKg.Fetcher.Worker do
 
         if source.content_hash == new_hash do
           Logger.info("Content unchanged for #{uri}, skipping")
-          
+
           changeset = Source.changeset(source, %{status: "complete", stage: "done"})
+
           case Repo.update(changeset) do
-            {:ok, _} -> :ok
+            {:ok, _} -> 
+              Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+              :ok
             {:error, reason} -> {:error, reason}
           end
         else
-          changeset = Source.changeset(source, %{
-            raw_text: raw_text,
-            content_hash: new_hash,
-            type: source_type,
-            stage: "parse",
-            status: "processing"
-          })
+          changeset =
+            Source.changeset(source, %{
+              raw_text: raw_text,
+              content_hash: new_hash,
+              type: source_type,
+              stage: "parse",
+              status: "processing"
+            })
 
           case Repo.update(changeset) do
-            {:ok, _} -> :ok
+            {:ok, _} -> 
+              Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+              :ok
             {:error, reason} -> {:error, reason}
           end
         end
 
       {:error, reason} ->
         Logger.error("Failed to fetch #{uri}: #{inspect(reason)}")
-        
+
         reason_str = if is_binary(reason), do: reason, else: inspect(reason)
-        
+
         changeset = Source.changeset(source, %{error: reason_str, status: "error"})
         Repo.update(changeset)
 
@@ -67,7 +76,7 @@ defmodule AgentsKg.Fetcher.Worker do
   defp fetch_content("file://" <> path) do
     do_fetch_local(path)
   end
-  
+
   defp fetch_content(uri) do
     if is_local_file?(uri) do
       do_fetch_local(uri)
@@ -111,13 +120,13 @@ defmodule AgentsKg.Fetcher.Worker do
 
         source_type = if String.contains?(content_type, "html"), do: "html", else: "text"
 
-        body = 
+        body =
           if is_binary(resp.body) do
             resp.body
           else
             Jason.encode!(resp.body)
           end
-        
+
         {:ok, body, source_type}
 
       {:ok, %Req.Response{status: status}} ->
@@ -125,7 +134,7 @@ defmodule AgentsKg.Fetcher.Worker do
 
       {:error, %{reason: reason}} ->
         {:error, inspect(reason)}
-        
+
       {:error, reason} ->
         {:error, inspect(reason)}
     end

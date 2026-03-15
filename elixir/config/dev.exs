@@ -1,4 +1,3 @@
-
 import Config
 
 config :agents_kg, AgentsKgWeb.Endpoint,
@@ -7,4 +6,3 @@ config :agents_kg, AgentsKgWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: []
-

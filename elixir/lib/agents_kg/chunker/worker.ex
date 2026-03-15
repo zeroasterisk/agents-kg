@@ -88,7 +88,9 @@ defmodule AgentsKg.Chunker.Worker do
         })
 
       case Repo.update(changeset) do
-        {:ok, _} -> :ok
+        {:ok, _} -> 
+        Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+        :ok
         {:error, reason} -> {:error, reason}
       end
     end

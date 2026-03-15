@@ -8,11 +8,13 @@ defmodule AgentsKgWeb.AuditLive do
       # Subscribe if needed
     end
 
-    socket = assign(socket,
-      entities: load_needs_human(),
-      selected_entity: nil,
-      editing: false
-    )
+    socket =
+      assign(socket,
+        entities: load_needs_human(),
+        selected_entity: nil,
+        editing: false
+      )
+
     {:ok, socket}
   end
 
@@ -127,18 +129,18 @@ defmodule AgentsKgWeb.AuditLive do
     entity = Enum.find(socket.assigns.entities, &(&1.id == id_int))
     {:noreply, assign(socket, selected_entity: entity, editing: false)}
   end
-  
+
   def handle_event("edit", _, socket) do
     {:noreply, assign(socket, editing: true)}
   end
-  
+
   def handle_event("cancel_edit", _, socket) do
     {:noreply, assign(socket, editing: false)}
   end
-  
+
   def handle_event("save_edit", params, socket) do
     entity = Repo.get!(Entity, socket.assigns.selected_entity.id)
-    
+
     attrs = %{
       name: params["name"],
       type: params["type"],
@@ -146,19 +148,22 @@ defmodule AgentsKgWeb.AuditLive do
       description: params["description"],
       aliases: params["aliases"]
     }
-    
+
     entity = Ecto.Changeset.change(entity, attrs) |> Repo.update!()
-    
-    socket = assign(socket, 
-      entities: load_needs_human(), 
-      selected_entity: entity,
-      editing: false
-    )
+
+    socket =
+      assign(socket,
+        entities: load_needs_human(),
+        selected_entity: entity,
+        editing: false
+      )
+
     {:noreply, socket}
   end
 
   def handle_event("approve", %{"id" => id}, socket) do
     entity = Repo.get!(Entity, String.to_integer(id))
+
     Ecto.Changeset.change(entity, status: "approved")
     |> Repo.update!()
 
@@ -168,6 +173,7 @@ defmodule AgentsKgWeb.AuditLive do
 
   def handle_event("reject", %{"id" => id}, socket) do
     entity = Repo.get!(Entity, String.to_integer(id))
+
     Ecto.Changeset.change(entity, status: "rejected")
     |> Repo.update!()
 
@@ -178,6 +184,7 @@ defmodule AgentsKgWeb.AuditLive do
   def handle_event("merge", %{"source_id" => source_id, "target_id" => target_id}, socket) do
     if target_id != "" do
       entity = Repo.get!(Entity, String.to_integer(source_id))
+
       Ecto.Changeset.change(entity, status: "merged", merged_into: target_id)
       |> Repo.update!()
 

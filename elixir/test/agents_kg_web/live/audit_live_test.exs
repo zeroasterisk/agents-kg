@@ -18,12 +18,13 @@ defmodule AgentsKgWeb.AuditLiveTest do
   end
 
   test "can select and approve entity", %{conn: conn} do
-    entity = Repo.insert!(%Entity{
-      entity_id: "test:ent1",
-      name: "Test Entity 1",
-      type: "Project",
-      status: "needs_human"
-    })
+    entity =
+      Repo.insert!(%Entity{
+        entity_id: "test:ent1",
+        name: "Test Entity 1",
+        type: "Project",
+        status: "needs_human"
+      })
 
     {:ok, page_live, _html} = live(conn, "/")
     assert render(page_live) =~ "Test Entity 1"
@@ -42,20 +43,21 @@ defmodule AgentsKgWeb.AuditLiveTest do
 
     # Entity is approved, shouldn't be in the list
     refute render(page_live) =~ "Review: Test Entity 1"
-    
+
     assert Repo.get!(Entity, entity.id).status == "approved"
   end
 
   test "can edit and save entity", %{conn: conn} do
-    entity = Repo.insert!(%Entity{
-      entity_id: "test:ent2",
-      name: "Test Entity 2",
-      type: "Person",
-      status: "needs_human"
-    })
+    entity =
+      Repo.insert!(%Entity{
+        entity_id: "test:ent2",
+        name: "Test Entity 2",
+        type: "Person",
+        status: "needs_human"
+      })
 
     {:ok, page_live, _html} = live(conn, "/")
-    
+
     # Select
     page_live
     |> element("li[phx-click=\"select_entity\"][phx-value-id=\"#{entity.id}\"]")
@@ -65,7 +67,7 @@ defmodule AgentsKgWeb.AuditLiveTest do
     page_live
     |> element("button.bg-yellow-500", "Edit")
     |> render_click()
-    
+
     assert render(page_live) =~ "Cancel"
 
     # Save
@@ -82,7 +84,7 @@ defmodule AgentsKgWeb.AuditLiveTest do
     # Ensure details view reflects it
     assert render(page_live) =~ "Updated Name"
     assert render(page_live) =~ "library"
-    
+
     # Check db
     updated = Repo.get!(Entity, entity.id)
     assert updated.name == "Updated Name"

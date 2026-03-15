@@ -27,4 +27,3 @@ config :agents_kg, AgentsKgWeb.Endpoint,
   live_view: [signing_salt: "q4B6Qz+O"]
 
 config :phoenix, :json_library, Jason
-

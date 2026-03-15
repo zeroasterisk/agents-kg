@@ -103,10 +103,10 @@ defmodule AgentsKg.Extractor.Agent do
     runner = ADK.Runner.new(app_name: "extractor", agent: agent)
     session_id = session_id || "extractor_#{System.unique_integer([:positive])}"
     message = "Extract entities and relationships from this text:\n\n#{text}"
-    
+
     events = ADK.Runner.run(runner, "system", session_id, message)
-    
-    text_response = 
+
+    text_response =
       events
       |> Enum.filter(&(&1.author == "ExtractorAgent"))
       |> Enum.map(&ADK.Event.text/1)
