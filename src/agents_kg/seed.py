@@ -43,6 +43,22 @@ SEED_ENTITIES = [
     {"entity_id": "organization:kaggle", "name": "Kaggle", "type": "Organization", "kind": "company",
      "aliases": []},
 
+    # --- Groups ---
+    {"entity_id": "group:agents-wg", "name": "Agents Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Agents WG"]},
+    {"entity_id": "group:auth-wg", "name": "Auth Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Auth WG"]},
+    {"entity_id": "group:enterprise-wg", "name": "Enterprise Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Enterprise WG"]},
+    {"entity_id": "group:governance-wg", "name": "Governance Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Governance WG"]},
+    {"entity_id": "group:server-card-wg", "name": "Server Card Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Server Card WG"]},
+    {"entity_id": "group:server-identity-wg", "name": "Server Identity Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Server Identity WG"]},
+    {"entity_id": "group:transports-wg", "name": "Transports Working Group", "type": "Group", "kind": "wg",
+     "aliases": ["Transports WG"]},
+
     # --- Protocols ---
     {"entity_id": "protocol:mcp", "name": "Model Context Protocol", "type": "Protocol", "kind": "spec",
      "aliases": ["MCP"]},

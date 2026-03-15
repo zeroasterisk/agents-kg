@@ -49,13 +49,19 @@ Given a text chunk, extract entities and relationships according to this ontolog
 MEMBER_OF, GOVERNS, DEVELOPS, IMPLEMENTS, COMPETES_WITH, ADDRESSES, AUTHORED, CHAIRS, SPONSORS, PART_OF, SUPERSEDES, CONTRIBUTES_TO, DEFINES, COMPLEMENTS
 
 ## EDGE DIRECTION RULES:
-- Person —AUTHORED→ Protocol/Project (person is the author)
+- ADDRESSES: Use when an entity was DESIGNED TO SOLVE a capability (e.g., Protocol or Project ADDRESSES Capability)
+- DO NOT use ADDRESSES for Person entities — use AUTHORED instead
+- Person —AUTHORED→ Protocol/Project (when person created/wrote the thing)
+- Person —CONTRIBUTES_TO→ Organization/Project (when person contributes to)
 - Person —MEMBER_OF→ Organization/Group
+- Group —MEMBER_OF→ Organization (working groups are members of organizations, not protocols)
 - Organization —DEVELOPS→ Project (org creates the project)
 - Project —IMPLEMENTS→ Protocol (code implements a spec)
+- Protocol —COMPLEMENTS→ Protocol (when a protocol builds on or complements another protocol)
 - Protocol —DEFINES→ Capability (spec defines a capability)
 - Capability —PART_OF→ Capability (sub-capability)
 - Organization —SPONSORS→ Protocol/Project
+- Protocol —USES→ Protocol (when a protocol is built on top of another protocol)
 
 ## KNOWN ENTITIES (prefer these over creating new ones):
 {seed_entities}
@@ -85,12 +91,15 @@ Respond with valid JSON:
 }}
 
 ## RULES:
+- entity_id format: ALWAYS "type:kebab-case-name" — NEVER include kind in the id
+- CORRECT: "organization:google", "protocol:a2a", "project:mcp-sdk-python"
+- WRONG:   "organization:google/company", "protocol:a2a/spec", "project:mcp-sdk-python/sdk"
+- The kind field exists separately — do not embed it in the entity_id
 - REUSE known entity_ids from the list above when they match
-- Use kebab-case for entity_id, prefixed with lowercase type (e.g., "organization:google")
 - Only extract what's explicitly stated or strongly implied
 - Set confidence 0.5-1.0 based on how explicit the relationship is
 - DO NOT extract illustrative examples, hypothetical agents, or generic roles
-- DO NOT invent edge types — use ONLY the 14 listed above
+- DO NOT invent edge types — use ONLY the 15 listed above
 - If nothing relevant found, return {{"entities": [], "edges": []}}
 - Prefer fewer, high-quality extractions over many low-quality ones
 """
@@ -99,7 +108,7 @@ Respond with valid JSON:
 VALID_EDGE_TYPES = {
     "MEMBER_OF", "GOVERNS", "DEVELOPS", "IMPLEMENTS", "COMPETES_WITH",
     "ADDRESSES", "AUTHORED", "CHAIRS", "SPONSORS", "PART_OF",
-    "SUPERSEDES", "CONTRIBUTES_TO", "DEFINES", "COMPLEMENTS",
+    "SUPERSEDES", "CONTRIBUTES_TO", "DEFINES", "COMPLEMENTS", "USES",
 }
 
 VALID_ENTITY_TYPES = {
