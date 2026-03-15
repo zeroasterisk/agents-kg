@@ -26,7 +26,12 @@ defmodule AgentsKg.MixProject do
       {:ecto_sqlite3, "~> 0.16"},
       {:jason, "~> 1.4"},
       {:oban, "~> 2.18"},
-      {:adk, path: "../../adk-elixir"}
+      {:req, "~> 0.5.0"},
+      {:adk, path: "../../adk-elixir"},
+      {:phoenix, "~> 1.7"},
+      {:phoenix_html, "~> 4.0"},
+      {:phoenix_live_view, "~> 1.0"},
+      {:bandit, "~> 1.0"}
     ]
   end
 end

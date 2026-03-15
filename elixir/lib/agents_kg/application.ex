@@ -9,7 +9,9 @@ defmodule AgentsKg.Application do
   def start(_type, _args) do
     children = [
       AgentsKg.Repo,
-      {Oban, Application.fetch_env!(:agents_kg, Oban)}
+      {Phoenix.PubSub, name: AgentsKg.PubSub},
+      {Oban, Application.fetch_env!(:agents_kg, Oban)},
+      # AgentsKgWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
