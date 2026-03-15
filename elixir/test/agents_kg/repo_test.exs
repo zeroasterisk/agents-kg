@@ -8,6 +8,11 @@ defmodule AgentsKg.RepoTest do
 
   import Ecto.Query
 
+  setup do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+    :ok
+  end
+
   test "can query the existing database" do
     result = Repo.all(from(Entity, limit: 1))
     assert is_list(result)
