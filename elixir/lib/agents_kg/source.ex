@@ -15,7 +15,7 @@ defmodule AgentsKg.Source do
     field(:attempts, :integer, default: 0)
     field(:max_attempts, :integer, default: 5)
 
-    timestamps(inserted_at: :created_at, type: :string)
+    timestamps(inserted_at: :created_at, type: :utc_datetime)
   end
 
   def changeset(source, attrs) do

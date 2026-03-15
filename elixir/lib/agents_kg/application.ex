@@ -8,7 +8,8 @@ defmodule AgentsKg.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      AgentsKg.Repo
+      AgentsKg.Repo,
+      {Oban, Application.fetch_env!(:agents_kg, Oban)}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -24,7 +24,9 @@ defmodule AgentsKg.MixProject do
     [
       {:ecto_sql, "~> 3.11"},
       {:ecto_sqlite3, "~> 0.16"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:oban, "~> 2.18"},
+      {:adk, path: "../../adk-elixir"}
     ]
   end
 end

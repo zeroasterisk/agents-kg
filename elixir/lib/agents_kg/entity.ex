@@ -15,7 +15,7 @@ defmodule AgentsKg.Entity do
     belongs_to(:source, AgentsKg.Source, foreign_key: :source_id)
     field(:chunk_id, :integer)
 
-    timestamps(inserted_at: :created_at, type: :string)
+    timestamps(inserted_at: :created_at, type: :utc_datetime)
   end
 
   def changeset(entity, attrs) do

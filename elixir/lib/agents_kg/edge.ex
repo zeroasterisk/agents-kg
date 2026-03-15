@@ -17,7 +17,7 @@ defmodule AgentsKg.Edge do
     field(:source_type, :string, default: "automated")
     field(:status, :string, default: "pending_review")
 
-    timestamps(inserted_at: :created_at, type: :string)
+    timestamps(inserted_at: :created_at, type: :utc_datetime)
   end
 
   def changeset(edge, attrs) do
