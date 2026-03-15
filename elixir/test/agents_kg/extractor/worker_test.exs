@@ -56,7 +56,7 @@ defmodule AgentsKg.Extractor.WorkerTest do
       stage: "extract"
     })
     
-    {:ok, chunk} = Repo.insert(%Chunk{
+    {:ok, _chunk} = Repo.insert(%Chunk{
       source_id: source.id,
       position: 1,
       text: "Google develops Vertex AI."
