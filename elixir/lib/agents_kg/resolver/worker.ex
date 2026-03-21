@@ -28,7 +28,7 @@ defmodule AgentsKg.Resolver.Worker do
         end)
 
         # Update source to review stage
-        updated_source =
+        _updated_source =
           source
           |> Source.changeset(%{stage: "review", status: "pending_review"})
           |> Repo.update!()
