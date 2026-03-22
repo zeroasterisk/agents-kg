@@ -4,80 +4,87 @@ defmodule AgentsKg.Pipeline.Workflow do
   """
   alias ADK.Workflow
   alias ADK.Agent.Custom
+  require Logger
 
-  def new do
+  def new(source_id) do
     nodes = %{
       fetch:
         Custom.new(
           name: "fetch",
-          handler: fn ctx ->
-            source_id = ADK.Context.get_temp(ctx, :source_id)
+          run_fn: fn _agent, _ctx ->
             source = AgentsKg.Repo.get!(AgentsKg.Source, source_id)
-            AgentsKg.Fetcher.Worker.process_source(source)
-            "fetch_complete"
+
+            case AgentsKg.Fetcher.Worker.process_source(source) do
+              :ok ->
+                Logger.info("Workflow: fetch completed for source #{source_id}")
+                [ADK.Event.new(%{author: "fetch", content: "fetch_complete"})]
+
+              {:error, reason} ->
+                Logger.error("Workflow: fetch failed for source #{source_id}: #{inspect(reason)}")
+                [ADK.Event.error(inspect(reason), author: "fetch")]
+            end
           end
         ),
       parse:
         Custom.new(
           name: "parse",
-          handler: fn ctx ->
-            source_id = ADK.Context.get_temp(ctx, :source_id)
+          run_fn: fn _agent, _ctx ->
             source = AgentsKg.Repo.get!(AgentsKg.Source, source_id)
-            AgentsKg.Parser.Worker.process_source(source)
-            "parse_complete"
+
+            case AgentsKg.Parser.Worker.process_source(source) do
+              :ok ->
+                Logger.info("Workflow: parse completed for source #{source_id}")
+                [ADK.Event.new(%{author: "parse", content: "parse_complete"})]
+
+              {:error, reason} ->
+                Logger.error("Workflow: parse failed for source #{source_id}: #{inspect(reason)}")
+                [ADK.Event.error(inspect(reason), author: "parse")]
+            end
           end
         ),
       chunk:
         Custom.new(
           name: "chunk",
-          handler: fn ctx ->
-            source_id = ADK.Context.get_temp(ctx, :source_id)
+          run_fn: fn _agent, _ctx ->
             source = AgentsKg.Repo.get!(AgentsKg.Source, source_id)
-            AgentsKg.Chunker.Worker.process_source(source)
-            "chunk_complete"
+
+            case AgentsKg.Chunker.Worker.process_source(source) do
+              :ok ->
+                Logger.info("Workflow: chunk completed for source #{source_id}")
+                [ADK.Event.new(%{author: "chunk", content: "chunk_complete"})]
+
+              {:error, reason} ->
+                Logger.error("Workflow: chunk failed for source #{source_id}: #{inspect(reason)}")
+                [ADK.Event.error(inspect(reason), author: "chunk")]
+            end
           end
         ),
-      extract: AgentsKg.Extractor.Agent.new(),
-      qa: AgentsKg.Qa.Agent.new(),
-      heal: AgentsKg.Heal.Agent.new(),
-      human_review:
+      extract:
         Custom.new(
-          name: "human_review",
-          handler: fn _ctx ->
-            # Stub for manual intervention
-            "reviewed"
-          end
-        ),
-      triage:
-        Custom.new(
-          name: "triage",
-          handler: fn _ctx ->
-            # Integration with AgentsKg.Triage.Agent
-            # Note: triage usually works on entities, this might need restructuring 
-            # for a source-level pipeline.
-            "triage_complete"
-          end
-        ),
-      load:
-        Custom.new(
-          name: "load",
-          handler: fn ctx ->
-            _source_id = ADK.Context.get_temp(ctx, :source_id)
-            # Loader worker processes by ID
-            # AgentsKg.Loader.Worker logic here
-            "load_complete"
+          name: "extract",
+          run_fn: fn _agent, _ctx ->
+            source = AgentsKg.Repo.get!(AgentsKg.Source, source_id)
+            # Extractor.Worker returns :ok or {:error, reason}
+            case AgentsKg.Extractor.Worker.process_source(source) do
+              :ok ->
+                Logger.info("Workflow: extract completed for source #{source_id}")
+                [ADK.Event.new(%{author: "extract", content: "extract_complete"})]
+
+              {:error, reason} ->
+                Logger.error(
+                  "Workflow: extract failed for source #{source_id}: #{inspect(reason)}"
+                )
+
+                [ADK.Event.error(inspect(reason), author: "extract")]
+            end
           end
         )
     }
 
     edges = [
-      {:START, :fetch, :parse, :chunk, :extract, :qa},
-      {:qa, %{"passed" => :triage, "failed" => :heal}},
-      {:heal, %{"success" => :triage, "failure" => :human_review}},
-      {:human_review, :triage},
-      {:triage, :load, :END}
+      {:START, :fetch, :parse, :chunk, :extract, :END}
     ]
 
-    Workflow.new(name: "agents_kg_pipeline", edges: edges, nodes: nodes)
+    Workflow.new(name: "agents_kg_pipeline_#{source_id}", edges: edges, nodes: nodes)
   end
 end

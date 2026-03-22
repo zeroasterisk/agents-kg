@@ -47,10 +47,11 @@ defmodule AgentsKg.Parser.Worker do
         })
 
       case Repo.update(changeset) do
-        {:ok, _} -> 
-        Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
-        :ok
-        {:error, reason} -> {:error, reason}
+        {:ok, _} ->
+          :ok
+
+        {:error, reason} ->
+          {:error, reason}
       end
     end
   end

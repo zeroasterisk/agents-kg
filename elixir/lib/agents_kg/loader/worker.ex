@@ -219,7 +219,7 @@ defmodule AgentsKg.Loader.Worker do
       })
       |> Repo.update!()
 
-    Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+
     updated_source
   end
 

@@ -33,7 +33,9 @@ defmodule AgentsKg.MixProject do
       {:phoenix_live_view, "~> 1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:bandit, "~> 1.0"},
-      {:floki, "~> 0.36.0"}
+      {:floki, "~> 0.36.0"},
+      {:a2a, "~> 0.2.0"},
+      {:opentelemetry_api, "~> 1.0"}
     ]
   end
 end

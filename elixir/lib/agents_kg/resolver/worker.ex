@@ -34,7 +34,7 @@ defmodule AgentsKg.Resolver.Worker do
           |> Repo.update!()
 
         # Re-trigger orchestrator to check review status
-        Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+
 
         :ok
 

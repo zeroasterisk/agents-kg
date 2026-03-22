@@ -21,7 +21,7 @@ defmodule AgentsKg.Triage.Worker do
             case Repo.update(changeset) do
               {:ok, entity} ->
                 # Re-trigger orchestrator for the source
-                Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => entity.source_id}))
+
                 :ok
 
               {:error, changeset} ->

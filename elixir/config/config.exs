@@ -10,7 +10,7 @@ config :agents_kg, ecto_repos: [AgentsKg.Repo]
 config :agents_kg, Oban,
   engine: Oban.Engines.Lite,
   repo: AgentsKg.Repo,
-  queues: [default: 10]
+  queues: [default: 1]
 
 if File.exists?(Path.expand("#{config_env()}.exs", __DIR__)) do
   import_config "#{config_env()}.exs"
@@ -27,3 +27,5 @@ config :agents_kg, AgentsKgWeb.Endpoint,
   live_view: [signing_salt: "q4B6Qz+O"]
 
 config :phoenix, :json_library, Jason
+
+config :adk, :llm_backend, ADK.LLM.Gemini

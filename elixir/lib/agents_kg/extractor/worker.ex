@@ -1,5 +1,5 @@
 defmodule AgentsKg.Extractor.Worker do
-  use Oban.Worker, queue: :default, max_attempts: 3
+  use Oban.Worker, queue: :default, max_attempts: 10
 
   import Ecto.Query
   alias AgentsKg.Repo
@@ -45,76 +45,7 @@ defmodule AgentsKg.Extractor.Worker do
 
       %Source{status: "pending_extraction"} = source ->
         agent_opts = if args["mock"], do: [model: "mock"], else: []
-
-        chunks = Repo.all(from(c in Chunk, where: c.source_id == ^id, order_by: c.position))
-
-        if chunks == [] do
-          Logger.warning("Source #{id} has no chunks to extract from.")
-          mark_source_complete(source, "skipped", "No chunks to extract from")
-          :ok
-        else
-          results =
-            Enum.map(chunks, fn chunk ->
-              Logger.info("Extracting from chunk #{chunk.id} (source #{id})")
-
-              case Agent.run(chunk.text, "extract_#{id}_#{chunk.id}", agent_opts) do
-                {:ok, data} ->
-                  Logger.info("Running QA on extraction for chunk #{chunk.id}")
-                  qa_opts = if args["mock"], do: [model: "mock"], else: []
-                  
-                  case AgentsKg.Qa.Agent.run(chunk.text, data, "qa_#{id}_#{chunk.id}", qa_opts) do
-                    {:ok, %{"passed" => true}} ->
-                      Logger.info("QA passed for chunk #{chunk.id}")
-                      {:ok, data, chunk}
-                      
-                    {:ok, qa_result} ->
-                      Logger.warning("QA failed for chunk #{chunk.id}, escalating to Heal: #{inspect(qa_result)}")
-                      heal_opts = if args["mock"], do: [model: "mock"], else: []
-                      
-                      case AgentsKg.Heal.Agent.run(chunk.text, data, qa_result, "heal_#{id}_#{chunk.id}", heal_opts) do
-                        {:ok, healed_data} ->
-                          Logger.info("Healed extraction for chunk #{chunk.id}")
-                          {:ok, healed_data, chunk}
-                          
-                        {:error, heal_reason} ->
-                          Logger.error("Heal failed for chunk #{chunk.id}: #{inspect(heal_reason)}")
-                          # Fallback to original data if heal errors out
-                          {:ok, data, chunk}
-                      end
-                      
-                    {:error, qa_reason} ->
-                      Logger.error("QA agent failed for chunk #{chunk.id}: #{inspect(qa_reason)}")
-                      {:ok, data, chunk}
-                  end
-
-                {:error, reason} -> 
-                  {:error, reason, chunk}
-              end
-            end)
-
-          # Check if all chunks failed
-          failures = Enum.filter(results, fn {status, _, _} -> status == :error end)
-          successes = Enum.filter(results, fn {status, _, _} -> status == :ok end)
-
-          if length(successes) == 0 and length(failures) > 0 do
-            {:error, "All chunk extractions failed"}
-          else
-            Repo.transaction(fn ->
-              for {:ok, data, chunk} <- successes do
-                entities = Map.get(data, "entities", []) || []
-                edges = Map.get(data, "edges", []) || []
-                
-                Enum.each(entities, &insert_entity(&1, source.id, chunk.id))
-                Enum.each(edges, &insert_edge(&1, source.id, chunk.id))
-              end
-
-              # Move to 'resolve' for triage per Elixir logic
-              mark_source_complete(source, "processing", nil)
-            end)
-
-            :ok
-          end
-        end
+        process_source(source, agent_opts)
 
       source ->
         Logger.debug(
@@ -122,6 +53,91 @@ defmodule AgentsKg.Extractor.Worker do
         )
 
         :ok
+    end
+  end
+
+  def process_source(source, agent_opts \\ []) do
+    id = source.id
+    chunks = Repo.all(from(c in Chunk, where: c.source_id == ^id, order_by: c.position))
+
+    if chunks == [] do
+      Logger.warning("Source #{id} has no chunks to extract from.")
+      mark_source_complete(source, "skipped", "No chunks to extract from")
+      :ok
+    else
+      results =
+        Enum.map(chunks, fn chunk ->
+          # prevent 15 RPM limit
+          Process.sleep(4500)
+          Logger.info("Extracting from chunk #{chunk.id} (source #{id})")
+
+          case Agent.run(chunk.text, "extract_#{id}_#{chunk.id}", agent_opts) do
+            {:ok, data} ->
+              Logger.info("Running QA on extraction for chunk #{chunk.id}")
+              # prevent rate limit
+              Process.sleep(4500)
+              qa_opts = agent_opts
+
+              case AgentsKg.Qa.Agent.run(chunk.text, data, "qa_#{id}_#{chunk.id}", qa_opts) do
+                {:ok, %{"passed" => true}} ->
+                  Logger.info("QA passed for chunk #{chunk.id}")
+                  {:ok, data, chunk}
+
+                {:ok, qa_result} ->
+                  Logger.warning(
+                    "QA failed for chunk #{chunk.id}, escalating to Heal: #{inspect(qa_result)}"
+                  )
+
+                  Process.sleep(4500)
+                  heal_opts = agent_opts
+
+                  case AgentsKg.Heal.Agent.run(
+                         chunk.text,
+                         data,
+                         qa_result,
+                         "heal_#{id}_#{chunk.id}",
+                         heal_opts
+                       ) do
+                    {:ok, healed_data} ->
+                      Logger.info("Healed extraction for chunk #{chunk.id}")
+                      {:ok, healed_data, chunk}
+
+                    {:error, heal_reason} ->
+                      Logger.error("Heal failed for chunk #{chunk.id}: #{inspect(heal_reason)}")
+                      {:ok, data, chunk}
+                  end
+
+                {:error, qa_reason} ->
+                  Logger.error("QA agent failed for chunk #{chunk.id}: #{inspect(qa_reason)}")
+                  {:ok, data, chunk}
+              end
+
+            {:error, reason} ->
+              {:error, reason, chunk}
+          end
+        end)
+
+      failures = Enum.filter(results, fn {status, _, _} -> status == :error end)
+      successes = Enum.filter(results, fn {status, _, _} -> status == :ok end)
+
+      if length(successes) == 0 and length(failures) > 0 do
+        Logger.error("All chunks failed. Sample error: #{inspect(List.first(failures))}")
+        {:error, "All chunk extractions failed"}
+      else
+        Repo.transaction(fn ->
+          for {:ok, data, chunk} <- successes do
+            entities = Map.get(data, "entities", []) || []
+            edges = Map.get(data, "edges", []) || []
+
+            Enum.each(entities, &insert_entity(&1, source.id, chunk.id))
+            Enum.each(edges, &insert_edge(&1, source.id, chunk.id))
+          end
+
+          mark_source_complete(source, "processing", nil)
+        end)
+
+        :ok
+      end
     end
   end
 
@@ -205,7 +221,6 @@ defmodule AgentsKg.Extractor.Worker do
       })
       |> Repo.update!()
 
-    Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
     updated_source
   end
 

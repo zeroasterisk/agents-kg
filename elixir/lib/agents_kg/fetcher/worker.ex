@@ -38,10 +38,11 @@ defmodule AgentsKg.Fetcher.Worker do
           changeset = Source.changeset(source, %{status: "complete", stage: "done"})
 
           case Repo.update(changeset) do
-            {:ok, _} -> 
-              Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+            {:ok, _} ->
               :ok
-            {:error, reason} -> {:error, reason}
+
+            {:error, reason} ->
+              {:error, reason}
           end
         else
           changeset =
@@ -54,10 +55,11 @@ defmodule AgentsKg.Fetcher.Worker do
             })
 
           case Repo.update(changeset) do
-            {:ok, _} -> 
-              Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
+            {:ok, _} ->
               :ok
-            {:error, reason} -> {:error, reason}
+
+            {:error, reason} ->
+              {:error, reason}
           end
         end
 

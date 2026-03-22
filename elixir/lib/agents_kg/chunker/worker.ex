@@ -72,11 +72,14 @@ defmodule AgentsKg.Chunker.Worker do
           }
         end)
 
-      # Insert chunks
+      # Insert chunks with on_conflict
       Enum.each(chunks_data, fn attrs ->
         %Chunk{}
         |> Chunk.changeset(attrs)
-        |> Repo.insert!()
+        |> Repo.insert(
+          on_conflict: :replace_all,
+          conflict_target: [:source_id, :position]
+        )
       end)
 
       Logger.info("Created #{length(chunks_data)} chunks for source #{source.id}")
@@ -88,10 +91,11 @@ defmodule AgentsKg.Chunker.Worker do
         })
 
       case Repo.update(changeset) do
-        {:ok, _} -> 
-        Oban.insert(AgentsKg.Pipeline.Orchestrator.new(%{"id" => source.id}))
-        :ok
-        {:error, reason} -> {:error, reason}
+        {:ok, _} ->
+          :ok
+
+        {:error, reason} ->
+          {:error, reason}
       end
     end
   end
