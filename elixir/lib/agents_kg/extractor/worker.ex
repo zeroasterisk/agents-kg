@@ -58,8 +58,37 @@ defmodule AgentsKg.Extractor.Worker do
               Logger.info("Extracting from chunk #{chunk.id} (source #{id})")
 
               case Agent.run(chunk.text, "extract_#{id}_#{chunk.id}", agent_opts) do
-                {:ok, data} -> {:ok, data, chunk}
-                {:error, reason} -> {:error, reason, chunk}
+                {:ok, data} ->
+                  Logger.info("Running QA on extraction for chunk #{chunk.id}")
+                  qa_opts = if args["mock"], do: [model: "mock"], else: []
+                  
+                  case AgentsKg.Qa.Agent.run(chunk.text, data, "qa_#{id}_#{chunk.id}", qa_opts) do
+                    {:ok, %{"passed" => true}} ->
+                      Logger.info("QA passed for chunk #{chunk.id}")
+                      {:ok, data, chunk}
+                      
+                    {:ok, qa_result} ->
+                      Logger.warning("QA failed for chunk #{chunk.id}, escalating to Heal: #{inspect(qa_result)}")
+                      heal_opts = if args["mock"], do: [model: "mock"], else: []
+                      
+                      case AgentsKg.Heal.Agent.run(chunk.text, data, qa_result, "heal_#{id}_#{chunk.id}", heal_opts) do
+                        {:ok, healed_data} ->
+                          Logger.info("Healed extraction for chunk #{chunk.id}")
+                          {:ok, healed_data, chunk}
+                          
+                        {:error, heal_reason} ->
+                          Logger.error("Heal failed for chunk #{chunk.id}: #{inspect(heal_reason)}")
+                          # Fallback to original data if heal errors out
+                          {:ok, data, chunk}
+                      end
+                      
+                    {:error, qa_reason} ->
+                      Logger.error("QA agent failed for chunk #{chunk.id}: #{inspect(qa_reason)}")
+                      {:ok, data, chunk}
+                  end
+
+                {:error, reason} -> 
+                  {:error, reason, chunk}
               end
             end)
 
@@ -71,12 +100,15 @@ defmodule AgentsKg.Extractor.Worker do
             {:error, "All chunk extractions failed"}
           else
             Repo.transaction(fn ->
-              for {:ok, %{"entities" => entities, "edges" => edges}, chunk} <- successes do
-                Enum.each(entities || [], &insert_entity(&1, source.id, chunk.id))
-                Enum.each(edges || [], &insert_edge(&1, source.id, chunk.id))
+              for {:ok, data, chunk} <- successes do
+                entities = Map.get(data, "entities", []) || []
+                edges = Map.get(data, "edges", []) || []
+                
+                Enum.each(entities, &insert_entity(&1, source.id, chunk.id))
+                Enum.each(edges, &insert_edge(&1, source.id, chunk.id))
               end
 
-              # Move to 'processing' for triage per Python script
+              # Move to 'resolve' for triage per Elixir logic
               mark_source_complete(source, "processing", nil)
             end)
 

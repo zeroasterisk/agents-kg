@@ -38,22 +38,8 @@ defmodule AgentsKg.Pipeline.Workflow do
           end
         ),
       extract: AgentsKg.Extractor.Agent.new(),
-      qa:
-        Custom.new(
-          name: "qa",
-          handler: fn _ctx ->
-            # Stub for QA critic agent
-            "qa_passed"
-          end
-        ),
-      heal:
-        Custom.new(
-          name: "heal",
-          handler: fn _ctx ->
-            # Stub for Heal agent
-            "healed"
-          end
-        ),
+      qa: AgentsKg.Qa.Agent.new(),
+      heal: AgentsKg.Heal.Agent.new(),
       human_review:
         Custom.new(
           name: "human_review",
