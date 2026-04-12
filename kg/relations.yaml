@@ -33,3 +33,9 @@ relations:
   - subject: agent-passport
     predicate: proposed_in
     object: aaif
+
+  - subject: adk-elixir
+    predicate: inspired_by
+    object: adk
+    note: Inspired by Google ADK
+

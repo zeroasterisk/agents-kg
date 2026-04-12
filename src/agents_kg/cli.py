@@ -85,8 +85,9 @@ def process():
         try:
             from neo4j import GraphDatabase
             neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
-            neo4j_driver.verify_connectivity(timeout=5)
+            neo4j_driver.verify_connectivity()
             click.echo(f"Connected to Neo4j at {neo4j_uri}")
+
         except Exception as e:
             click.echo(f"Neo4j not available ({e}), will export YAML only")
             neo4j_driver = None

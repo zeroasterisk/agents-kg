@@ -1,0 +1,12 @@
+id: project:adk-elixir
+type: Project
+name: ADK Elixir
+aliases:
+  - adk-elixir
+  - ADK for Elixir
+description: OTP-native AI agent framework inspired by Google ADK, built for the BEAM.
+url: https://github.com/zeroasterisk/adk-elixir
+kind: framework
+metadata:
+  language: Elixir
+  backend: Gemini, OpenAI, Anthropic

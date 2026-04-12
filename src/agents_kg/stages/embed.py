@@ -18,7 +18,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EMBEDDING_MODEL = "text-embedding-004"
+EMBEDDING_MODEL = "gemini-embedding-2-preview"
 BATCH_SIZE = 100
 
 

@@ -193,4 +193,19 @@ uv add prefect
 prefect config set PREFECT_SERVER_API_HOST=0.0.0.0
 ```
 
-Prefect can also connect to our Neo4j — task results could write directly to the graph, with Prefect handling retry/backoff/observability and our code handling entity resolution and domain logic.
+# ... (existing content) ...
+
+---
+
+## Decision: Hybrid Prefect + ADK (April 2026)
+
+We have decided to go with **Option A (Prefect 3)** for the high-level pipeline orchestration to handle batch processing, retries, and UI monitoring.
+
+However, to leverage agentic capabilities and align with the ADK ecosystem, we will use **ADK (Python)** for the specific `extract` stage.
+
+**Architecture:**
+1. **Prefect** manages the flow: `fetch → parse → chunk → embed → extract → resolve → load`.
+2. The `extract` task in Prefect will invoke an **ADK Agent** to perform the extraction and reasoning.
+3. This allows us to keep the simple ETL structure of Prefect while enabling complex, tool-using agent logic for extraction.
+4. We will start with a **stub implementation** of the ADK agent in the `extract` stage to avoid blocking on ADK installation.
+

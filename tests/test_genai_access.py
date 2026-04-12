@@ -1,0 +1,69 @@
+import os
+import sys
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def test_genai_access():
+    kwargs_gen = {}
+    if os.environ.get("GOOGLE_CLOUD_PROJECT"):
+        kwargs_gen["vertexai"] = True
+        kwargs_gen["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
+        kwargs_gen["location"] = "global"
+    
+    kwargs_embed = {}
+    if os.environ.get("GOOGLE_CLOUD_PROJECT"):
+        kwargs_embed["vertexai"] = True
+        kwargs_embed["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
+        kwargs_embed["location"] = "us-central1"
+    
+    print(f"Initializing generation client with kwargs: {kwargs_gen}")
+    client_gen = genai.Client(**kwargs_gen)
+    
+    print(f"Initializing embedding client with kwargs: {kwargs_embed}")
+    client_embed = genai.Client(**kwargs_embed)
+    
+    # Test generation
+    model_name = "gemini-3.1-flash-lite-preview"
+    print(f"Testing generation with model: {model_name} at location: global")
+    
+    config = types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(
+            thinking_level="medium"
+        )
+    )
+    
+    try:
+        response = client_gen.models.generate_content(
+            model=model_name,
+            contents="Hello, are you working?",
+            config=config
+        )
+        print(f"Generation response: {response.text}")
+        print("Generation SUCCESS")
+    except Exception as e:
+        print(f"Generation FAILED: {e}")
+        return False
+
+    # Test embedding
+    embed_model = "gemini-embedding-2-preview"
+    print(f"Testing embedding with model: {embed_model} at location: us-central1")
+    
+    try:
+        result = client_embed.models.embed_content(
+            model=embed_model,
+            contents="Hello world",
+        )
+        print(f"Embedding successful, got {len(result.embeddings)} embeddings")
+        print("Embedding SUCCESS")
+    except Exception as e:
+        print(f"Embedding FAILED: {e}")
+        return False
+
+    return True
+
+if __name__ == "__main__":
+    success = test_genai_access()
+    sys.exit(0 if success else 1)

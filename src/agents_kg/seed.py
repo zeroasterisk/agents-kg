@@ -95,6 +95,10 @@ SEED_ENTITIES = [
     # --- Projects ---
     {"entity_id": "project:adk", "name": "Agent Development Kit", "type": "Project", "kind": "framework",
      "aliases": ["ADK", "google/adk-python", "google/adk-docs"]},
+    {"entity_id": "project:adk-elixir", "name": "ADK Elixir", "type": "Project", "kind": "framework",
+     "aliases": ["adk-elixir", "ADK for Elixir"],
+     "description": "OTP-native AI agent framework inspired by Google ADK, built for the BEAM."},
+
     {"entity_id": "project:gemini", "name": "Gemini", "type": "Project", "kind": "platform",
      "aliases": ["Gemini 2.0", "Gemini 2.5", "Gemini Pro", "Gemini Flash"]},
     {"entity_id": "project:gemini-2.5-pro", "name": "Gemini 2.5 Pro", "type": "Project", "kind": "platform",
