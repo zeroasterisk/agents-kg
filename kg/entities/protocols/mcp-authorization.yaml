@@ -1,7 +1,7 @@
 aliases:
-- MCP Authorization specification
-description: A specification defining authorization flows for MCP implementations.
+- MCP Authorization
+description: A specification defining authorization flows for the Model Context Protocol.
 id: protocol:mcp-authorization
 kind: spec
-name: MCP Authorization
+name: MCP Authorization Specification
 type: Protocol

@@ -1,6 +1,5 @@
 aliases:
 - agent security
-- safety
 description: The ability to protect systems, data, and communications from unauthorized
   access or attacks.
 id: capability:security

@@ -1,7 +1,7 @@
 aliases:
 - Enterprise WG
-description: A working group focused on enterprise readiness, observability, and security
-  for MCP.
+description: A working group focused on enterprise readiness for the Model Context
+  Protocol.
 id: group:enterprise-wg
 kind: wg
 name: Enterprise Working Group

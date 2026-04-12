@@ -1,7 +1,7 @@
 aliases:
-- MCP servers
-description: A runnable server implementation that exposes data or tools via the Model
-  Context Protocol.
+- MCP Servers
+description: A server implementation that exposes data or tools to AI assistants via
+  the Model Context Protocol.
 id: project:mcp-server
 kind: platform
 name: MCP Server

@@ -1,0 +1,5 @@
+aliases: []
+description: Provides context data within the MCP framework.
+id: capability:resources
+name: Resources
+type: Capability

@@ -1,7 +1,7 @@
 aliases:
 - Prompts
-description: The ability to structure interactions and guide model behavior through
-  reusable templates.
+description: The ability to structure interactions with language models using reusable
+  templates.
 id: capability:reasoning
 name: Reasoning
 type: Capability

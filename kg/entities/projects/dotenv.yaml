@@ -1,5 +1,4 @@
-aliases:
-- dotenv
+aliases: []
 description: A zero-dependency module that loads environment variables from a .env
   file into process.env.
 id: project:dotenv

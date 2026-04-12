@@ -86,6 +86,8 @@ Respond with valid JSON:
       "target_entity_id": "type:name",
       "edge_type": "DEVELOPS",
       "confidence": 0.9,
+      "valid_from": "YYYY-MM-DD or null",
+      "valid_to": "YYYY-MM-DD or null",
       "properties": {{}}
     }}
   ]
@@ -98,6 +100,7 @@ Respond with valid JSON:
 - The kind field exists separately — do not embed it in the entity_id
 - REUSE known entity_ids from the list above when they match
 - Only extract what's explicitly stated or strongly implied
+- Extract valid_from and valid_to for edges if explicitly stated (e.g. dates of joining, starting, or superseding)
 - Set confidence 0.5-1.0 based on how explicit the relationship is
 - DO NOT extract illustrative examples, hypothetical agents, or generic roles
 - DO NOT invent edge types — use ONLY the 15 listed above
@@ -205,6 +208,8 @@ def run(db: Database, source: dict) -> bool:
                 confidence=edge.get("confidence", 0.5),
                 chunk_id=chunk["id"],
                 source_id=source_id,
+                valid_from=edge.get("valid_from"),
+                valid_to=edge.get("valid_to"),
             )
             total_edges += 1
 

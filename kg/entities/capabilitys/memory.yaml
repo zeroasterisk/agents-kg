@@ -1,6 +1,6 @@
 aliases:
-- resources
-description: Core functionality enabling access to context data via resources.
+- context memory
+description: The ability to share and persist context between servers and clients.
 id: capability:memory
 name: Memory
 type: Capability

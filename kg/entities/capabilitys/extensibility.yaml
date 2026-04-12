@@ -1,7 +1,7 @@
 aliases:
 - MCP Extensions
-description: The ability to add new features or functionality to the MCP protocol
-  via defined extension tracks.
+description: The ability to add new features or functionality to the protocol via
+  extensions.
 id: capability:extensibility
 name: Extensibility
 type: Capability

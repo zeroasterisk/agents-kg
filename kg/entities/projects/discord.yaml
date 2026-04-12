@@ -1,0 +1,6 @@
+aliases: []
+description: A communication platform used for MCP developer community discussions.
+id: project:discord
+kind: platform
+name: Discord
+type: Project

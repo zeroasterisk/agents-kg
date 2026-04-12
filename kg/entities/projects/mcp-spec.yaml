@@ -1,7 +1,7 @@
 aliases:
 - modelcontextprotocol/modelcontextprotocol
 description: The repository containing the protocol specification, documentation,
-  and Spec Enhancement Proposals (SEPs).
+  and Spec Enhancement Proposals.
 id: project:mcp-spec
 kind: framework
 name: MCP Specification Repository

@@ -1,6 +1,7 @@
-aliases: []
-description: An extension track for authentication mechanisms within the MCP ecosystem.
+aliases:
+- modelcontextprotocol/ext-auth
+description: Official MCP extension providing supplementary authorization mechanisms.
 id: project:ext-auth
-kind: framework
-name: ext-auth
+kind: library
+name: MCP Auth Extension
 type: Project

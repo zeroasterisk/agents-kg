@@ -257,12 +257,13 @@ class Database:
     def add_edge(self, edge_id: str, source_entity_id: str, target_entity_id: str, edge_type: str,
                  properties: Optional[dict] = None, confidence: float = 0.5,
                  chunk_id: Optional[int] = None, source_id: Optional[int] = None,
-                 source_type: str = "automated") -> Optional[int]:
+                 source_type: str = "automated",
+                 valid_from: Optional[str] = None, valid_to: Optional[str] = None) -> Optional[int]:
         now = _now()
         try:
             cur = self.conn.execute(
-                "INSERT INTO edges (edge_id, source_entity_id, target_entity_id, edge_type, properties, confidence, chunk_id, source_id, extracted_at, source_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (edge_id, source_entity_id, target_entity_id, edge_type, json.dumps(properties or {}), confidence, chunk_id, source_id, now, source_type, now, now),
+                "INSERT INTO edges (edge_id, source_entity_id, target_entity_id, edge_type, properties, confidence, chunk_id, source_id, extracted_at, source_type, valid_from, valid_to, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (edge_id, source_entity_id, target_entity_id, edge_type, json.dumps(properties or {}), confidence, chunk_id, source_id, now, source_type, valid_from, valid_to, now, now),
             )
             self.conn.commit()
             return cur.lastrowid

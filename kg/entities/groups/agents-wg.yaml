@@ -1,5 +1,6 @@
 aliases: []
-description: Working group responsible for agent communication and task primitives.
+description: Working group responsible for agent-related primitives and operational
+  lifecycle semantics.
 id: group:agents-wg
 kind: wg
 name: Agents WG

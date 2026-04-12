@@ -1,8 +1,7 @@
 aliases:
 - OAS
 - Swagger
-description: A standard for defining RESTful APIs, used by A2A for security scheme
-  definitions.
+description: A standard for defining RESTful APIs.
 id: protocol:openapi
 kind: standard
 name: OpenAPI Specification

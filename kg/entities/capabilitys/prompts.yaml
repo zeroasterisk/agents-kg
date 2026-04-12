@@ -1,5 +1,5 @@
 aliases: []
-description: Pre-defined templates for LLM interactions
+description: Interaction templates for communication between clients and servers.
 id: capability:prompts
 name: Prompts
 type: Capability

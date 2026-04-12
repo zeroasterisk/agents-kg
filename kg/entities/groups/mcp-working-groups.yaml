@@ -1,0 +1,7 @@
+aliases:
+- Working Groups
+description: Groups within the MCP organization focused on specific areas of development.
+id: group:mcp-working-groups
+kind: wg
+name: MCP Working Groups
+type: Group

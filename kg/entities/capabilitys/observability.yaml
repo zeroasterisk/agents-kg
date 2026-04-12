@@ -1,6 +1,8 @@
 aliases:
 - monitoring
-description: Enables servers to send log messages to clients for debugging and monitoring.
+- tracing
+- logging
+description: The ability to monitor, trace, and log system operations.
 id: capability:observability
-name: Logging
+name: Observability
 type: Capability

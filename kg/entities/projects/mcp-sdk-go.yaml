@@ -1,6 +1,6 @@
 aliases:
 - mcp-go
-description: A Go implementation of the Model Context Protocol.
+description: Go implementation of the Model Context Protocol SDK.
 id: project:mcp-sdk-go
 kind: sdk
 name: MCP Go SDK

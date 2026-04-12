@@ -1,6 +1,7 @@
 aliases:
 - Tasks
-description: The ability for agents to perform reliable call-now / fetch-later operations.
+description: Durable execution wrappers that enable deferred result retrieval and
+  status tracking for requests.
 id: capability:task-execution
 name: Task Execution
 type: Capability

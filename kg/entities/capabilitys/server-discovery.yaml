@@ -1,6 +1,7 @@
-aliases: []
-description: The ability for clients to discover server capabilities without establishing
-  a full connection.
+aliases:
+- Server Discovery
+description: A standard for exposing structured server metadata for discovery without
+  requiring a connection.
 id: capability:server-discovery
-name: Server Discovery
+name: MCP Server Cards
 type: Capability

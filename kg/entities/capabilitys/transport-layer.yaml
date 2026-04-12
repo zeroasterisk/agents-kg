@@ -1,5 +1,5 @@
 aliases: []
-description: The layer defining communication mechanisms and channels for MCP.
+description: The outer layer of MCP that defines communication mechanisms and channels.
 id: capability:transport-layer
-name: MCP Transport Layer
+name: Transport Layer
 type: Capability

@@ -1,7 +1,5 @@
-aliases:
-- Node Package Manager
-description: A package manager for the JavaScript programming language used to initialize
-  and manage projects.
+aliases: []
+description: The package manager for the Node JavaScript platform.
 id: project:npm
 kind: tool
 name: npm

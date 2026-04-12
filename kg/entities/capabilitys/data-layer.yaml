@@ -1,6 +1,5 @@
 aliases: []
-description: The layer defining the communication protocol and core primitives for
-  MCP.
+description: The inner layer of MCP that defines the exchange protocol and core primitives.
 id: capability:data-layer
-name: MCP Data Layer
+name: Data Layer
 type: Capability

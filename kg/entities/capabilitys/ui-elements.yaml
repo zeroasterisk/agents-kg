@@ -1,6 +1,7 @@
 aliases:
 - interactive UI
-description: Ability to display interactive components like charts and forms.
+description: The ability to render interactive components like charts, forms, and
+  media within a conversation.
 id: capability:ui-elements
 name: UI Elements
 type: Capability

@@ -1,7 +1,6 @@
 aliases:
 - IG
-description: A collaborative group within the MCP ecosystem where proposals and ideas
-  are discussed.
+description: A group within the MCP organization focused on specific interest areas.
 id: group:interest-group
 kind: sig
 name: Interest Group

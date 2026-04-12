@@ -1,7 +1,7 @@
 aliases:
 - Smokescreen proxy
-description: An egress proxy designed to prevent Server-Side Request Forgery (SSRF)
-  by enforcing network policies.
+description: An egress proxy designed to prevent SSRF attacks by enforcing network
+  policies.
 id: project:smokescreen
 kind: tool
 name: Smokescreen

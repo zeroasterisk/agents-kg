@@ -1,7 +1,8 @@
-aliases: []
-description: An extension track for application-level integrations within the MCP
-  ecosystem.
+aliases:
+- modelcontextprotocol/ext-apps
+description: Official MCP extension for interactive UI elements in conversational
+  clients.
 id: project:ext-apps
-kind: framework
-name: ext-apps
+kind: library
+name: MCP Apps Extension
 type: Project

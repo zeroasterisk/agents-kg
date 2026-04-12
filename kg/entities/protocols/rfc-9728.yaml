@@ -1,7 +1,7 @@
 aliases:
 - RFC 9728
-description: An IETF document providing recommendations for network security and IP
-  address filtering.
+description: IETF specification providing recommendations for network security and
+  IP address filtering.
 id: protocol:rfc-9728
 kind: rfc
 name: RFC 9728

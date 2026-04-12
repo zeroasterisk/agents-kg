@@ -1,7 +1,5 @@
-aliases:
-- session management
-description: The ability to manage the state and negotiation of capabilities between
-  participants.
+aliases: []
+description: Handles connection initialization, capability negotiation, and termination.
 id: capability:lifecycle-management
 name: Lifecycle Management
 type: Capability

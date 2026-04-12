@@ -1,0 +1,7 @@
+aliases:
+- Discord
+description: A communication platform used for community discussions.
+id: organization:discord
+kind: company
+name: Discord
+type: Organization

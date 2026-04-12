@@ -1,0 +1,6 @@
+aliases:
+- retry semantics
+description: The ability of a system to handle failures and retries.
+id: capability:reliability
+name: Reliability
+type: Capability

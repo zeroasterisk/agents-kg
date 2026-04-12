@@ -1,6 +1,7 @@
 aliases:
 - prompts
-description: The ability to manage and retrieve prompt templates.
+description: The ability for an AI application to retrieve and use predefined prompts
+  from a server.
 id: capability:prompt-management
 name: Prompt Management
 type: Capability

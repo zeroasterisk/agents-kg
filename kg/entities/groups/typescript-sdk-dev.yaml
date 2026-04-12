@@ -1,7 +1,6 @@
 aliases:
 - '#typescript-sdk-dev'
-description: A working group focused on the development and support of the MCP TypeScript
-  SDK.
+description: A working group focused on the development of the MCP TypeScript SDK.
 id: group:typescript-sdk-dev
 kind: wg
 name: TypeScript SDK Dev Group

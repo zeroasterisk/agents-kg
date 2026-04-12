@@ -466,6 +466,7 @@ class TestLoadStage:
             "kind": "company",
             "description": "Search company",
             "aliases": '["Alphabet"]',
+            "source_id": 1,
         }
         q, p = _entity_to_cypher(entity)
         assert "MERGE" in q
@@ -473,6 +474,8 @@ class TestLoadStage:
         assert "REMOVE n:Protocol:Organization" in q
         assert p["entity_id"] == "org:google"
         assert p["aliases"] == ["Alphabet"]
+        assert p["source_id"] == 1
+        assert "n.source_id = $source_id" in q
 
         edge = {
             "source_entity_id": "org:google",
@@ -482,10 +485,84 @@ class TestLoadStage:
             "confidence": 0.9,
             "source_type": "automated",
             "properties": "{}",
+            "valid_from": "2026-01-01",
+            "valid_to": "2026-12-31",
+            "chunk_id": 5,
         }
         q, p = _edge_to_cypher(edge)
         assert "DEVELOPS" in q
         assert "MERGE" in q
+        assert p["valid_from"] == "2026-01-01"
+        assert p["valid_to"] == "2026-12-31"
+        assert p["chunk_id"] == 5
+        assert "r.valid_from = $valid_from" in q
+        assert "r.chunk_id = $chunk_id" in q
+
+    def test_temporal_validity_and_chunk_linking(self, db):
+        """
+        This test showcases the functionality inspired by MemPalace:
+        1. Temporal validity: Facts can have start and end dates.
+        2. Verbatim Chunk Linking: Entities are linked to the raw text chunk they came from.
+        Why: To enable time-aware queries and hybrid retrieval (traversing from entity to raw text).
+        """
+        from agents_kg.stages.load import run
+        from unittest.mock import MagicMock
+
+        sid = db.add_source("https://example.com")
+        # Add a chunk
+        db.conn.execute(
+            "INSERT INTO chunks (id, source_id, text, position) VALUES (?, ?, ?, ?)",
+            (10, sid, "Google developed A2A protocol in 2026.", 1)
+        )
+        db.conn.commit()
+
+        # Add entity with chunk_id
+        db.add_entity("org:google", "Google", "Organization", source_id=sid, chunk_id=10)
+        ent = db.get_entities_by_status("pending_review")[0]
+        db.approve_entity(ent["id"])
+
+        # Add edge with chunk_id and temporal validity
+        db.add_edge(
+            edge_id="e1",
+            source_entity_id="org:google",
+            target_entity_id="protocol:a2a",
+            edge_type="DEVELOPS",
+            chunk_id=10,
+            source_id=sid,
+            valid_from="2026-01-01",
+            valid_to="2026-12-31",
+        )
+        
+        edge = db.conn.execute("SELECT * FROM edges WHERE edge_id='e1'").fetchone()
+        db.conn.execute("UPDATE edges SET status='approved' WHERE id=?", (edge["id"],))
+        db.conn.commit()
+
+        source = db.get_source(sid)
+
+        mock_session = MagicMock()
+        mock_driver = MagicMock()
+        mock_driver.session.return_value.__enter__ = lambda s: mock_session
+        mock_driver.session.return_value.__exit__ = MagicMock(return_value=False)
+
+        result = run(db, source, neo4j_driver=mock_driver)
+        assert result is True
+
+        calls = mock_session.run.call_args_list
+        assert len(calls) >= 4
+        
+        chunk_call = [c for c in calls if "MERGE (c:Chunk" in c[0][0]]
+        assert len(chunk_call) == 1
+        assert chunk_call[0][0][1]["chunk_id"] == 10
+        
+        link_call = [c for c in calls if "MERGE (n)-[:EXTRACTED_FROM]->(c)" in c[0][0]]
+        assert len(link_call) == 1
+        assert link_call[0][0][1]["entity_id"] == "org:google"
+        assert link_call[0][0][1]["chunk_id"] == 10
+
+        edge_call = [c for c in calls if "MERGE (a)-[r:DEVELOPS" in c[0][0]]
+        assert len(edge_call) == 1
+        assert edge_call[0][0][1]["valid_from"] == "2026-01-01"
+        assert edge_call[0][0][1]["chunk_id"] == 10
 
     def test_no_approved_items(self, db):
         from agents_kg.stages.load import run

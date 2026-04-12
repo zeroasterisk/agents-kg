@@ -1,6 +1,7 @@
-aliases: []
-description: A web-based platform for version control and collaboration
+aliases:
+- GitHub
+description: A platform for software development and version control.
 id: organization:github
 kind: company
-name: Github
+name: GitHub
 type: Organization

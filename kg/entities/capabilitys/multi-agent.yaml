@@ -1,6 +1,6 @@
 aliases:
 - MAS
-description: The ability for multiple agents to collaborate on complex tasks.
+description: Systems where multiple agents collaborate to perform tasks.
 id: capability:multi-agent
 name: Multi-Agent Systems
 type: Capability

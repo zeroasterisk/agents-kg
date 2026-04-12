@@ -1,7 +1,8 @@
 aliases:
-- contribution guidelines
-description: Guidelines for contributing to the core MCP specification and projects.
+- spec contribution guidelines
+description: The official documentation outlining the standards and processes for
+  contributing to the MCP project.
 id: protocol:mcp-contribution-guidelines
 kind: spec
-name: Spec Contribution Guidelines
+name: MCP Contribution Guidelines
 type: Protocol

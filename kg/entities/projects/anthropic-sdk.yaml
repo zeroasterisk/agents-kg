@@ -1,6 +1,7 @@
 aliases:
 - '@anthropic-ai/sdk'
-description: The official SDK for interacting with Anthropic's API.
+description: The official software development kit for interacting with Anthropic's
+  AI models.
 id: project:anthropic-sdk
 kind: sdk
 name: Anthropic SDK

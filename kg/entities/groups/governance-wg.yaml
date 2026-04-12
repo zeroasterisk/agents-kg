@@ -1,5 +1,6 @@
 aliases: []
-description: Working group responsible for project governance and contributor processes.
+description: Working group responsible for project governance, contributor ladders,
+  and delegation models.
 id: group:governance-wg
 kind: wg
 name: Governance WG

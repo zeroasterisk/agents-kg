@@ -1,6 +1,5 @@
-aliases:
-- IG
-description: Groups within the MCP organization focused on specific areas of interest.
+aliases: []
+description: Groups within the MCP organization that discuss and support SEP development.
 id: group:interest-groups
 kind: sig
 name: Interest Groups

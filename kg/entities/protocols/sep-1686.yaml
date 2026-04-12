@@ -1,5 +1,6 @@
-aliases: []
-description: Specification for the Tasks primitive in MCP.
+aliases:
+- Tasks primitive
+description: The Tasks primitive specification for reliable agent communication.
 id: protocol:sep-1686
 kind: spec
 name: SEP-1686

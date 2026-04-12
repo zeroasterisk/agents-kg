@@ -1,6 +1,6 @@
 aliases: []
-description: Groups within the MCP organization responsible for stewarding specific
-  areas of the project.
+description: Groups within the MCP organization responsible for delivering roadmap
+  priorities.
 id: group:working-groups
 kind: wg
 name: Working Groups

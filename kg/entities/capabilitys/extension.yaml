@@ -1,0 +1,7 @@
+aliases:
+- MCP Extensions
+description: A feature of the Model Context Protocol that allows for custom schemas
+  and extended functionality.
+id: capability:extension
+name: Extension Mechanism
+type: Capability

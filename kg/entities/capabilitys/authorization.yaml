@@ -1,7 +1,5 @@
-aliases:
-- auth
-description: The process of verifying what specific applications, files, and data
-  a user has access to.
+aliases: []
+description: Access control and permissions within the transport layer.
 id: capability:authorization
 name: Authorization
 type: Capability

@@ -1,6 +1,6 @@
 aliases:
-- GCP
-description: Cloud provider and technology company.
+- Google Cloud
+description: Technology company providing cloud services and metadata endpoints.
 id: organization:google
 kind: company
 name: Google

@@ -1,6 +1,6 @@
 aliases:
 - tools
-description: Core functionality enabling AI actions via tools.
+description: Enables servers to provide core functionality for AI actions.
 id: capability:tool-use
 name: Tool Use
 type: Capability

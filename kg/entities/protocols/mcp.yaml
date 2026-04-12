@@ -1,7 +1,6 @@
 aliases:
 - MCP
-description: An open protocol that enables AI assistants to connect to systems, data,
-  and tools.
+description: An open protocol that enables AI models to interact with data and tools.
 id: protocol:mcp
 kind: spec
 name: Model Context Protocol

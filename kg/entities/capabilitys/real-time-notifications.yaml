@@ -1,0 +1,7 @@
+aliases:
+- Notifications
+description: Supports real-time updates between servers and clients for dynamic state
+  changes.
+id: capability:real-time-notifications
+name: Real-time Notifications
+type: Capability

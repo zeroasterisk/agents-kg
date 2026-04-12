@@ -1,6 +1,6 @@
 aliases:
 - JSON-RPC
-description: A remote procedure call protocol used for MCP data exchange.
+description: A remote procedure call protocol used by the MCP data layer.
 id: protocol:json-rpc-2.0
 kind: standard
 name: JSON-RPC 2.0

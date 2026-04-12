@@ -1,6 +1,6 @@
 aliases: []
 description: A TypeScript-based client implementation for the Model Context Protocol.
 id: project:mcp-client-typescript
-kind: tool
-name: mcp-client-typescript
+kind: library
+name: MCP Client TypeScript
 type: Project

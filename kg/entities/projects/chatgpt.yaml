@@ -1,6 +1,7 @@
 aliases:
 - GPT-4
-description: An AI assistant developed by OpenAI.
+- GPT-4o
+description: An AI assistant platform used to assist with development and contributions.
 id: project:chatgpt
 kind: platform
 name: ChatGPT

@@ -32,6 +32,7 @@ def _entity_to_cypher(entity: dict) -> tuple[str, dict]:
         "kind": entity["kind"],
         "description": entity["description"],
         "aliases": aliases,
+        "source_id": entity.get("source_id"),
     }
     
     label = entity["type"]
@@ -43,7 +44,7 @@ def _entity_to_cypher(entity: dict) -> tuple[str, dict]:
     MERGE (n {{entity_id: $entity_id}})
     REMOVE n:Protocol:Organization:Project:Capability:Group:Person
     SET n:Entity, n:{label}, n.name = $name, n.type = $type, n.kind = $kind,
-        n.description = $description, n.aliases = $aliases
+        n.description = $description, n.aliases = $aliases, n.source_id = $source_id
     """
     return query, params
 
@@ -56,6 +57,9 @@ def _edge_to_cypher(edge: dict) -> tuple[str, dict]:
         "edge_id": edge["edge_id"],
         "confidence": edge["confidence"],
         "source_type": edge["source_type"],
+        "valid_from": edge.get("valid_from"),
+        "valid_to": edge.get("valid_to"),
+        "chunk_id": edge.get("chunk_id"),
         **{f"prop_{k}": v for k, v in props.items()},
     }
     edge_type = edge["edge_type"].upper()
@@ -64,7 +68,9 @@ def _edge_to_cypher(edge: dict) -> tuple[str, dict]:
     query = f"""
     MATCH (a {{entity_id: $src}}), (b {{entity_id: $tgt}})
     MERGE (a)-[r:{edge_type} {{edge_id: $edge_id}}]->(b)
-    SET r.confidence = $confidence, r.source_type = $source_type{extra}
+    SET r.confidence = $confidence, r.source_type = $source_type,
+        r.valid_from = $valid_from, r.valid_to = $valid_to,
+        r.chunk_id = $chunk_id{extra}
     """
     return query, params
 
@@ -118,14 +124,57 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
     # Neo4j load (graceful degradation)
     if neo4j_driver:
         try:
+            # Get unique chunk IDs
+            chunk_ids = set()
+            for ent in entities:
+                if ent["chunk_id"]:
+                    chunk_ids.add(ent["chunk_id"])
+            for edge in edges:
+                if edge["chunk_id"]:
+                    chunk_ids.add(edge["chunk_id"])
+
+            chunks = []
+            if chunk_ids:
+                placeholders = ",".join("?" for _ in chunk_ids)
+                chunks = db.conn.execute(
+                    f"SELECT * FROM chunks WHERE id IN ({placeholders})", list(chunk_ids)
+                ).fetchall()
+
             with neo4j_driver.session() as session:
+                # Load Chunks
+                for chunk in chunks:
+                    session.run(
+                        """
+                        MERGE (c:Chunk {chunk_id: $chunk_id})
+                        SET c.text = $text, c.position = $position, c.source_id = $source_id
+                        """,
+                        {
+                            "chunk_id": chunk["id"],
+                            "text": chunk["text"],
+                            "position": chunk["position"],
+                            "source_id": chunk["source_id"],
+                        }
+                    )
+                
+                # Load Entities and link to Chunks
                 for ent in entities:
                     q, p = _entity_to_cypher(dict(ent))
                     session.run(q, p)
+                    if ent["chunk_id"]:
+                        session.run(
+                            """
+                            MATCH (n {entity_id: $entity_id}), (c:Chunk {chunk_id: $chunk_id})
+                            MERGE (n)-[:EXTRACTED_FROM]->(c)
+                            """,
+                            {"entity_id": ent["entity_id"], "chunk_id": ent["chunk_id"]}
+                        )
+                
+                # Load Edges
                 for edge in edges:
                     q, p = _edge_to_cypher(dict(edge))
                     session.run(q, p)
-            _log().info("Loaded %d entities, %d edges to Neo4j", len(entities), len(edges))
+                    
+            _log().info("Loaded %d entities, %d edges, %d chunks to Neo4j", len(entities), len(edges), len(chunks))
         except Exception as e:
             _log().error("Neo4j load failed (data saved in SQLite): %s", e)
     else:

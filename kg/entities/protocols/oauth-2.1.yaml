@@ -1,6 +1,7 @@
 aliases:
 - OAuth
-description: An industry-standard protocol for authorization.
+description: An authorization framework recommended by MCP for obtaining authentication
+  tokens.
 id: protocol:oauth-2.1
 kind: standard
 name: OAuth 2.1

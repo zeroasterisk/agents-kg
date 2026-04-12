@@ -1,5 +1,6 @@
 aliases: []
-description: Working group responsible for transport and session specifications.
+description: Working group responsible for transport and session protocols within
+  MCP.
 id: group:transports-wg
 kind: wg
 name: Transports WG

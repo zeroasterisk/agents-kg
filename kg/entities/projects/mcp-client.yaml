@@ -1,6 +1,5 @@
-aliases:
-- MCP client
-description: An application that initiates connections to MCP servers.
+aliases: []
+description: A client application that consumes data or tools from an MCP server.
 id: project:mcp-client
 kind: platform
 name: MCP Client

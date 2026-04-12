@@ -1,5 +1,6 @@
 aliases:
 - auth
+- identity verification
 description: The process of verifying the identity of a user or service.
 id: capability:authentication
 name: Authentication

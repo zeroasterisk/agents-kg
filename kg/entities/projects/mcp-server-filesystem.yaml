@@ -1,8 +1,8 @@
 aliases:
 - '@modelcontextprotocol/server-filesystem'
 description: An MCP server implementation that provides access to local filesystem
-  resources.
+  directories.
 id: project:mcp-server-filesystem
-kind: tool
+kind: library
 name: MCP Filesystem Server
 type: Project
