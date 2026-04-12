@@ -1,6 +1,6 @@
-aliases: []
-description: Durable execution wrappers that enable deferred result retrieval and
-  status tracking for MCP requests.
+aliases:
+- Tasks primitive
+description: A primitive for reliable call-now / fetch-later agent communication patterns.
 id: capability:tasks
 name: Tasks
 type: Capability

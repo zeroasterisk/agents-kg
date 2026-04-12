@@ -1,5 +1,7 @@
-aliases: []
-description: Organization under which MCP operates
+aliases:
+- LF
+description: A non-profit technology consortium that hosts and supports open source
+  projects.
 id: organization:linux-foundation
 kind: foundation
 name: Linux Foundation

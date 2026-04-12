@@ -1,7 +1,8 @@
 aliases:
-- Model Context Protocol
-description: Model Context Protocol
+- MCP
+description: An open protocol that enables AI assistants to connect to systems, data,
+  and tools.
 id: protocol:mcp
 kind: spec
-name: MCP
+name: Model Context Protocol
 type: Protocol

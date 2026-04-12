@@ -1,6 +1,6 @@
 aliases: []
-description: Tasks primitive
+description: Specification defining the Tasks primitive for reliable agent communication.
 id: protocol:sep-1686
-kind: sep
+kind: spec
 name: SEP-1686
 type: Protocol

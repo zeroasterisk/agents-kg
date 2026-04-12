@@ -1,6 +1,6 @@
 aliases: []
-description: Source code, specifications, and reference implementations for MCP authorization
-  extensions.
+description: Extension track for authentication mechanisms in MCP.
 id: project:ext-auth
+kind: framework
 name: ext-auth
 type: Project

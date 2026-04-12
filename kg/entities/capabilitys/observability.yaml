@@ -1,0 +1,6 @@
+aliases:
+- audit trails
+description: End-to-end visibility into client requests and server actions.
+id: capability:observability
+name: Observability
+type: Capability

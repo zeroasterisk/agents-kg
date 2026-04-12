@@ -1,6 +1,6 @@
 aliases: []
-description: Formalized Working Groups and Interest Groups
+description: Specification formalizing Working Groups and Interest Groups within MCP.
 id: protocol:sep-1302
-kind: sep
+kind: spec
 name: SEP-1302
 type: Protocol

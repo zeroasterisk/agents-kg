@@ -1,6 +1,6 @@
 aliases: []
-description: Established succession and amendment procedures
+description: Specification establishing succession and amendment procedures for MCP.
 id: protocol:sep-2085
-kind: sep
+kind: spec
 name: SEP-2085
 type: Protocol

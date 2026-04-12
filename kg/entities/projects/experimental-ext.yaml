@@ -1,0 +1,8 @@
+aliases:
+- experimental-ext
+description: A repository for testing and experimenting with new MCP features before
+  formal proposal.
+id: project:experimental-ext
+kind: tool
+name: Experimental Extensions Repository
+type: Project

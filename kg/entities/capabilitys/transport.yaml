@@ -1,0 +1,7 @@
+aliases:
+- transport-layer
+description: The mechanism for data exchange between MCP clients and servers, such
+  as Streamable HTTP.
+id: capability:transport
+name: Transport
+type: Capability

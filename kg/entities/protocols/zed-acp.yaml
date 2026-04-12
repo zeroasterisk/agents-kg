@@ -1,0 +1,9 @@
+aliases:
+- ACP
+- Agent Communication Protocol
+description: A local-first, low-latency protocol for agent communication in edge computing
+  and privacy-sensitive environments.
+id: protocol:zed-acp
+kind: spec
+name: Zed Agent Context Protocol
+type: Protocol

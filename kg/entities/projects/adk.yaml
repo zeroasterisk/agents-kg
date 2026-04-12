@@ -1,0 +1,7 @@
+aliases:
+- Google ADK
+description: Google's framework for building AI agents.
+id: project:adk
+kind: framework
+name: Agent Development Kit
+type: Project

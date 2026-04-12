@@ -1,0 +1,6 @@
+aliases:
+- Gateway and proxy patterns
+description: Protection of communication channels, including gateway and proxy patterns.
+id: capability:security
+name: Security
+type: Capability

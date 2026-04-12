@@ -1,6 +1,8 @@
-aliases: []
-description: Technology partner
+aliases:
+- LangGraph
+- LangSmith
+description: A framework for building stateful, multi-actor applications with LLMs.
 id: project:langchain
 kind: framework
-name: Langchain
+name: LangChain
 type: Project

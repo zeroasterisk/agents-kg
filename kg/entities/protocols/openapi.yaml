@@ -1,0 +1,8 @@
+aliases:
+- OAS
+- Swagger
+description: A standard for defining RESTful APIs.
+id: protocol:openapi
+kind: standard
+name: OpenAPI Specification
+type: Protocol

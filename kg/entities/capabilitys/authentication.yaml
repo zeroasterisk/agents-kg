@@ -1,5 +1,6 @@
-aliases: []
-description: The process of verifying the identity of a user or device.
+aliases:
+- Enterprise-managed auth
+description: Identity verification and secure access control for enterprise environments.
 id: capability:authentication
 name: Authentication
 type: Capability

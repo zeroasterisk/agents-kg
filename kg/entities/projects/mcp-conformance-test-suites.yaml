@@ -1,0 +1,6 @@
+aliases: []
+description: Automated verification tools for MCP client and server implementations.
+id: project:mcp-conformance-test-suites
+kind: tool
+name: Conformance Test Suites
+type: Project

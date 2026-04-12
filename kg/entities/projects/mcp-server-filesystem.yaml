@@ -1,0 +1,7 @@
+aliases:
+- '@modelcontextprotocol/server-filesystem'
+description: An MCP server implementation providing filesystem access.
+id: project:mcp-server-filesystem
+kind: tool
+name: MCP Filesystem Server
+type: Project

@@ -1,7 +1,7 @@
 aliases:
 - Workload Identity Federation
-description: Workload Identity Federation
+description: Specification for workload identity federation within MCP.
 id: protocol:sep-1933
 kind: spec
-name: SEP-1933
+name: SEP-1933 (Workload Identity Federation)
 type: Protocol

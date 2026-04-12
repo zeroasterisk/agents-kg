@@ -1,5 +1,6 @@
-aliases: []
-description: Technology company
+aliases:
+- Google Cloud
+description: Google Cloud and its associated research and development teams.
 id: organization:google
 kind: company
 name: Google

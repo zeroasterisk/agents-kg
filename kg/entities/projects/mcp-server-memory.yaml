@@ -1,0 +1,7 @@
+aliases:
+- '@modelcontextprotocol/server-memory'
+description: An MCP server implementation providing memory capabilities.
+id: project:mcp-server-memory
+kind: tool
+name: MCP Memory Server
+type: Project

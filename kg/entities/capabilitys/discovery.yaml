@@ -1,5 +1,7 @@
-aliases: []
-description: Support for tools/prompts/resources changed notifications
+aliases:
+- server-discovery
+description: The ability for clients to discover server capabilities and metadata
+  without direct connection.
 id: capability:discovery
 name: Discovery
 type: Capability

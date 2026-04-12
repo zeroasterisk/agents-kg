@@ -1,0 +1,7 @@
+aliases:
+- horizontal-scaling
+description: The ability of the protocol to handle horizontal scaling, stateless operation,
+  and load balancing.
+id: capability:scalability
+name: Scalability
+type: Capability

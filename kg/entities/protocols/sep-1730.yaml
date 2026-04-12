@@ -1,6 +1,7 @@
-aliases: []
-description: Tiering system
+aliases:
+- SDK Tiers
+description: Specification defining the tiering system for MCP SDKs.
 id: protocol:sep-1730
 kind: spec
-name: SEP-1730
+name: SEP-1730 (SDK Tiers)
 type: Protocol

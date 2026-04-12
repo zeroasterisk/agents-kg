@@ -1,6 +1,8 @@
-aliases: []
-description: A based exchange protocol that defines the message structure and semantics
+aliases:
+- JSON-RPC
+description: A remote procedure call protocol used for standardized communication
+  in A2A.
 id: protocol:json-rpc-2.0
-kind: spec
+kind: standard
 name: JSON-RPC 2.0
 type: Protocol

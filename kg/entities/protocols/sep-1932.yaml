@@ -1,7 +1,7 @@
 aliases:
 - DPoP
-description: DPoP
+description: Demonstrating Proof-of-Possession (DPoP) specification for MCP.
 id: protocol:sep-1932
 kind: spec
-name: SEP-1932
+name: SEP-1932 (DPoP)
 type: Protocol

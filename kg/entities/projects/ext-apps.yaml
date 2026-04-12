@@ -1,5 +1,6 @@
 aliases: []
-description: Extension mechanism
+description: Extension track for application-level integrations in MCP.
 id: project:ext-apps
+kind: framework
 name: ext-apps
 type: Project
