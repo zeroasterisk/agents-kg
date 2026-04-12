@@ -7,3 +7,7 @@ __pycache__/
 dist/
 build/
 kg/entities/organizations/idem-org.yaml
+.env
+.neo4j_data/
+sources-personal.txt
+

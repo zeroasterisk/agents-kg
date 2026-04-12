@@ -40,6 +40,46 @@ updated: YYYY-MM-DD
 - Easy to query with scripts
 - Can export to Neo4j/GraphQL/JSON-LD later
 
+## Configuration
+
+The project uses environment variables for configuration. Copy `.env.example` to `.env` and fill in the values:
+
+```bash
+cp .env.example .env
+```
+
+### Environment Variables:
+*   `NEO4J_URI`: The URI for the Neo4j database (default: `bolt://localhost:7687`).
+*   `NEO4J_USER`: Neo4j username (default: `neo4j`).
+*   `NEO4J_PASSWORD`: Neo4j password (default: `agents-kg-2026`).
+*   `GOOGLE_CLOUD_PROJECT`: Set this if you are using Vertex AI on Google Cloud.
+*   `GEMINI_API_KEY`: Set this if you are using the Gemini API directly.
+
 ## Usage
 
-Query with `scripts/query.py` (coming soon).
+The project uses a `Makefile` to manage the pipeline and services.
+
+First, activate the virtual environment:
+```bash
+source .venv/bin/activate
+```
+
+Then use `make`:
+```bash
+# Show available commands
+make help
+
+# Start Neo4j
+make start-neo4j
+
+# Ingest default sources (sources.txt)
+make ingest
+
+# Process sources and load into graph
+make process
+
+# Reset everything (Neo4j and SQLite)
+make reset
+```
+
+
