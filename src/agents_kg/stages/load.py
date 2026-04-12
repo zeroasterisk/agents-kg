@@ -33,9 +33,16 @@ def _entity_to_cypher(entity: dict) -> tuple[str, dict]:
         "description": entity["description"],
         "aliases": aliases,
     }
-    query = """
-    MERGE (n {entity_id: $entity_id})
-    SET n:Entity, n.name = $name, n.type = $type, n.kind = $kind,
+    
+    label = entity["type"]
+    valid_labels = {"Protocol", "Organization", "Project", "Capability", "Group", "Person"}
+    if label not in valid_labels:
+        label = "Entity"
+        
+    query = f"""
+    MERGE (n {{entity_id: $entity_id}})
+    REMOVE n:Protocol:Organization:Project:Capability:Group:Person
+    SET n:Entity, n:{label}, n.name = $name, n.type = $type, n.kind = $kind,
         n.description = $description, n.aliases = $aliases
     """
     return query, params

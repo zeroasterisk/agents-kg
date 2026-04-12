@@ -383,6 +383,33 @@ class TestExtractStage:
 
 
 # ============================================================
+# RESOLVE
+# ============================================================
+
+class TestResolveStage:
+    def test_vector_match(self, db):
+        from agents_kg.stages.resolve import run, _floats_to_bytes
+        
+        sid = db.add_source("https://example.com")
+        emb = _floats_to_bytes([0.1, 0.2, 0.3])
+        
+        id1 = db.add_entity("protocol:p1", "Protocol 1", "Protocol", description="Desc 1", source_id=sid, embedding=emb)
+        id2 = db.add_entity("protocol:p2", "Protocol 2", "Protocol", description="Desc 2", source_id=sid, embedding=emb)
+        
+        db.update_entity(id1, status="approved")
+        
+        source = db.get_source(sid)
+        
+        with patch("agents_kg.stages.resolve.genai", None):
+            run(db, source)
+            
+        ent2 = db.conn.execute("SELECT * FROM entities WHERE id = ?", (id2,)).fetchone()
+        ent2 = dict(ent2)
+        assert ent2["status"] == "merged"
+        assert ent2["merged_into"] == "protocol:p1"
+
+
+# ============================================================
 # LOAD
 # ============================================================
 
@@ -442,6 +469,8 @@ class TestLoadStage:
         }
         q, p = _entity_to_cypher(entity)
         assert "MERGE" in q
+        assert "n:Organization" in q
+        assert "REMOVE n:Protocol:Organization" in q
         assert p["entity_id"] == "org:google"
         assert p["aliases"] == ["Alphabet"]
 

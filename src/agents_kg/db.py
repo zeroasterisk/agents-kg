@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS entities (
     type TEXT NOT NULL,
     description TEXT,
     aliases TEXT DEFAULT '[]',
+    embedding BLOB,
     status TEXT DEFAULT 'pending_review',
     merged_into TEXT,
     source_id INTEGER REFERENCES sources(id),
@@ -224,12 +225,13 @@ class Database:
 
     def add_entity(self, entity_id: str, name: str, entity_type: str, kind: Optional[str] = None,
                    description: Optional[str] = None, aliases: Optional[list] = None,
-                   source_id: Optional[int] = None, chunk_id: Optional[int] = None) -> Optional[int]:
+                   source_id: Optional[int] = None, chunk_id: Optional[int] = None,
+                   embedding: Optional[bytes] = None) -> Optional[int]:
         now = _now()
         try:
             cur = self.conn.execute(
-                "INSERT INTO entities (entity_id, name, type, kind, description, aliases, source_id, chunk_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (entity_id, name, entity_type, kind, description, json.dumps(aliases or []), source_id, chunk_id, now, now),
+                "INSERT INTO entities (entity_id, name, type, kind, description, aliases, embedding, source_id, chunk_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (entity_id, name, entity_type, kind, description, json.dumps(aliases or []), embedding, source_id, chunk_id, now, now),
             )
             self.conn.commit()
             return cur.lastrowid

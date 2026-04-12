@@ -10,10 +10,32 @@ Based on Graphiti research: entropy-gated fuzzy matching, two-pass dedup.
 
 import logging
 import re
+import struct
 from collections import defaultdict
 from difflib import SequenceMatcher
 from ..db import Database
 from ..seed import get_seed_entities
+
+try:
+    from google import genai
+except ImportError:
+    genai = None
+
+EMBEDDING_MODEL = "gemini-embedding-2-preview"
+
+def _floats_to_bytes(floats: list[float]) -> bytes:
+    return struct.pack(f'{len(floats)}f', *floats)
+
+def _bytes_to_floats(b: bytes) -> list[float]:
+    return list(struct.unpack(f'{len(b)//4}f', b))
+
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(x * x for x in b) ** 0.5
+    if not norm_a or not norm_b:
+        return 0.0
+    return dot / (norm_a * norm_b)
 
 try:
     from prefect.logging import get_run_logger as _get_logger
@@ -60,6 +82,45 @@ def _build_alias_index(entities: list[dict]) -> dict[str, list[dict]]:
     return dict(index)
 
 
+def _compute_entity_embeddings(db: Database, entities: list[dict], log):
+    """Compute embeddings for entities that don't have them."""
+    if not genai:
+        log.warning("google-genai not installed, skipping entity embeddings")
+        return
+
+    import os
+    kwargs = {}
+    if os.environ.get("GOOGLE_CLOUD_PROJECT"):
+        kwargs["vertexai"] = True
+        kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
+        kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+    client = genai.Client(**kwargs)
+
+    to_embed = [e for e in entities if not e.get("embedding")]
+    if not to_embed:
+        return
+
+    log.info("Computing embeddings for %d entities", len(to_embed))
+    texts = [e["description"] or e["name"] for e in to_embed]
+    
+    try:
+        result = client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=texts,
+        )
+        
+        for ent, embedding in zip(to_embed, result.embeddings):
+            emb_bytes = _floats_to_bytes(embedding.values)
+            db.conn.execute(
+                "UPDATE entities SET embedding = ? WHERE id = ?",
+                (emb_bytes, ent["id"])
+            )
+            ent["embedding"] = emb_bytes
+        db.conn.commit()
+    except Exception as e:
+        log.error("Failed to compute entity embeddings: %s", e)
+
+
 def run(db: Database, source: dict) -> bool:
     """Run entity resolution on a source's extracted entities.
 
@@ -73,11 +134,14 @@ def run(db: Database, source: dict) -> bool:
         "SELECT * FROM entities WHERE source_id = ?", (source_id,)
     ).fetchall()
     entities = [dict(e) for e in entities]
-
+    
     if not entities:
         log.info("No entities to resolve for source %d", source_id)
         db.update_source(source_id, stage="review", status="pending_review")
         return True
+
+    # Compute embeddings for entities
+    _compute_entity_embeddings(db, entities, log)
 
     # Build seed index for canonical matching
     seed = get_seed_entities()
@@ -162,6 +226,38 @@ def run(db: Database, source: dict) -> bool:
         log.info("Flagging noise entity: %s (%s/%s)", ent["entity_id"], ent["type"], ent["kind"])
         db.update_entity(ent["id"], status="rejected", merged_into="noise")
         merges += 1
+
+    # --- Pass 4: Vector similarity resolution ---
+    all_entities = db.conn.execute(
+        "SELECT * FROM entities WHERE status = 'approved' AND merged_into IS NULL"
+    ).fetchall()
+    all_entities = [dict(e) for e in all_entities]
+    
+    for entity in entities:
+        if entity.get("merged_into") or entity["status"] == "rejected":
+            continue
+        if not entity.get("embedding"):
+            continue
+            
+        ent_emb = _bytes_to_floats(entity["embedding"])
+        
+        for other in all_entities:
+            if other["entity_id"] == entity["entity_id"]:
+                continue
+            if other["type"] != entity["type"]:
+                continue
+            if not other.get("embedding"):
+                continue
+                
+            other_emb = _bytes_to_floats(other["embedding"])
+            sim = _cosine_similarity(ent_emb, other_emb)
+            
+            if sim > 0.92:
+                log.info("Vector merge %s → %s (sim: %.3f, %s ≈ %s)",
+                         entity["entity_id"], other["entity_id"], sim, entity["name"], other["name"])
+                _merge_entity(db, entity, other["entity_id"])
+                merges += 1
+                break
 
     log.info("Resolution complete for source %d: %d merges/rejections", source_id, merges)
     db.update_source(source_id, stage="review", status="pending_review")
