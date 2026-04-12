@@ -22,6 +22,6 @@ https://modelcontextprotocol.io/examples
 https://modelcontextprotocol.io/development/roadmap
 # A2A Documentation Sources
 https://github.com/a2aproject/A2A
-https://github.com/a2aproject/A2A/blob/main/specification/json/a2a.json
+https://a2a-protocol.org/latest/spec/a2a.json
 https://a2aprotocol.ai
 https://a2aprotocol.ai/blog
