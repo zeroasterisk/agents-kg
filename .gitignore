@@ -10,4 +10,5 @@ kg/entities/organizations/idem-org.yaml
 .env
 .neo4j_data/
 sources-personal.txt
-
+*.tar.gz
+*.bak

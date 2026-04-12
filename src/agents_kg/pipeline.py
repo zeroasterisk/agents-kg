@@ -15,7 +15,7 @@ from typing import Optional
 
 from prefect import flow, task, get_run_logger
 from prefect.artifacts import create_markdown_artifact
-from prefect.cache_policies import INPUTS
+from prefect.cache_policies import INPUTS, NO_CACHE
 
 from .db import Database
 from .stages import fetch, parse, chunk, embed, extract, resolve, load
@@ -135,7 +135,7 @@ def run_resolve(db_path: str, source: dict) -> bool:
 @task(
     name="load",
     on_failure=[_on_stage_failure],
-    persist_result=True,
+    cache_policy=NO_CACHE,
 )
 def run_load(db_path: str, source: dict, neo4j_driver=None) -> bool:
     db = Database(db_path)

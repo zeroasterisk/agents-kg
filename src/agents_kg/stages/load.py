@@ -101,6 +101,7 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
 
     if not entities and not edges:
         _log().info("No approved items to load for source %d", source_id)
+        db.update_source(source_id, stage="done", status="complete")
         return True
 
     # Export YAML (always works)
