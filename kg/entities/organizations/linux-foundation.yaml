@@ -1,7 +1,7 @@
 aliases:
 - LF
-description: A non-profit technology consortium that hosts and supports open source
-  projects.
+- Linux Foundation AI
+description: The non-profit organization hosting the Model Context Protocol.
 id: organization:linux-foundation
 kind: foundation
 name: Linux Foundation

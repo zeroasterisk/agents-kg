@@ -1,5 +1,8 @@
-aliases: []
-description: A dependency
+aliases:
+- dotenv
+description: A zero-dependency module that loads environment variables from a .env
+  file into process.env.
 id: project:dotenv
+kind: library
 name: dotenv
 type: Project

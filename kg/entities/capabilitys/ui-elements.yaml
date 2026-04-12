@@ -1,0 +1,6 @@
+aliases:
+- interactive UI
+description: Ability to display interactive components like charts and forms.
+id: capability:ui-elements
+name: UI Elements
+type: Capability

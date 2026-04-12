@@ -1,0 +1,7 @@
+aliases:
+- durable execution
+description: Durable execution wrappers that enable deferred result retrieval and
+  status tracking for requests.
+id: capability:durable-execution
+name: Tasks
+type: Capability

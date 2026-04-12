@@ -1,0 +1,6 @@
+aliases:
+- resources
+description: The ability to read and access data resources.
+id: capability:resource-access
+name: Resource Access
+type: Capability

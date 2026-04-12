@@ -1,0 +1,6 @@
+aliases:
+- resources
+description: Core functionality enabling access to context data via resources.
+id: capability:memory
+name: Memory
+type: Capability

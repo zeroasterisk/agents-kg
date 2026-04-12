@@ -1,0 +1,7 @@
+aliases:
+- MCP Apps
+description: The ability to render interactive user interface components within an
+  AI host environment.
+id: capability:interactive-ui
+name: Interactive UI
+type: Capability

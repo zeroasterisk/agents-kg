@@ -1,6 +1,7 @@
-aliases: []
-description: AI tool
+aliases:
+- GPT-4
+description: An AI assistant developed by OpenAI.
 id: project:chatgpt
-kind: tool
+kind: platform
 name: ChatGPT
 type: Project

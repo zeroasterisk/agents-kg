@@ -1,0 +1,6 @@
+aliases:
+- Tasks
+description: The ability for agents to perform reliable call-now / fetch-later operations.
+id: capability:task-execution
+name: Task Execution
+type: Capability

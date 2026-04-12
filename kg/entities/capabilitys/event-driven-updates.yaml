@@ -1,0 +1,7 @@
+aliases:
+- Triggers and Event-Driven Updates
+description: Standardized callback mechanisms for servers to proactively notify clients
+  of state changes.
+id: capability:event-driven-updates
+name: Event-Driven Updates
+type: Capability

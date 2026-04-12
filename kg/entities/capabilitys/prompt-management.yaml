@@ -1,0 +1,6 @@
+aliases:
+- prompts
+description: The ability to manage and retrieve prompt templates.
+id: capability:prompt-management
+name: Prompt Management
+type: Capability

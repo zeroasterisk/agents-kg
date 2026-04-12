@@ -1,6 +1,7 @@
-aliases: []
-description: Working group channel
+aliases:
+- '#server-identity-wg'
+description: A working group focused on server identity standards within the MCP ecosystem.
 id: group:server-identity-wg
 kind: wg
-name: '#server-identity-wg'
+name: Server Identity Working Group
 type: Group

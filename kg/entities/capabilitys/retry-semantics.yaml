@@ -1,0 +1,5 @@
+aliases: []
+description: Logic for handling transient task failures and retry decisions.
+id: capability:retry-semantics
+name: Retry Semantics
+type: Capability

@@ -1,0 +1,7 @@
+aliases: []
+description: A standard for exposing structured server metadata via a .well-known
+  URL for discovery.
+id: protocol:mcp-server-cards
+kind: spec
+name: MCP Server Cards
+type: Protocol

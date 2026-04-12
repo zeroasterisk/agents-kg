@@ -1,0 +1,7 @@
+aliases:
+- AWS
+description: Cloud provider and technology company.
+id: organization:amazon
+kind: company
+name: Amazon
+type: Organization

@@ -1,5 +1,6 @@
 aliases: []
-description: A project directory
+description: A TypeScript-based client implementation for the Model Context Protocol.
 id: project:mcp-client-typescript
+kind: tool
 name: mcp-client-typescript
 type: Project

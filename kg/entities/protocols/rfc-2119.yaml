@@ -1,6 +1,8 @@
-aliases: []
-description: Keywords for use in RFCs to Indicate Requirement Levels
+aliases:
+- RFC 2119 language
+description: A standard for specifying requirement levels (MUST, SHOULD, MAY) in protocol
+  documents.
 id: protocol:rfc-2119
-kind: rfc
+kind: standard
 name: RFC 2119
 type: Protocol

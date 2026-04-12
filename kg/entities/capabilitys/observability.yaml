@@ -1,6 +1,6 @@
 aliases:
-- audit trails
-description: End-to-end visibility into client requests and server actions.
+- monitoring
+description: Enables servers to send log messages to clients for debugging and monitoring.
 id: capability:observability
-name: Observability
+name: Logging
 type: Capability

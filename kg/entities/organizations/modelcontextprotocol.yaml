@@ -1,7 +1,6 @@
 aliases:
-- modelcontextprotocol
-description: The GitHub organization responsible for maintaining the Model Context
-  Protocol and its reference implementations.
+- modelcontextprotocol GitHub org
+description: The GitHub organization responsible for the Model Context Protocol.
 id: organization:modelcontextprotocol
 kind: consortium
 name: MCP Organization

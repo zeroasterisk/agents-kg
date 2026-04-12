@@ -1,6 +1,6 @@
 aliases: []
-description: An MCP server running on the Sentry platform
+description: An MCP server implementation for the Sentry platform.
 id: project:sentry-mcp-server
 kind: tool
-name: Sentry MCP server
+name: Sentry MCP Server
 type: Project

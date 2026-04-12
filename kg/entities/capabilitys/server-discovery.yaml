@@ -1,0 +1,6 @@
+aliases: []
+description: The ability for clients to discover server capabilities without establishing
+  a full connection.
+id: capability:server-discovery
+name: Server Discovery
+type: Capability

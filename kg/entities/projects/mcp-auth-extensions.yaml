@@ -1,0 +1,8 @@
+aliases:
+- modelcontextprotocol/ext-auth
+description: Source code, specifications, and reference implementations for MCP authorization
+  extensions.
+id: project:mcp-auth-extensions
+kind: framework
+name: MCP Authorization Extensions
+type: Project

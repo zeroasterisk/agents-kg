@@ -1,5 +1,7 @@
-aliases: []
-description: A program that provides context to MCP clients
+aliases:
+- MCP servers
+description: A runnable server implementation that exposes data or tools via the Model
+  Context Protocol.
 id: project:mcp-server
 kind: platform
 name: MCP Server

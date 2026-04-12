@@ -1,6 +1,7 @@
-aliases: []
-description: Working group channel
+aliases:
+- '#auth-wg'
+description: A working group focused on authentication standards within the MCP ecosystem.
 id: group:auth-wg
 kind: wg
-name: '#auth-wg'
+name: Auth Working Group
 type: Group

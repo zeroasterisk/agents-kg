@@ -1,6 +1,8 @@
-aliases: []
-description: Spec proposal process
+aliases:
+- SEP
+description: The Spec Enhancement Proposal process used for managing significant changes
+  to the MCP specification.
 id: protocol:sep-process
-kind: standard
-name: SEP process
+kind: spec
+name: SEP Process
 type: Protocol

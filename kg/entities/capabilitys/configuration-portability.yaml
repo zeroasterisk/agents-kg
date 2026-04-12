@@ -1,6 +1,6 @@
 aliases: []
-description: A way to configure a server once and have that configuration work across
-  different MCP clients.
+description: The ability to configure a server once and have it work across different
+  MCP clients.
 id: capability:configuration-portability
-name: Configuration portability
+name: Configuration Portability
 type: Capability

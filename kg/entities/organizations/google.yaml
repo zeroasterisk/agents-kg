@@ -1,6 +1,6 @@
 aliases:
-- Google Cloud
-description: Google Cloud and its associated research and development teams.
+- GCP
+description: Cloud provider and technology company.
 id: organization:google
 kind: company
 name: Google

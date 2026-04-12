@@ -1,5 +1,6 @@
 aliases: []
-description: Allows servers to request additional information from users.
+description: Allows servers to request additional information or confirmation from
+  users.
 id: capability:elicitation
 name: Elicitation
 type: Capability

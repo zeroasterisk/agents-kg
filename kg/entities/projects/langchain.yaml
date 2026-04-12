@@ -1,7 +1,7 @@
 aliases:
 - LangGraph
 - LangSmith
-description: A framework for building stateful, multi-actor applications with LLMs.
+description: Framework for building stateful, multi-actor applications with LLMs.
 id: project:langchain
 kind: framework
 name: LangChain

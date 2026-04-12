@@ -1,0 +1,8 @@
+aliases:
+- MCP proxy
+description: A proxy server implementation for the Model Context Protocol that handles
+  authentication and authorization flows.
+id: project:mcp-proxy
+kind: platform
+name: MCP Proxy Server
+type: Project

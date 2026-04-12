@@ -1,0 +1,7 @@
+aliases:
+- '@anthropic-ai/sdk'
+description: The official SDK for interacting with Anthropic's API.
+id: project:anthropic-sdk
+kind: sdk
+name: Anthropic SDK
+type: Project

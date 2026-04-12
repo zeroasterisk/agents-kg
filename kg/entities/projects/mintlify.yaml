@@ -1,5 +1,5 @@
 aliases: []
-description: Documentation tool
+description: A documentation platform used for hosting and rendering MCP documentation.
 id: project:mintlify
 kind: tool
 name: Mintlify

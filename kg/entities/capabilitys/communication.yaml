@@ -1,0 +1,6 @@
+aliases:
+- transport
+description: The ability to manage data exchange between clients and servers.
+id: capability:communication
+name: Communication
+type: Capability

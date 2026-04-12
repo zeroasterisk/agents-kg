@@ -1,0 +1,7 @@
+aliases:
+- SEP-1933
+description: A mechanism for secure identity propagation across services (SEP-1933).
+id: protocol:workload-identity-federation
+kind: spec
+name: Workload Identity Federation
+type: Protocol

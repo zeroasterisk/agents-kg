@@ -1,5 +1,6 @@
 aliases: []
-description: Defines the JSON-RPC based protocol for client-server communication
+description: The layer defining the communication protocol and core primitives for
+  MCP.
 id: capability:data-layer
-name: Data layer
+name: MCP Data Layer
 type: Capability

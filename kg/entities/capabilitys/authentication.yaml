@@ -1,6 +1,6 @@
 aliases:
-- Enterprise-managed auth
-description: Identity verification and secure access control for enterprise environments.
+- auth
+description: The process of verifying the identity of a user or service.
 id: capability:authentication
 name: Authentication
 type: Capability

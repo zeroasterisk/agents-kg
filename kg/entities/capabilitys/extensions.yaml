@@ -1,5 +1,7 @@
-aliases: []
-description: Support for extensions
+aliases:
+- MCP Extensions
+description: A mechanism for extending the core functionality of the Model Context
+  Protocol independently of the core specification.
 id: capability:extensions
-name: extensions
+name: Extensions
 type: Capability

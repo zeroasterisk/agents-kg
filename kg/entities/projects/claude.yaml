@@ -1,6 +1,8 @@
-aliases: []
-description: AI tool
+aliases:
+- Claude Code
+- Claude Desktop
+description: An AI application that acts as an MCP host.
 id: project:claude
-kind: tool
+kind: platform
 name: Claude
 type: Project

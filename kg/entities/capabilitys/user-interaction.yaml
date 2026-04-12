@@ -1,0 +1,6 @@
+aliases:
+- elicitation
+description: The ability to elicit input or interaction from a user.
+id: capability:user-interaction
+name: User Interaction
+type: Capability

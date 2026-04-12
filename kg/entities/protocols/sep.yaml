@@ -1,7 +1,7 @@
 aliases:
 - SEP
-description: A formal process for proposing and reviewing changes to the Model Context
-  Protocol.
+description: The formal process for proposing and implementing changes to the Model
+  Context Protocol.
 id: protocol:sep
 kind: spec
 name: Specification Enhancement Proposal

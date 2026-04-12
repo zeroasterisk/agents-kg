@@ -1,5 +1,6 @@
 aliases: []
-description: A registry for MCP servers, clients, or tools
+description: A community registry for sharing MCP servers, clients, and tools.
 id: project:mcp-registry
+kind: platform
 name: MCP Registry
 type: Project

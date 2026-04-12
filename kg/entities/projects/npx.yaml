@@ -1,5 +1,6 @@
-aliases: []
-description: A tool to execute packages
+aliases:
+- Node Package Execute
+description: A package runner tool for executing Node.js packages.
 id: project:npx
 kind: tool
 name: npx

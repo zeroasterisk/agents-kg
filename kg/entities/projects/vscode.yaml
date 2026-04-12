@@ -1,0 +1,7 @@
+aliases:
+- VS Code
+description: A code editor that acts as an MCP host.
+id: project:vscode
+kind: platform
+name: Visual Studio Code
+type: Project

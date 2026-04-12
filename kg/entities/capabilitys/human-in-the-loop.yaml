@@ -1,0 +1,8 @@
+aliases:
+- HITL
+- human oversight
+description: The requirement for human oversight and explicit approval for potentially
+  dangerous operations.
+id: capability:human-in-the-loop
+name: Human-in-the-Loop
+type: Capability

@@ -1,5 +1,6 @@
-aliases: []
-description: Details for official extensions.
+aliases:
+- Extensions Track
+description: The formal specification defining the lifecycle and process for MCP extensions.
 id: protocol:sep-2133
 kind: spec
 name: 'SEP-2133: Extensions'

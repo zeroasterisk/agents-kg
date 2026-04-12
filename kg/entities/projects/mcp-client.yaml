@@ -1,6 +1,6 @@
-aliases: []
-description: A component that maintains a connection to an MCP server and obtains
-  context from an MCP server for the MCP host to use
+aliases:
+- MCP client
+description: An application that initiates connections to MCP servers.
 id: project:mcp-client
 kind: platform
 name: MCP Client

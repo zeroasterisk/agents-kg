@@ -1,6 +1,7 @@
-aliases: []
-description: Recommendations for blocking requests to private and reserved IP address
-  ranges
+aliases:
+- RFC 9728
+description: An IETF document providing recommendations for network security and IP
+  address filtering.
 id: protocol:rfc-9728
 kind: rfc
 name: RFC 9728

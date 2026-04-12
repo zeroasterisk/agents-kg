@@ -1,6 +1,6 @@
 aliases:
 - WG
-description: A group focused on specific technical development within the MCP ecosystem.
+description: A group within the MCP organization focused on specific development tasks.
 id: group:working-group
 kind: wg
 name: Working Group

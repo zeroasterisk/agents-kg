@@ -1,5 +1,6 @@
 aliases: []
-description: Working Groups
+description: Groups within the MCP organization responsible for stewarding specific
+  areas of the project.
 id: group:working-groups
 kind: wg
 name: Working Groups

@@ -1,5 +1,6 @@
-aliases: []
-description: Technology company
+aliases:
+- Azure
+description: Cloud provider and technology company.
 id: organization:microsoft
 kind: company
 name: Microsoft

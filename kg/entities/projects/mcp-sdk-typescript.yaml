@@ -1,0 +1,8 @@
+aliases:
+- '@modelcontextprotocol/sdk'
+description: A language-specific SDK for implementing the Model Context Protocol in
+  TypeScript.
+id: project:mcp-sdk-typescript
+kind: sdk
+name: MCP TypeScript SDK
+type: Project

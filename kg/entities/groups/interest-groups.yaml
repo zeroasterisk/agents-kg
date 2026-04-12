@@ -1,5 +1,6 @@
-aliases: []
-description: A group with shared interests
+aliases:
+- IG
+description: Groups within the MCP organization focused on specific areas of interest.
 id: group:interest-groups
 kind: sig
 name: Interest Groups

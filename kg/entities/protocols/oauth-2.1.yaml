@@ -1,6 +1,6 @@
 aliases:
-- OAuth 2.0
-description: An authorization framework for secure delegated access.
+- OAuth
+description: An industry-standard protocol for authorization.
 id: protocol:oauth-2.1
 kind: standard
 name: OAuth 2.1

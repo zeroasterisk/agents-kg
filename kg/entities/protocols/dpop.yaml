@@ -1,0 +1,7 @@
+aliases:
+- SEP-1932
+description: Demonstrating Proof-of-Possession at the Application Layer (SEP-1932).
+id: protocol:dpop
+kind: spec
+name: DPoP
+type: Protocol

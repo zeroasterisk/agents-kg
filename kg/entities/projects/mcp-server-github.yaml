@@ -2,6 +2,6 @@ aliases:
 - '@modelcontextprotocol/server-github'
 description: An MCP server implementation providing GitHub integration.
 id: project:mcp-server-github
-kind: tool
+kind: library
 name: MCP GitHub Server
 type: Project

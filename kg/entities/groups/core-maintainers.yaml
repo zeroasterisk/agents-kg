@@ -1,5 +1,7 @@
-aliases: []
-description: Core maintainers of the Model Context Protocol.
+aliases:
+- MCP Maintainers
+description: The team responsible for oversight and governance of the MCP ecosystem
+  and extension repositories.
 id: group:core-maintainers
 kind: team
 name: Core Maintainers

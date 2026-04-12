@@ -1,0 +1,7 @@
+aliases:
+- filesystem server
+description: An MCP server that provides access to local filesystem resources.
+id: project:filesystem-mcp-server
+kind: tool
+name: Filesystem MCP Server
+type: Project

@@ -1,5 +1,6 @@
 aliases: []
-description: Extension track for application-level integrations in MCP.
+description: An extension track for application-level integrations within the MCP
+  ecosystem.
 id: project:ext-apps
 kind: framework
 name: ext-apps

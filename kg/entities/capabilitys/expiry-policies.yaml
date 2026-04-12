@@ -1,0 +1,5 @@
+aliases: []
+description: Rules for result retention and expiration notification.
+id: capability:expiry-policies
+name: Expiry Policies
+type: Capability

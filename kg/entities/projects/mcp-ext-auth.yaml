@@ -1,0 +1,7 @@
+aliases:
+- modelcontextprotocol/ext-auth
+description: Official MCP extension providing supplementary authorization mechanisms.
+id: project:mcp-ext-auth
+kind: library
+name: MCP Auth Extension
+type: Project
