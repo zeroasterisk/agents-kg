@@ -1,12 +1,23 @@
 # Ontology v1 — Agentic Web Interoperability Knowledge Graph
 
-> **Status:** Draft for review
-> **Date:** 2026-03-09
-> **Author:** Zaf (automated draft)
+> **Status:** Baseline
+> **Date:** 2026-04-18
+> **Author:** Zaf
 
 ---
 
-## 1. Node Types
+## 1. Implementation Status
+
+The ontology is implemented via a SQLite-backed pipeline with the following stages:
+- **Fetch:** Supports HTTP(S) and local files (including PDF text extraction).
+- **Parse:** Markdown passthrough and HTML-to-text conversion.
+- **Chunk:** Section-based chunking with token estimation.
+- **Embed:** Using `models/gemini-embedding-001`.
+- **Extract:** Using `models/gemini-2.5-flash` with structured output.
+- **Resolve:** Seed-based entity resolution and fuzzy matching.
+- **Load:** YAML export and Neo4j graph population.
+
+## 2. Node Types
 
 | Type | Key Properties | Description |
 |------|---------------|-------------|
