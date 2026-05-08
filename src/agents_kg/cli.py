@@ -217,5 +217,42 @@ def reset(source_id):
     db.close()
 
 
+@cli.command("schema")
+def schema_cmd():
+    """Apply Neo4j schema constraints and indexes."""
+    from .schema import apply_schema
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Cannot connect to Neo4j at {neo4j_uri}: {e}", err=True)
+        sys.exit(1)
+
+    click.echo(f"Applying schema to {neo4j_uri}...")
+    try:
+        results = apply_schema(driver)
+        click.echo(f"Applied {results['constraints']} constraints, {results['indexes']} indexes")
+        if results["errors"]:
+            for err in results["errors"]:
+                click.echo(f"  ERROR: {err}", err=True)
+    finally:
+        driver.close()
+
+
+@cli.group()
+def wikidata():
+    """Wikidata SPARQL integration commands."""
+    pass
+
+
+@cli.group()
+def events():
+    """Event timeline management commands."""
+    pass
+
+
 if __name__ == "__main__":
     cli()
