@@ -306,5 +306,40 @@ def events():
     pass
 
 
+@events.command("load")
+@click.option("--dir", "events_dir", default="kg/events", help="Directory with event YAML files")
+def events_load(events_dir):
+    """Load event YAML files into Neo4j."""
+    from .temporal import load_events_from_yaml
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+    neo4j_driver = None
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+        neo4j_driver = driver
+    except Exception as e:
+        click.echo(f"Neo4j not available ({e}), validating YAML only")
+
+    try:
+        results = load_events_from_yaml(neo4j_driver, events_dir)
+        click.echo(f"Loaded {results['events']} events with {results['participations']} participations")
+    finally:
+        if neo4j_driver:
+            neo4j_driver.close()
+
+
+@events.command("migrate")
+@click.option("--timeline", default="kg/timeline.yaml", help="Path to timeline.yaml")
+@click.option("--dir", "events_dir", default="kg/events", help="Output directory")
+def events_migrate(timeline, events_dir):
+    """Migrate timeline.yaml entries to individual event YAML files."""
+    from .temporal import migrate_timeline_yaml
+
+    created = migrate_timeline_yaml(timeline, events_dir)
+    click.echo(f"Created {created} event file(s)")
+
+
 if __name__ == "__main__":
     cli()

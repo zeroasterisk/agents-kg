@@ -1,0 +1,11 @@
+event_id: agntcy-donated-to-lf-2025-07-29
+title: AGNTCY donated to Linux Foundation
+event_type: donation
+date: "2025-07-29"
+description: Cisco donates AGNTCY project to Linux Foundation. 75+ companies involved.
+source_url: https://www.linuxfoundation.org/press/linux-foundation-welcomes-the-agntcy-project
+participants:
+  - entity_id: organization:agntcy
+    role: donor
+  - entity_id: organization:linux-foundation
+    role: recipient
