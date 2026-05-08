@@ -249,6 +249,57 @@ def wikidata():
     pass
 
 
+@wikidata.command("pull")
+@click.option("--type", "entity_type", type=click.Choice(["languages", "protocols", "orgs", "software"]),
+              help="Pull specific entity type (default: all)")
+@click.option("--dry-run", is_flag=True, help="Pull from SPARQL but don't load to Neo4j")
+def wikidata_pull(entity_type, dry_run):
+    """Pull entities from Wikidata SPARQL endpoint."""
+    from .wikidata import pull_and_load
+
+    neo4j_driver = None
+    if not dry_run:
+        neo4j_uri, neo4j_auth = get_neo4j_config()
+        try:
+            from neo4j import GraphDatabase
+            neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+            neo4j_driver.verify_connectivity()
+            click.echo(f"Connected to Neo4j at {neo4j_uri}")
+        except Exception as e:
+            click.echo(f"Neo4j not available ({e}), pulling without loading")
+
+    try:
+        scope = entity_type or "all types"
+        click.echo(f"Pulling {scope} from Wikidata...")
+        results = pull_and_load(neo4j_driver, entity_type)
+        click.echo(f"Done: {results['entities']} entities, {results['edges']} edges")
+    finally:
+        if neo4j_driver:
+            neo4j_driver.close()
+
+
+@wikidata.command("crossref")
+def wikidata_crossref():
+    """Cross-reference existing entities with Wikidata IDs."""
+    from .wikidata_crossref import apply_crossref
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+    neo4j_driver = None
+    try:
+        from neo4j import GraphDatabase
+        neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        neo4j_driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Neo4j not available ({e}), applying to YAML only")
+
+    try:
+        results = apply_crossref(neo4j_driver)
+        click.echo(f"Cross-referenced {results['applied']} entities ({results['skipped']} skipped, no Wikidata match)")
+    finally:
+        if neo4j_driver:
+            neo4j_driver.close()
+
+
 @cli.group()
 def events():
     """Event timeline management commands."""

@@ -56,13 +56,6 @@ def sparql_query(query: str, retries: int = 3) -> list[dict]:
                 time.sleep(wait)
                 continue
 
-            if resp.status_code >= 500:
-                log.warning("Server error %d (attempt %d/%d)", resp.status_code, attempt + 1, retries)
-                if attempt < retries - 1:
-                    time.sleep(10)
-                    continue
-                resp.raise_for_status()
-
             resp.raise_for_status()
             data = resp.json()
             return data["results"]["bindings"]
@@ -100,7 +93,6 @@ def _to_entity_id(name: str, entity_type: str) -> str:
 QUERY_PROGRAMMING_LANGUAGES = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website
        ?designerLabel ?designer ?developerLabel ?developer
-       ?influenced_byLabel ?influenced_by
 WHERE {
   ?item wdt:P31 wd:Q9143 .
   OPTIONAL { ?item wdt:P571 ?inception . }
@@ -111,16 +103,13 @@ WHERE {
   OPTIONAL { ?item wdt:P178 ?developer .
              ?developer rdfs:label ?developerLabel .
              FILTER(LANG(?developerLabel) = "en") }
-  OPTIONAL { ?item wdt:P737 ?influenced_by .
-             ?influenced_by rdfs:label ?influenced_byLabel .
-             FILTER(LANG(?influenced_byLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
 
 QUERY_PROTOCOLS = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website
-       ?developerLabel ?developer ?based_onLabel ?based_on
+       ?developerLabel ?developer
 WHERE {
   ?item wdt:P31/wdt:P279* wd:Q15836568 .
   OPTIONAL { ?item wdt:P571 ?inception . }
@@ -128,9 +117,6 @@ WHERE {
   OPTIONAL { ?item wdt:P178 ?developer .
              ?developer rdfs:label ?developerLabel .
              FILTER(LANG(?developerLabel) = "en") }
-  OPTIONAL { ?item wdt:P144 ?based_on .
-             ?based_on rdfs:label ?based_onLabel .
-             FILTER(LANG(?based_onLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
@@ -151,8 +137,6 @@ WHERE {
 QUERY_SOFTWARE_COMPANIES = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website ?countryLabel
        ?founded_byLabel ?founded_by
-       ?subsidiaryLabel ?subsidiary ?parent_orgLabel ?parent_org
-       ?part_ofLabel ?part_of_item
 WHERE {
   ?item wdt:P31 wd:Q1058914 .
   OPTIONAL { ?item wdt:P571 ?inception . }
@@ -163,15 +147,6 @@ WHERE {
   OPTIONAL { ?item wdt:P112 ?founded_by .
              ?founded_by rdfs:label ?founded_byLabel .
              FILTER(LANG(?founded_byLabel) = "en") }
-  OPTIONAL { ?item wdt:P355 ?subsidiary .
-             ?subsidiary rdfs:label ?subsidiaryLabel .
-             FILTER(LANG(?subsidiaryLabel) = "en") }
-  OPTIONAL { ?item wdt:P749 ?parent_org .
-             ?parent_org rdfs:label ?parent_orgLabel .
-             FILTER(LANG(?parent_orgLabel) = "en") }
-  OPTIONAL { ?item wdt:P361 ?part_of_item .
-             ?part_of_item rdfs:label ?part_ofLabel .
-             FILTER(LANG(?part_ofLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
@@ -179,8 +154,7 @@ WHERE {
 QUERY_AI_ORGS = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website
 WHERE {
-  VALUES ?orgType { wd:Q43229 wd:Q4830453 wd:Q1058914 wd:Q163740 }
-  ?item wdt:P31 ?orgType .
+  ?item wdt:P31/wdt:P279* wd:Q43229 .
   ?item wdt:P101 wd:Q11660 .
   OPTIONAL { ?item wdt:P571 ?inception . }
   OPTIONAL { ?item wdt:P856 ?website . }
@@ -240,10 +214,8 @@ def transform_to_entities(
         entity_id = _to_entity_id(label, entity_type)
         desc = _val(row, "itemDescription") or ""
         inception = _val(row, "inception") or None
-        if inception and len(inception) >= 10 and re.match(r"^\d{4}-\d{2}-\d{2}", inception):
+        if inception and len(inception) >= 10:
             inception = inception[:10]
-        else:
-            inception = None
 
         entity = {
             "entity_id": entity_id,
@@ -263,20 +235,16 @@ def transform_to_entities(
 
 def extract_edges(
     bindings: list[dict], entity_type: str, edge_configs: list[dict]
-) -> tuple[list[dict], list[dict]]:
-    """Extract relationship edges and implicit entities from SPARQL bindings.
+) -> list[dict]:
+    """Extract relationship edges from SPARQL bindings.
 
     edge_configs is a list of dicts like:
         {"label_key": "developerLabel", "qid_key": "developer",
          "edge_type": "DEVELOPS", "target_type": "Organization",
          "reverse": True}
-
-    Returns (edges, implicit_entities) — implicit entities are people/orgs
-    referenced by edges that may not have been loaded as primary entities.
     """
     edges = []
     seen = set()
-    implicit = {}
 
     for row in bindings:
         source_qid = _qid(_val(row, "item") or "")
@@ -298,16 +266,6 @@ def extract_edges(
 
             target_eid = _to_entity_id(target_label, cfg["target_type"])
 
-            if target_qid not in implicit:
-                implicit[target_qid] = {
-                    "entity_id": target_eid,
-                    "name": target_label,
-                    "type": cfg["target_type"],
-                    "kind": cfg["target_type"].lower(),
-                    "wikidata_id": target_qid,
-                    "source_type": "wikidata",
-                }
-
             if cfg.get("reverse"):
                 src, tgt = target_eid, source_eid
             else:
@@ -319,7 +277,7 @@ def extract_edges(
             seen.add(edge_key)
 
             inception = _val(row, "inception")
-            valid_from = inception[:10] if inception and len(inception) >= 10 and re.match(r"^\d{4}-\d{2}-\d{2}", inception) else None
+            valid_from = inception[:10] if inception and len(inception) >= 10 else None
 
             edges.append({
                 "source_entity_id": src,
@@ -330,16 +288,7 @@ def extract_edges(
                 "confidence": 0.9,
             })
 
-    return edges, list(implicit.values())
-
-
-def _merge_implicit(entities: list[dict], implicit: list[dict]):
-    """Merge implicit entities into the entity list, skipping duplicates."""
-    seen = {e["entity_id"] for e in entities}
-    for ent in implicit:
-        if ent["entity_id"] not in seen:
-            entities.append(ent)
-            seen.add(ent["entity_id"])
+    return edges
 
 
 # --- Pull functions for each entity type ---
@@ -349,15 +298,12 @@ def pull_programming_languages() -> tuple[list[dict], list[dict]]:
     log.info("Pulling programming languages...")
     bindings = sparql_query(QUERY_PROGRAMMING_LANGUAGES)
     entities = transform_to_entities(bindings, "Project", "programming_language")
-    edges, implicit = extract_edges(bindings, "Project", [
+    edges = extract_edges(bindings, "Project", [
         {"label_key": "developerLabel", "qid_key": "developer",
          "edge_type": "DEVELOPS", "target_type": "Organization", "reverse": True},
         {"label_key": "designerLabel", "qid_key": "designer",
          "edge_type": "DEVELOPS", "target_type": "Person", "reverse": True},
-        {"label_key": "influenced_byLabel", "qid_key": "influenced_by",
-         "edge_type": "INFLUENCED_BY", "target_type": "Project"},
     ])
-    _merge_implicit(entities, implicit)
     log.info("Got %d language entities, %d edges", len(entities), len(edges))
     return entities, edges
 
@@ -378,18 +324,15 @@ def pull_protocols() -> tuple[list[dict], list[dict]]:
             entities.append(e)
             seen_qids.add(e["wikidata_id"])
 
-    edges, implicit = extract_edges(bindings, "Protocol", [
+    edges = extract_edges(bindings, "Protocol", [
         {"label_key": "developerLabel", "qid_key": "developer",
          "edge_type": "DEVELOPS", "target_type": "Organization", "reverse": True},
-        {"label_key": "based_onLabel", "qid_key": "based_on",
-         "edge_type": "BASED_ON", "target_type": "Protocol"},
     ])
-    std_edges, std_implicit = extract_edges(std_bindings, "Protocol", [
+    std_edges = extract_edges(std_bindings, "Protocol", [
         {"label_key": "maintainerLabel", "qid_key": "maintainer",
          "edge_type": "DEVELOPS", "target_type": "Organization", "reverse": True},
     ])
     edges.extend(std_edges)
-    _merge_implicit(entities, implicit + std_implicit)
 
     log.info("Got %d protocol/standard entities, %d edges", len(entities), len(edges))
     return entities, edges
@@ -411,17 +354,10 @@ def pull_organizations() -> tuple[list[dict], list[dict]]:
             entities.append(e)
             seen_qids.add(e["wikidata_id"])
 
-    edges, implicit = extract_edges(bindings, "Organization", [
+    edges = extract_edges(bindings, "Organization", [
         {"label_key": "founded_byLabel", "qid_key": "founded_by",
          "edge_type": "FOUNDED_BY", "target_type": "Person"},
-        {"label_key": "subsidiaryLabel", "qid_key": "subsidiary",
-         "edge_type": "SUBSIDIARY", "target_type": "Organization"},
-        {"label_key": "parent_orgLabel", "qid_key": "parent_org",
-         "edge_type": "PARENT_ORG", "target_type": "Organization"},
-        {"label_key": "part_ofLabel", "qid_key": "part_of_item",
-         "edge_type": "PART_OF", "target_type": "Organization"},
     ])
-    _merge_implicit(entities, implicit)
 
     log.info("Got %d org entities, %d edges", len(entities), len(edges))
     return entities, edges
@@ -433,11 +369,10 @@ def pull_software_projects() -> tuple[list[dict], list[dict]]:
     bindings = sparql_query(QUERY_FREE_SOFTWARE)
     entities = transform_to_entities(bindings, "Project", "software")
 
-    edges, implicit = extract_edges(bindings, "Project", [
+    edges = extract_edges(bindings, "Project", [
         {"label_key": "developerLabel", "qid_key": "developer",
          "edge_type": "DEVELOPS", "target_type": "Organization", "reverse": True},
     ])
-    _merge_implicit(entities, implicit)
 
     log.info("Got %d software entities, %d edges", len(entities), len(edges))
     return entities, edges
@@ -475,8 +410,7 @@ def load_wikidata_entities(neo4j_driver, entities: list[dict]):
                     MERGE (n:Entity {{entity_id: ent.entity_id}})
                     SET n:{label}, n.name = ent.name, n.description = ent.description,
                         n.wikidata_id = ent.wikidata_id, n.kind = ent.kind,
-                        n.url = ent.url,
-                        n.created_at = CASE WHEN ent.created_at IS NOT NULL THEN date(ent.created_at) ELSE null END,
+                        n.url = ent.url, n.created_at = ent.created_at,
                         n.type = ent.type, n.source_type = 'wikidata'
                     """,
                     {"entities": batch},
@@ -505,20 +439,11 @@ def load_wikidata_edges(neo4j_driver, edges: list[dict]):
                     MATCH (b:Entity {{entity_id: e.target_entity_id}})
                     MERGE (a)-[r:{edge_type}]->(b)
                     SET r.source_type = e.source_type, r.confidence = e.confidence,
-                        r.valid_from = CASE WHEN e.valid_from IS NOT NULL THEN date(e.valid_from) ELSE null END
+                        r.valid_from = e.valid_from
                     """,
                     {"edges": batch},
                 )
-
-        total_attempted = len(edges)
-        result = session.run(
-            "MATCH ()-[r]->() WHERE r.source_type = 'wikidata' RETURN count(r) AS c"
-        )
-        total_created = result.single()["c"]
-        log.info(
-            "Edge loading summary: %d attempted, %d in graph from wikidata",
-            total_attempted, total_created,
-        )
+                log.info("Loaded batch of %d %s edges", len(batch), edge_type)
 
 
 def pull_and_load(neo4j_driver, entity_type: str | None = None) -> dict:
