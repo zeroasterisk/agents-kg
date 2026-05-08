@@ -131,16 +131,6 @@ def migrate_timeline_yaml(
     events_out = Path(events_dir)
     events_out.mkdir(parents=True, exist_ok=True)
 
-    existing_titles = set()
-    for existing_file in events_out.glob("*.yaml"):
-        try:
-            with open(existing_file) as ef:
-                existing = yaml.safe_load(ef)
-            if existing and "title" in existing:
-                existing_titles.add(existing["title"])
-        except Exception:
-            pass
-
     created = 0
     for entry in entries:
         slug = re.sub(r"[^a-z0-9]+", "-", entry["title"].lower()).strip("-")
@@ -167,10 +157,7 @@ def migrate_timeline_yaml(
 
         out_path = events_out / f"{slug}.yaml"
         if out_path.exists():
-            log.info("Skipping existing file: %s", out_path)
-            continue
-        if entry["title"] in existing_titles:
-            log.info("Skipping already-migrated event: %s", entry["title"])
+            log.info("Skipping existing: %s", out_path)
             continue
 
         with open(out_path, "w") as f:
