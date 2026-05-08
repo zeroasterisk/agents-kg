@@ -286,10 +286,11 @@ def wikidata_crossref():
     neo4j_driver = None
     try:
         from neo4j import GraphDatabase
-        neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
-        neo4j_driver.verify_connectivity()
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+        neo4j_driver = driver
     except Exception as e:
-        click.echo(f"Neo4j not available ({e}), applying to YAML only")
+        click.echo(f"Neo4j not available ({e}), applying mappings without graph update")
 
     try:
         results = apply_crossref(neo4j_driver)
