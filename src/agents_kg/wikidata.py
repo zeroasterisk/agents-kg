@@ -56,6 +56,13 @@ def sparql_query(query: str, retries: int = 3) -> list[dict]:
                 time.sleep(wait)
                 continue
 
+            if resp.status_code >= 500:
+                log.warning("Server error %d (attempt %d/%d)", resp.status_code, attempt + 1, retries)
+                if attempt < retries - 1:
+                    time.sleep(10)
+                    continue
+                resp.raise_for_status()
+
             resp.raise_for_status()
             data = resp.json()
             return data["results"]["bindings"]
@@ -154,7 +161,8 @@ WHERE {
 QUERY_AI_ORGS = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website
 WHERE {
-  ?item wdt:P31/wdt:P279* wd:Q43229 .
+  VALUES ?orgType { wd:Q43229 wd:Q4830453 wd:Q1058914 wd:Q163740 }
+  ?item wdt:P31 ?orgType .
   ?item wdt:P101 wd:Q11660 .
   OPTIONAL { ?item wdt:P571 ?inception . }
   OPTIONAL { ?item wdt:P856 ?website . }
