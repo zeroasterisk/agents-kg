@@ -218,6 +218,31 @@ def reset(source_id):
     db.close()
 
 
+@cli.command("seed")
+def seed_cmd():
+    """Load canonical seed entities into Neo4j."""
+    from .seed import get_seed_entities
+    from .wikidata import load_wikidata_entities
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Cannot connect to Neo4j at {neo4j_uri}: {e}", err=True)
+        sys.exit(1)
+
+    click.echo(f"Loading seed entities to {neo4j_uri}...")
+    try:
+        entities = get_seed_entities()
+        load_wikidata_entities(driver, entities)
+        click.echo(f"Loaded {len(entities)} seed entities")
+    finally:
+        driver.close()
+
+
 @cli.command("schema")
 def schema_cmd():
     """Apply Neo4j schema constraints and indexes."""
