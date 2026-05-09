@@ -100,6 +100,7 @@ def _to_entity_id(name: str, entity_type: str) -> str:
 QUERY_PROGRAMMING_LANGUAGES = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website
        ?designerLabel ?designer ?developerLabel ?developer
+       ?influenced_byLabel ?influenced_by
 WHERE {
   ?item wdt:P31 wd:Q9143 .
   OPTIONAL { ?item wdt:P571 ?inception . }
@@ -110,13 +111,16 @@ WHERE {
   OPTIONAL { ?item wdt:P178 ?developer .
              ?developer rdfs:label ?developerLabel .
              FILTER(LANG(?developerLabel) = "en") }
+  OPTIONAL { ?item wdt:P737 ?influenced_by .
+             ?influenced_by rdfs:label ?influenced_byLabel .
+             FILTER(LANG(?influenced_byLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
 
 QUERY_PROTOCOLS = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website
-       ?developerLabel ?developer
+       ?developerLabel ?developer ?based_onLabel ?based_on
 WHERE {
   ?item wdt:P31/wdt:P279* wd:Q15836568 .
   OPTIONAL { ?item wdt:P571 ?inception . }
@@ -124,6 +128,9 @@ WHERE {
   OPTIONAL { ?item wdt:P178 ?developer .
              ?developer rdfs:label ?developerLabel .
              FILTER(LANG(?developerLabel) = "en") }
+  OPTIONAL { ?item wdt:P144 ?based_on .
+             ?based_on rdfs:label ?based_onLabel .
+             FILTER(LANG(?based_onLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
@@ -144,6 +151,8 @@ WHERE {
 QUERY_SOFTWARE_COMPANIES = """
 SELECT ?item ?itemLabel ?itemDescription ?inception ?website ?countryLabel
        ?founded_byLabel ?founded_by
+       ?subsidiaryLabel ?subsidiary ?parent_orgLabel ?parent_org
+       ?part_ofLabel ?part_of_item
 WHERE {
   ?item wdt:P31 wd:Q1058914 .
   OPTIONAL { ?item wdt:P571 ?inception . }
@@ -154,6 +163,15 @@ WHERE {
   OPTIONAL { ?item wdt:P112 ?founded_by .
              ?founded_by rdfs:label ?founded_byLabel .
              FILTER(LANG(?founded_byLabel) = "en") }
+  OPTIONAL { ?item wdt:P355 ?subsidiary .
+             ?subsidiary rdfs:label ?subsidiaryLabel .
+             FILTER(LANG(?subsidiaryLabel) = "en") }
+  OPTIONAL { ?item wdt:P749 ?parent_org .
+             ?parent_org rdfs:label ?parent_orgLabel .
+             FILTER(LANG(?parent_orgLabel) = "en") }
+  OPTIONAL { ?item wdt:P361 ?part_of_item .
+             ?part_of_item rdfs:label ?part_ofLabel .
+             FILTER(LANG(?part_ofLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
@@ -336,6 +354,8 @@ def pull_programming_languages() -> tuple[list[dict], list[dict]]:
          "edge_type": "DEVELOPS", "target_type": "Organization", "reverse": True},
         {"label_key": "designerLabel", "qid_key": "designer",
          "edge_type": "DEVELOPS", "target_type": "Person", "reverse": True},
+        {"label_key": "influenced_byLabel", "qid_key": "influenced_by",
+         "edge_type": "INFLUENCED_BY", "target_type": "Project"},
     ])
     _merge_implicit(entities, implicit)
     log.info("Got %d language entities, %d edges", len(entities), len(edges))
@@ -361,6 +381,8 @@ def pull_protocols() -> tuple[list[dict], list[dict]]:
     edges, implicit = extract_edges(bindings, "Protocol", [
         {"label_key": "developerLabel", "qid_key": "developer",
          "edge_type": "DEVELOPS", "target_type": "Organization", "reverse": True},
+        {"label_key": "based_onLabel", "qid_key": "based_on",
+         "edge_type": "BASED_ON", "target_type": "Protocol"},
     ])
     std_edges, std_implicit = extract_edges(std_bindings, "Protocol", [
         {"label_key": "maintainerLabel", "qid_key": "maintainer",
@@ -392,6 +414,12 @@ def pull_organizations() -> tuple[list[dict], list[dict]]:
     edges, implicit = extract_edges(bindings, "Organization", [
         {"label_key": "founded_byLabel", "qid_key": "founded_by",
          "edge_type": "FOUNDED_BY", "target_type": "Person"},
+        {"label_key": "subsidiaryLabel", "qid_key": "subsidiary",
+         "edge_type": "SUBSIDIARY", "target_type": "Organization"},
+        {"label_key": "parent_orgLabel", "qid_key": "parent_org",
+         "edge_type": "PARENT_ORG", "target_type": "Organization"},
+        {"label_key": "part_ofLabel", "qid_key": "part_of_item",
+         "edge_type": "PART_OF", "target_type": "Organization"},
     ])
     _merge_implicit(entities, implicit)
 
