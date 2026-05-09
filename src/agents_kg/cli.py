@@ -242,6 +242,96 @@ def seed_cmd():
         driver.close()
 
 
+@cli.command("load-yaml")
+@click.option("--entities-dir", default="kg/entities", help="Directory with entity YAML files")
+@click.option("--relations", default="kg/relations.yaml", help="Relations YAML file")
+def load_yaml_cmd(entities_dir, relations):
+    """Load YAML entity files and relations into Neo4j."""
+    from pathlib import Path
+    import yaml as _yaml
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Cannot connect to Neo4j at {neo4j_uri}: {e}", err=True)
+        sys.exit(1)
+
+    entities_path = Path(entities_dir)
+    if not entities_path.exists():
+        click.echo(f"Entities directory not found: {entities_dir}", err=True)
+        sys.exit(1)
+
+    entities = []
+    valid_labels = {"Protocol", "Organization", "Project", "Capability", "Group", "Person"}
+    for yf in sorted(entities_path.rglob("*.yaml")):
+        with open(yf) as f:
+            data = _yaml.safe_load(f)
+        if not data or "id" not in data:
+            continue
+        eid = data["id"]
+        etype = data.get("type", "")
+        etype_title = etype.capitalize() if etype == etype.lower() else etype
+        if ":" not in eid:
+            eid = f"{etype.lower()}:{eid}"
+        entities.append({
+            "entity_id": eid,
+            "name": data.get("name", ""),
+            "type": etype_title,
+            "kind": data.get("kind"),
+            "description": data.get("description"),
+            "aliases": data.get("aliases", []),
+            "source_type": "pipeline",
+        })
+
+    click.echo(f"Loading {len(entities)} YAML entities...")
+    with driver.session() as session:
+        for ent in entities:
+            label = ent["type"] if ent["type"] in valid_labels else "Entity"
+            session.run(
+                f"""
+                MERGE (n:Entity {{entity_id: $entity_id}})
+                SET n:{label}, n.name = $name, n.type = $type, n.kind = $kind,
+                    n.description = $description, n.aliases = $aliases,
+                    n.source_type = COALESCE(n.source_type, $source_type)
+                """,
+                ent,
+            )
+    click.echo(f"Loaded {len(entities)} entities")
+
+    rel_path = Path(relations)
+    if rel_path.exists():
+        with open(rel_path) as f:
+            rel_data = _yaml.safe_load(f)
+        rels = rel_data.get("relations", [])
+        loaded = 0
+        with driver.session() as session:
+            for rel in rels:
+                subj = rel["subject"]
+                obj = rel["object"]
+                edge_type = rel["predicate"].upper()
+                result = session.run(
+                    f"""
+                    MATCH (a:Entity) WHERE a.entity_id ENDS WITH $subj
+                    MATCH (b:Entity) WHERE b.entity_id ENDS WITH $obj
+                    MERGE (a)-[r:{edge_type}]->(b)
+                    SET r.source_type = 'yaml', r.confidence = 1.0
+                    RETURN count(r) as cnt
+                    """,
+                    {"subj": subj, "obj": obj},
+                )
+                cnt = result.single()["cnt"]
+                if cnt > 0:
+                    loaded += 1
+        click.echo(f"Loaded {loaded}/{len(rels)} relations")
+    else:
+        click.echo(f"Relations file not found: {relations}, skipping")
+
+    driver.close()
+
+
 @cli.command("schema")
 def schema_cmd():
     """Apply Neo4j schema constraints and indexes."""
