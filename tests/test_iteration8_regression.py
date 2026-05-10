@@ -5,10 +5,12 @@ re-introduction. Each test documents the original bug and fix.
 """
 
 import os
+import tempfile
 
 import pytest
 from unittest.mock import patch
 
+from agents_kg.db import Database
 from agents_kg.seed import SEED_ENTITIES
 from agents_kg.stages import chunk, parse
 
@@ -16,6 +18,15 @@ from agents_kg.stages import chunk, parse
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+@pytest.fixture
+def db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        path = f.name
+    d = Database(path)
+    yield d
+    d.close()
+    os.unlink(path)
 
 
 # ---------------------------------------------------------------------------
@@ -193,10 +204,6 @@ class TestNeo4jDefaultURIRegression:
 
     def test_neo4j_integration_test_uses_localhost(self):
         """Integration test module defaults to localhost, not Docker hostname."""
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("NEO4J_URI", None)
-            import importlib
-            import tests.test_neo4j_integration as mod
-            importlib.reload(mod)
-            assert "localhost" in mod.NEO4J_URI, \
-                f"Integration tests should default to localhost, got {mod.NEO4J_URI}"
+        import tests.test_neo4j_integration as mod
+        assert "localhost" in mod.NEO4J_URI, \
+            f"Integration tests should default to localhost, got {mod.NEO4J_URI}"
