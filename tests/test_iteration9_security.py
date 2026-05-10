@@ -8,9 +8,7 @@ import json
 import os
 import re
 import ast
-import tempfile
 import pytest
-from agents_kg.db import Database
 from agents_kg.stages import load as load_stage
 from agents_kg.stages import extract as extract_stage
 
@@ -18,16 +16,6 @@ from agents_kg.stages import extract as extract_stage
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def db():
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        path = f.name
-    d = Database(path)
-    yield d
-    d.close()
-    os.unlink(path)
 
 
 # ---------------------------------------------------------------------------

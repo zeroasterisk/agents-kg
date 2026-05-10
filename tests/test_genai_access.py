@@ -1,5 +1,4 @@
 import os
-import sys
 import pytest
 from google import genai
 from google.genai import types
@@ -50,7 +49,7 @@ def test_genai_access():
         pytest.fail(f"Generation FAILED: {e}")
 
     # Test embedding
-    embed_model = "gemini-embedding-2"
+    embed_model = "gemini-embedding-2-preview"
     try:
         result = client_embed.models.embed_content(
             model=embed_model,
