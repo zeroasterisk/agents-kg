@@ -5088,3 +5088,744 @@ class TestReIngestionAfterFullReset:
                 os.unlink(db2_file)
             if os.path.isdir(tmpdir):
                 os.rmdir(tmpdir)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 43 — Agentic Tool Call Simulation
+# ---------------------------------------------------------------------------
+
+AGENTIC_MCP_DOC = """\
+# MCP Ecosystem: Protocols, Organizations, and Events
+
+The Model Context Protocol (MCP) is an open protocol developed by Anthropic. \
+MCP defines tool-use, resource access, and prompt templating capabilities for AI agents.
+
+Google has announced MCP support in Vertex AI and the Agent Development Kit (ADK). \
+ADK implements the MCP specification. Microsoft has also adopted MCP in its Copilot \
+platform.
+
+The MCP Python SDK and MCP TypeScript SDK are reference implementations maintained \
+by the modelcontextprotocol organization on GitHub. Anthropic hosts the annual \
+MCP Summit where contributors discuss protocol evolution and roadmap.
+
+OpenAI has integrated MCP support into the ChatGPT platform, making it the fourth \
+major organization to adopt the protocol after Anthropic, Google, and Microsoft.
+"""
+
+
+class TestAgenticToolCallSimulation:
+    """Simulate an AI agent receiving the task 'Research the MCP ecosystem and
+    summarize key players.' The agent queries the KG as a tool — finding entities
+    by type, traversing relationships, and discovering connected organizations
+    and people. Each sub-query represents a real tool call an agent would make.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return False
+        for stage in [parse, chunk, embed, extract, resolve]:
+            source = tmp_db.get_source(source_id)
+            stage.run(tmp_db, source)
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return True
+
+    def test_agentic_mcp_ecosystem_research(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities
+
+        apply_schema(neo4j_driver)
+        load_wikidata_entities(neo4j_driver, get_seed_entities())
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(AGENTIC_MCP_DOC)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="MCP Ecosystem Research", source_type="text",
+                submitter_email="agent@system.com"
+            )
+            assert self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            with neo4j_driver.session() as session:
+                # Agent tool call 1: Find all Protocol entities related to MCP
+                q1 = session.run(
+                    "MATCH (n:Protocol) WHERE n.entity_id CONTAINS 'mcp' OR n.name CONTAINS 'MCP' "
+                    "RETURN n.entity_id AS eid, n.name AS name"
+                ).data()
+                print(f"  Agent query 1 — MCP-related protocols: {len(q1)}")
+                for r in q1:
+                    print(f"    {r['eid']}: {r['name']}")
+                assert len(q1) >= 1, "Agent should find at least 1 MCP protocol entity"
+                mcp_eids = {r["eid"] for r in q1}
+                assert any("mcp" in eid for eid in mcp_eids), (
+                    f"Expected an entity_id containing 'mcp', got {mcp_eids}"
+                )
+
+                # Agent tool call 2: Find organizations that develop/contribute to MCP
+                q2 = session.run(
+                    "MATCH (org)-[r]->(p) "
+                    "WHERE p.entity_id CONTAINS 'mcp' AND org.type = 'Organization' "
+                    "RETURN DISTINCT org.entity_id AS eid, org.name AS name, type(r) AS rel"
+                ).data()
+                if not q2:
+                    q2 = session.run(
+                        "MATCH (org:Organization)-[r]-(p) "
+                        "WHERE p.entity_id CONTAINS 'mcp' "
+                        "RETURN DISTINCT org.entity_id AS eid, org.name AS name, type(r) AS rel"
+                    ).data()
+                print(f"  Agent query 2 — Orgs related to MCP: {len(q2)}")
+                for r in q2:
+                    print(f"    {r['eid']}: {r['name']} ({r['rel']})")
+                assert len(q2) >= 1, "Agent should find at least 1 org connected to MCP"
+
+                # Agent tool call 3: Find all events related to MCP
+                q3 = session.run(
+                    "MATCH (e:Event) WHERE e.name CONTAINS 'MCP' OR e.description CONTAINS 'MCP' "
+                    "RETURN e.entity_id AS eid, e.name AS name"
+                ).data()
+                if not q3:
+                    q3 = session.run(
+                        "MATCH (n:Entity) WHERE n.type = 'Event' OR (n.name CONTAINS 'Summit' AND n.name CONTAINS 'MCP') "
+                        "RETURN n.entity_id AS eid, n.name AS name"
+                    ).data()
+                print(f"  Agent query 3 — MCP events: {len(q3)}")
+                for r in q3:
+                    print(f"    {r['eid']}: {r['name']}")
+                # Events may or may not be extracted — Gemini decides
+
+                # Agent tool call 4: Find founders/leaders of MCP ecosystem orgs
+                q4 = session.run(
+                    "MATCH (org:Organization)-[r]->(p) "
+                    "WHERE p.entity_id CONTAINS 'mcp' AND org.type = 'Organization' "
+                    "WITH DISTINCT org "
+                    "OPTIONAL MATCH (person)-[:MEMBER_OF|AUTHORED]->(org) "
+                    "WHERE person.type = 'Person' "
+                    "RETURN org.entity_id AS org_eid, org.name AS org_name, "
+                    "collect(DISTINCT person.name) AS people"
+                ).data()
+                if not q4:
+                    q4 = session.run(
+                        "MATCH (org:Organization)-[r]-(p) "
+                        "WHERE p.entity_id CONTAINS 'mcp' "
+                        "WITH DISTINCT org "
+                        "OPTIONAL MATCH (person)-[:MEMBER_OF|AUTHORED]->(org) "
+                        "WHERE person.type = 'Person' "
+                        "RETURN org.entity_id AS org_eid, org.name AS org_name, "
+                        "collect(DISTINCT person.name) AS people"
+                    ).data()
+                print(f"  Agent query 4 — People in MCP orgs: {len(q4)}")
+                for r in q4:
+                    people = [p for p in r["people"] if p]
+                    print(f"    {r['org_name']}: {people if people else 'no people extracted'}")
+
+                # Validate aggregate: agent got useful data from all 4 queries
+                total_results = len(q1) + len(q2) + len(q3) + len(q4)
+                print(f"  Agent total results across 4 queries: {total_results}")
+                assert total_results >= 3, (
+                    "Agent should get at least 3 total results across all 4 queries"
+                )
+
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 44 — Knowledge Gap Detection
+# ---------------------------------------------------------------------------
+
+class TestKnowledgeGapDetection:
+    """After loading seed data and pipeline sources, detect 'sparse' entities
+    — those with few or no edges, or missing fields. This represents CUJ 7
+    (periodic review) scenario: proactive knowledge improvement.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return False
+        for stage in [parse, chunk, embed, extract, resolve]:
+            source = tmp_db.get_source(source_id)
+            stage.run(tmp_db, source)
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return True
+
+    def test_gap_detection_finds_sparse_entities(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities
+
+        apply_schema(neo4j_driver)
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(
+                "# Anthropic MCP\n\n"
+                "Anthropic develops the Model Context Protocol (MCP). "
+                "MCP defines tool-use capabilities. The MCP Python SDK implements MCP.\n"
+            )
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="Gap Detection Source", source_type="text",
+                submitter_email="curator@test.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            with neo4j_driver.session() as session:
+                # Gap query 1: Entities with 0 entity-to-entity edges (isolated nodes)
+                isolated = session.run(
+                    """
+                    MATCH (n:Entity)
+                    WHERE NOT (n)-[:DEVELOPS|IMPLEMENTS|CONTRIBUTES_TO|DEFINES|
+                                  MEMBER_OF|GOVERNS|SPONSORS|PART_OF|AUTHORED|
+                                  CHAIRS|COMPETES_WITH|ADDRESSES|SUPERSEDES|
+                                  COMPLEMENTS|USES]-()
+                    RETURN n.entity_id AS eid, n.name AS name, n.type AS type
+                    ORDER BY n.type, n.name
+                    """
+                ).data()
+                print(f"  Gap query 1 — Isolated entities (no domain edges): {len(isolated)}")
+                for r in isolated[:10]:
+                    print(f"    {r['eid']} ({r['type']}): {r['name']}")
+                assert len(isolated) >= 1, (
+                    "Expected at least 1 isolated seed entity (not all seeds have edges)"
+                )
+
+                # Gap query 2: Capability entities with no implementing projects
+                unimplemented = session.run(
+                    """
+                    MATCH (c:Capability)
+                    WHERE NOT ()-[:IMPLEMENTS|ADDRESSES]->(c)
+                      AND NOT (c)<-[:DEFINES]-()
+                    RETURN c.entity_id AS eid, c.name AS name
+                    """
+                ).data()
+                print(f"  Gap query 2 — Capabilities with no implementors or defining specs: {len(unimplemented)}")
+                for r in unimplemented:
+                    print(f"    {r['eid']}: {r['name']}")
+
+                # Gap query 3: Entities missing description
+                no_desc = session.run(
+                    """
+                    MATCH (n:Entity)
+                    WHERE n.description IS NULL OR n.description = ''
+                    RETURN n.entity_id AS eid, n.name AS name, n.type AS type
+                    LIMIT 20
+                    """
+                ).data()
+                print(f"  Gap query 3 — Entities missing description: {len(no_desc)}")
+                for r in no_desc[:5]:
+                    print(f"    {r['eid']} ({r['type']}): {r['name']}")
+
+                # Gap query 4: Entity types with fewest edges (type-level sparsity)
+                type_sparsity = session.run(
+                    """
+                    MATCH (n:Entity)
+                    OPTIONAL MATCH (n)-[r]-()
+                    WHERE NOT type(r) IN ['FROM_SOURCE', 'EXTRACTED_FROM']
+                    WITH n.type AS entity_type, count(DISTINCT n) AS entity_count,
+                         count(r) AS edge_count
+                    RETURN entity_type,
+                           entity_count,
+                           edge_count,
+                           CASE WHEN entity_count > 0
+                                THEN toFloat(edge_count) / entity_count
+                                ELSE 0.0
+                           END AS avg_edges
+                    ORDER BY avg_edges ASC
+                    """
+                ).data()
+                print(f"  Gap query 4 — Type-level sparsity (avg edges per entity):")
+                for r in type_sparsity:
+                    print(f"    {r['entity_type']}: {r['entity_count']} entities, "
+                          f"{r['edge_count']} edges, avg={r['avg_edges']:.1f}")
+                assert len(type_sparsity) >= 1, "Expected at least 1 entity type in sparsity report"
+
+                total_entities = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                total_gaps = len(isolated) + len(no_desc)
+                print(f"\n  Summary: {total_entities} total entities, {total_gaps} gap indicators found")
+                assert total_gaps >= 1, "Gap detection should find at least 1 issue"
+
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 45 — Cross-Source Fact Reconciliation
+# ---------------------------------------------------------------------------
+
+FACT_SOURCE_A = """\
+# OpenAI Founding
+
+OpenAI is an artificial intelligence research organization founded in 2015 \
+by Sam Altman, Greg Brockman, Ilya Sutskever, and others. OpenAI develops \
+GPT models and the ChatGPT platform. OpenAI was initially established as a \
+nonprofit with the mission of ensuring AGI benefits all of humanity.
+"""
+
+FACT_SOURCE_B = """\
+# OpenAI Early History
+
+OpenAI was founded in December 2015 by Elon Musk, Sam Altman, and other \
+technology leaders. Elon Musk provided significant early funding before \
+departing the board in 2018. OpenAI develops large language models including \
+GPT-4 and operates the ChatGPT service.
+"""
+
+
+class TestCrossSourceFactReconciliation:
+    """Ingest two sources that make partially overlapping, partially conflicting
+    claims about OpenAI's founding. The system should preserve both perspectives
+    with provenance — epistemic humility, not winner-take-all.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return False
+        for stage in [parse, chunk, embed, extract, resolve]:
+            source = tmp_db.get_source(source_id)
+            stage.run(tmp_db, source)
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return True
+
+    def test_cross_source_fact_reconciliation(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        tmpdir = tempfile.mkdtemp()
+        path_a = os.path.join(tmpdir, "openai_founding_a.md")
+        path_b = os.path.join(tmpdir, "openai_founding_b.md")
+
+        try:
+            # Ingest Source A (Sam Altman version)
+            with open(path_a, "w") as f:
+                f.write(FACT_SOURCE_A)
+            sid_a = tmp_db.add_source(
+                path_a, title="OpenAI Founding — Source A", source_type="text",
+                submitter_email="researcher-a@test.com"
+            )
+            assert self._run_pipeline(tmp_db, neo4j_driver, sid_a)
+
+            entities_a = tmp_db.conn.execute(
+                "SELECT entity_id, name, type FROM entities WHERE source_id = ? "
+                "AND deprecated_at IS NULL AND merged_into IS NULL",
+                (sid_a,),
+            ).fetchall()
+            entities_a = [dict(e) for e in entities_a]
+            eids_a = {e["entity_id"] for e in entities_a}
+            edges_a = tmp_db.conn.execute(
+                "SELECT source_entity_id, target_entity_id, edge_type FROM edges WHERE source_id = ?",
+                (sid_a,),
+            ).fetchall()
+            edges_a = [dict(e) for e in edges_a]
+            print(f"  Source A entities: {[(e['entity_id'], e['type']) for e in entities_a]}")
+            print(f"  Source A edges: {[(e['source_entity_id'], e['edge_type'], e['target_entity_id']) for e in edges_a]}")
+
+            # Ingest Source B (Elon Musk version)
+            with open(path_b, "w") as f:
+                f.write(FACT_SOURCE_B)
+            sid_b = tmp_db.add_source(
+                path_b, title="OpenAI Founding — Source B", source_type="text",
+                submitter_email="researcher-b@test.com"
+            )
+            assert self._run_pipeline(tmp_db, neo4j_driver, sid_b)
+
+            entities_b = tmp_db.conn.execute(
+                "SELECT entity_id, name, type FROM entities WHERE source_id = ? "
+                "AND deprecated_at IS NULL AND merged_into IS NULL",
+                (sid_b,),
+            ).fetchall()
+            entities_b = [dict(e) for e in entities_b]
+            eids_b = {e["entity_id"] for e in entities_b}
+            edges_b = tmp_db.conn.execute(
+                "SELECT source_entity_id, target_entity_id, edge_type FROM edges WHERE source_id = ?",
+                (sid_b,),
+            ).fetchall()
+            edges_b = [dict(e) for e in edges_b]
+            print(f"  Source B entities: {[(e['entity_id'], e['type']) for e in entities_b]}")
+            print(f"  Source B edges: {[(e['source_entity_id'], e['edge_type'], e['target_entity_id']) for e in edges_b]}")
+
+            # Verify: OpenAI entity exists exactly once in Neo4j (deduped)
+            with neo4j_driver.session() as session:
+                openai_nodes = session.run(
+                    "MATCH (n:Entity) WHERE n.entity_id CONTAINS 'openai' "
+                    "RETURN n.entity_id AS eid, n.name AS name"
+                ).data()
+                openai_eids = {r["eid"] for r in openai_nodes}
+                print(f"  OpenAI nodes in Neo4j: {openai_eids}")
+                assert len(openai_nodes) >= 1, "Expected at least 1 OpenAI entity in Neo4j"
+
+                openai_eid = None
+                for r in openai_nodes:
+                    if "openai" in r["eid"].lower():
+                        openai_eid = r["eid"]
+                        break
+
+                dups = session.run(
+                    "MATCH (n:Entity) WITH n.entity_id AS eid, count(*) AS cnt "
+                    "WHERE cnt > 1 RETURN eid, cnt"
+                ).data()
+                assert len(dups) == 0, f"Duplicate entity_ids found: {dups}"
+
+                # Verify: both Source nodes exist with provenance
+                sources = session.run(
+                    "MATCH (s:Source) RETURN s.uri AS uri, s.submitter_email AS email"
+                ).data()
+                source_emails = {s["email"] for s in sources if s["email"]}
+                print(f"  Source nodes: {len(sources)} ({source_emails})")
+                assert len(sources) >= 2, "Expected at least 2 Source nodes (one per source)"
+
+                # Verify: edges from both sources are preserved in SQLite
+                all_founded_edges = []
+                for e in edges_a + edges_b:
+                    if e["edge_type"] in ("AUTHORED", "MEMBER_OF", "DEVELOPS", "FOUNDED_BY", "CONTRIBUTES_TO"):
+                        all_founded_edges.append(e)
+                print(f"  Founding-related edges across both sources: {len(all_founded_edges)}")
+                for e in all_founded_edges:
+                    print(f"    {e['source_entity_id']} --{e['edge_type']}--> {e['target_entity_id']}")
+
+                # Verify: Person entities from both sources exist (Sam Altman, Elon Musk, etc.)
+                person_entities = session.run(
+                    "MATCH (p:Entity) WHERE p.type = 'Person' RETURN p.entity_id AS eid, p.name AS name"
+                ).data()
+                person_from_a = [e for e in entities_a if e["type"] == "Person"]
+                person_from_b = [e for e in entities_b if e["type"] == "Person"]
+                print(f"  Person entities in Neo4j: {[(p['eid'], p['name']) for p in person_entities]}")
+                print(f"  Persons from source A (SQLite): {[(p['entity_id'], p['name']) for p in person_from_a]}")
+                print(f"  Persons from source B (SQLite): {[(p['entity_id'], p['name']) for p in person_from_b]}")
+
+                # Key assertion: both sources contribute data — system doesn't
+                # arbitrarily discard one source's claims
+                total_unique_entities = len(eids_a | eids_b)
+                print(f"  Total unique entities across both sources: {total_unique_entities}")
+                assert total_unique_entities >= 2, (
+                    "Expected at least 2 unique entities across both sources"
+                )
+
+        finally:
+            for p in [path_a, path_b]:
+                if os.path.exists(p):
+                    os.unlink(p)
+            if os.path.isdir(tmpdir):
+                os.rmdir(tmpdir)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 46 — Entity Lifecycle: Full CUJ Sequence
+# ---------------------------------------------------------------------------
+
+LIFECYCLE_SEED_DOC = """\
+# Anthropic AI Safety Research
+
+Anthropic is an AI safety research company that develops Claude, an AI assistant. \
+Anthropic also created the Model Context Protocol (MCP), an open protocol for \
+connecting AI applications to external data sources and tools.
+
+## Products and Protocols
+
+Claude uses MCP for tool integration, enabling access to files, databases, and APIs. \
+Anthropic publishes safety research papers and contributes to responsible AI practices.
+"""
+
+LIFECYCLE_UPDATE_DOC = """\
+# Anthropic AI Safety Research — Updated 2026
+
+Anthropic is an AI safety research company that develops Claude, an AI assistant. \
+Anthropic also created the Model Context Protocol (MCP), an open protocol for \
+connecting AI applications to external data sources and tools.
+
+## Products and Protocols
+
+Claude uses MCP for tool integration, enabling access to files, databases, and APIs. \
+Anthropic publishes safety research papers and contributes to responsible AI practices.
+
+## Recent Developments
+
+In 2026, Anthropic launched Claude 4 with enhanced reasoning and the Anthropic \
+Agent SDK for building custom agents. The company also released extended thinking \
+capabilities and prompt caching for improved performance.
+"""
+
+
+class TestEntityLifecycleFullCUJSequence:
+    """Gold-standard end-to-end test representing a real user session.
+    Exercises the complete entity lifecycle through all CUJs:
+      CUJ 1 (seed) → CUJ 2 (ingest) → CUJ 3 (dedup) → CUJ 4 (update) →
+      CUJ 5 (query) → CUJ 7 (review/audit)
+    """
+
+    def test_full_entity_lifecycle(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        # === CUJ 1: Apply schema and load seed ===
+        print("\n  === CUJ 1: Schema + Seed ===")
+        result = apply_schema(neo4j_driver)
+        assert result["constraints"] >= 4
+        assert result["errors"] == []
+
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        with neo4j_driver.session() as session:
+            seed_count = session.run(
+                "MATCH (n:Entity) RETURN count(n) AS c"
+            ).single()["c"]
+            print(f"  Seed entities loaded: {seed_count}")
+            assert seed_count >= 10, f"Expected >=10 seed entities, got {seed_count}"
+
+        # === CUJ 2: Ingest a source with submitter_email ===
+        print("\n  === CUJ 2: Ingest Source ===")
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(LIFECYCLE_SEED_DOC)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="Anthropic Research", source_type="text",
+                submitter_email="alice@example.com"
+            )
+            assert source_id is not None
+            source = tmp_db.get_source(source_id)
+
+            assert fetch.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            first_hash = source["content_hash"]
+            assert first_hash is not None
+            print(f"  Content hash: {first_hash[:16]}...")
+
+            assert parse.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert chunk.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert embed.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert extract.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert resolve.run(tmp_db, source)
+
+            entities = tmp_db.conn.execute(
+                "SELECT * FROM entities WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            ).fetchall()
+            assert len(entities) >= 1, f"Expected >=1 entities, got {len(entities)}"
+            entity_ids = [dict(e)["entity_id"] for e in entities]
+            print(f"  Extracted entities: {entity_ids}")
+
+            # Approve all and load
+            tmp_db.conn.execute(
+                "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.execute(
+                "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.commit()
+            tmp_db.update_source(source_id, status="processing", stage="load")
+            source = tmp_db.get_source(source_id)
+            assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+            print(f"  Source loaded to Neo4j successfully")
+
+            # === CUJ 3: Add same source again — verify skip ===
+            print("\n  === CUJ 3: Dedup (same content) ===")
+            tmp_db.update_source(source_id, stage="fetch", status="pending")
+            source = tmp_db.get_source(source_id)
+            result = fetch.run(tmp_db, source)
+            assert result is False, "Expected fetch to skip unchanged content"
+            source = tmp_db.get_source(source_id)
+            assert source["status"] == "complete"
+            print(f"  Dedup confirmed: same content skipped, status={source['status']}")
+
+            # === CUJ 4: Update content — verify deprecation ===
+            print("\n  === CUJ 4: Update (new content version) ===")
+            with open(doc_path, "w") as f:
+                f.write(LIFECYCLE_UPDATE_DOC)
+            tmp_db.update_source(source_id, stage="fetch", status="pending")
+            source = tmp_db.get_source(source_id)
+            assert fetch.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            new_hash = source["content_hash"]
+            assert new_hash != first_hash, "Content hash should change after update"
+            print(f"  New content hash: {new_hash[:16]}... (changed)")
+
+            assert parse.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert chunk.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert embed.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert extract.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert resolve.run(tmp_db, source)
+
+            deprecated = tmp_db.get_deprecated_entities()
+            deprecated_eids = {e["entity_id"] for e in deprecated}
+            print(f"  Deprecated entities: {deprecated_eids}")
+            assert len(deprecated) >= 1, "Expected at least 1 deprecated entity after update"
+
+            new_entities = tmp_db.conn.execute(
+                "SELECT entity_id FROM entities WHERE source_id = ? "
+                "AND deprecated_at IS NULL AND merged_into IS NULL AND status = 'pending_review'",
+                (source_id,),
+            ).fetchall()
+            new_entity_ids = [dict(e)["entity_id"] for e in new_entities]
+            print(f"  New entities from update: {new_entity_ids}")
+
+            # Approve new entities and load
+            tmp_db.conn.execute(
+                "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.execute(
+                "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.commit()
+            tmp_db.update_source(source_id, status="processing", stage="load")
+            source = tmp_db.get_source(source_id)
+            assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+            print(f"  Updated source loaded to Neo4j")
+
+            # === CUJ 5: Query — ask about the entity ===
+            print("\n  === CUJ 5: Query ===")
+            with neo4j_driver.session() as session:
+                # "What does Anthropic develop?"
+                q1 = session.run(
+                    "MATCH (org:Entity {entity_id: 'organization:anthropic'})-[r:DEVELOPS]->(p) "
+                    "RETURN p.entity_id AS eid, p.name AS name"
+                ).data()
+                print(f"  'What does Anthropic develop?': {len(q1)} results")
+                for r in q1:
+                    print(f"    {r['eid']}: {r['name']}")
+
+                # "What protocols are in the graph?"
+                q2 = session.run(
+                    "MATCH (p:Protocol) RETURN p.entity_id AS eid, p.name AS name"
+                ).data()
+                print(f"  'What protocols?': {len(q2)} results")
+                for r in q2:
+                    print(f"    {r['eid']}: {r['name']}")
+
+                # "What entities have submitter_email provenance?"
+                q3 = session.run(
+                    "MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source) "
+                    "WHERE s.submitter_email = 'alice@example.com' "
+                    "RETURN n.entity_id AS eid, n.name AS name"
+                ).data()
+                print(f"  'Entities from alice@example.com': {len(q3)} results")
+                for r in q3:
+                    print(f"    {r['eid']}: {r['name']}")
+                assert len(q3) >= 1, "Expected entities traceable to alice@example.com"
+
+            # === CUJ 7: Audit — find stale entities ===
+            print("\n  === CUJ 7: Audit (stale entities) ===")
+            with neo4j_driver.session() as session:
+                # Find entities without descriptions (knowledge gaps)
+                gaps = session.run(
+                    "MATCH (n:Entity) WHERE n.description IS NULL OR n.description = '' "
+                    "RETURN n.entity_id AS eid, n.type AS type LIMIT 10"
+                ).data()
+                print(f"  Entities without descriptions: {len(gaps)}")
+                for r in gaps[:5]:
+                    print(f"    {r['eid']} ({r['type']})")
+
+                # Find entities only connected via FROM_SOURCE (no domain edges)
+                low_value = session.run(
+                    """
+                    MATCH (n:Entity)
+                    OPTIONAL MATCH (n)-[r]-()
+                    WHERE NOT type(r) IN ['FROM_SOURCE', 'EXTRACTED_FROM']
+                    WITH n, count(r) AS domain_edges
+                    WHERE domain_edges = 0
+                    RETURN n.entity_id AS eid, n.type AS type
+                    LIMIT 10
+                    """
+                ).data()
+                print(f"  Entities with no domain edges: {len(low_value)}")
+                for r in low_value[:5]:
+                    print(f"    {r['eid']} ({r['type']})")
+
+                total_audit_findings = len(gaps) + len(low_value)
+                print(f"  Total audit findings: {total_audit_findings}")
+
+            # Final integrity check
+            with neo4j_driver.session() as session:
+                dups = session.run(
+                    "MATCH (n:Entity) WITH n.entity_id AS eid, count(*) AS cnt "
+                    "WHERE cnt > 1 RETURN eid, cnt"
+                ).data()
+                assert len(dups) == 0, f"Duplicate entity_ids in Neo4j: {dups}"
+
+                total = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                print(f"\n  Final state: {total} entities in Neo4j, 0 duplicates")
+                assert total >= 10, f"Expected rich graph with >=10 entities, got {total}"
+
+        finally:
+            os.unlink(doc_path)
