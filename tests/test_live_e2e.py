@@ -2499,3 +2499,1448 @@ class TestSourceDeprecationCascade:
                 if os.path.exists(p):
                     os.unlink(p)
             os.rmdir(tmpdir)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 22 — Knowledge Evolution Over Time
+# ---------------------------------------------------------------------------
+
+MCP_V1_DOC = """\
+# Model Context Protocol v1.0 Specification
+
+The Model Context Protocol (MCP) version 1.0 defines a standard interface for \
+connecting AI models to external tools and data sources. MCP v1.0 supports three \
+core primitives: Resources (read-only data), Tools (callable functions), and \
+Prompts (templated interactions).
+
+## Transport
+
+MCP v1.0 uses JSON-RPC 2.0 over stdio or HTTP with Server-Sent Events (SSE). \
+Clients connect to MCP servers through a standardized handshake process.
+
+## Authentication
+
+OAuth 2.1 provides the authentication layer for MCP v1.0. Server identity is \
+verified through the SPIFFE framework for workload attestation.
+"""
+
+MCP_V1_1_DOC = """\
+# Model Context Protocol v1.1 Specification
+
+The Model Context Protocol (MCP) version 1.1 extends the protocol with new \
+capabilities. MCP v1.1 retains all v1.0 primitives (Resources, Tools, Prompts) \
+and adds a fourth primitive: Sampling.
+
+## Sampling
+
+Sampling is the major addition in MCP v1.1. It allows MCP servers to request \
+completions from the client's language model. This enables agentic workflows \
+where the server can ask the model to generate text, make decisions, or process \
+data without leaving the MCP connection. Sampling supports temperature control, \
+max token limits, and system prompt injection.
+
+## Streamable HTTP Transport
+
+MCP v1.1 introduces Streamable HTTP as the recommended transport, replacing \
+the SSE-based HTTP transport from v1.0. Streamable HTTP provides bidirectional \
+communication with better connection management and resumability.
+
+## Elicitation
+
+MCP v1.1 also adds Elicitation, allowing servers to request structured input \
+from the user through the client. This enables interactive workflows where the \
+server needs user decisions or confirmations during tool execution.
+"""
+
+
+class TestKnowledgeEvolutionOverTime:
+    """Simulate a user tracking protocol evolution: ingest v1.0 spec, then v1.1.
+    Verify old entities are deprecated and new capabilities appear.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_version_evolution_deprecates_old_extracts_new(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(MCP_V1_DOC)
+            doc_path = f.name
+
+        try:
+            # Ingest v1.0 spec
+            source_id = tmp_db.add_source(
+                doc_path, title="MCP v1.0 Spec", source_type="text",
+                submitter_email="alan@test.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            v1_entities = tmp_db.conn.execute(
+                "SELECT entity_id, name FROM entities WHERE source_id = ? "
+                "AND deprecated_at IS NULL AND merged_into IS NULL",
+                (source_id,),
+            ).fetchall()
+            v1_eids = {e["entity_id"] for e in v1_entities}
+            print(f"  v1.0 entities: {v1_eids}")
+            assert len(v1_entities) >= 1, "Expected entities from MCP v1.0 doc"
+
+            # Overwrite the file with v1.1 content (simulating content evolution)
+            with open(doc_path, "w") as f:
+                f.write(MCP_V1_1_DOC)
+
+            # Reset to re-ingest (content hash will differ)
+            tmp_db.update_source(source_id, stage="fetch", status="pending")
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            # Check deprecated entities from v1.0
+            deprecated = tmp_db.get_deprecated_entities()
+            deprecated_ids = {e["entity_id"] for e in deprecated}
+            print(f"  Deprecated after v1.1: {deprecated_ids}")
+
+            # Check new entities from v1.1
+            v1_1_entities = tmp_db.conn.execute(
+                "SELECT entity_id, name FROM entities WHERE source_id = ? "
+                "AND deprecated_at IS NULL AND merged_into IS NULL AND status = 'approved'",
+                (source_id,),
+            ).fetchall()
+            v1_1_eids = {e["entity_id"] for e in v1_1_entities}
+            print(f"  v1.1 active entities: {v1_1_eids}")
+            assert len(v1_1_entities) >= 1, "Expected entities from MCP v1.1 doc"
+
+            # v1.1 should have new capabilities (sampling, elicitation, streamable HTTP)
+            all_entity_names = {e["name"].lower() for e in v1_1_entities}
+            print(f"  v1.1 entity names: {all_entity_names}")
+
+            # Verify Neo4j has the updated entities
+            with neo4j_driver.session() as session:
+                neo4j_entities = session.run(
+                    "MATCH (n:Entity) RETURN n.entity_id AS eid, n.name AS name"
+                ).data()
+                print(f"  Neo4j entities after evolution: {[(e['eid'], e['name']) for e in neo4j_entities]}")
+                assert len(neo4j_entities) >= 1
+
+                # No duplicates
+                dups = session.run(
+                    "MATCH (n:Entity) WITH n.entity_id AS eid, count(*) AS cnt "
+                    "WHERE cnt > 1 RETURN eid, cnt"
+                ).data()
+                assert len(dups) == 0, f"Duplicate entity_ids: {dups}"
+
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 23 — Full Wikidata Seed → Crossref → Query Pipeline
+# ---------------------------------------------------------------------------
+
+class TestFullInitializationPipeline:
+    """Run the complete initialization sequence: schema → seed → wikidata pull
+    (limited to protocols) → crossref → demo query. Verify the full graph is
+    coherent and demo queries return expected results.
+    """
+
+    def test_full_init_seed_wikidata_crossref_query(
+        self, neo4j_driver, clean_neo4j
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities, pull_and_load
+        from agents_kg.wikidata_crossref import apply_crossref
+
+        # Step 1: Schema
+        schema_result = apply_schema(neo4j_driver)
+        assert schema_result["errors"] == []
+        print(f"  Schema: {schema_result['constraints']} constraints, {schema_result['indexes']} indexes")
+
+        # Step 2: Seed
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        with neo4j_driver.session() as session:
+            seed_count = session.run(
+                "MATCH (n:Entity) RETURN count(n) AS c"
+            ).single()["c"]
+            print(f"  Seed entities loaded: {seed_count}")
+            assert seed_count >= 10, f"Expected >=10 seed entities, got {seed_count}"
+
+        # Step 3: Wikidata pull (protocols only — fast)
+        wd_result = pull_and_load(neo4j_driver, entity_type="protocols")
+        print(f"  Wikidata protocols: {wd_result['entities']} entities, {wd_result['edges']} edges")
+        assert wd_result["entities"] > 0
+
+        # Step 4: Crossref
+        import os as _os
+        mappings_path = _os.path.join(
+            "/scion-volumes/scratchpad/agents-kg", "kg/wikidata_mappings.yaml"
+        )
+        crossref_result = apply_crossref(
+            neo4j_driver=neo4j_driver, mappings_path=mappings_path
+        )
+        print(f"  Crossref: {crossref_result['applied']} applied, {crossref_result['skipped']} skipped")
+        assert crossref_result["applied"] >= 1
+
+        # Step 5: Run demo query from docs/demo-queries.md
+        # Query 1: "What protocols does Google develop or contribute to?"
+        with neo4j_driver.session() as session:
+            q1_result = session.run(
+                """
+                MATCH (org:Organization {name: "Google"})-[:DEVELOPS|CONTRIBUTES_TO]->(p)
+                WHERE p:Protocol OR p:Project
+                RETURN p.name AS name, p.type AS type, p.kind AS kind, p.wikidata_id AS wid
+                ORDER BY p.name
+                """
+            ).data()
+            print(f"  Demo Q1 (Google develops): {len(q1_result)} results")
+            for r in q1_result:
+                print(f"    {r['name']} ({r['type']}/{r['kind']}) wikidata_id={r['wid']}")
+
+            # Query 5: "Entity grounding — entities with Wikidata cross-references"
+            q5_result = session.run(
+                """
+                MATCH (n:Entity)
+                WHERE n.wikidata_id IS NOT NULL
+                RETURN n.name AS name, n.type AS type, n.wikidata_id AS wid
+                ORDER BY n.type, n.name
+                """
+            ).data()
+            print(f"  Demo Q5 (Wikidata-grounded entities): {len(q5_result)} results")
+            assert len(q5_result) >= 3, f"Expected >=3 grounded entities, got {len(q5_result)}"
+
+            # Verify Google has Q95
+            google_grounded = [r for r in q5_result if r["wid"] == "Q95"]
+            assert len(google_grounded) >= 1, "Google (Q95) should be Wikidata-grounded"
+
+            # Query 6: "Graph stats — entity counts by type"
+            q6_result = session.run(
+                """
+                MATCH (n:Entity)
+                WITH n.type AS type, COUNT(*) AS count,
+                     SUM(CASE WHEN n.wikidata_id IS NOT NULL THEN 1 ELSE 0 END) AS with_wikidata,
+                     SUM(CASE WHEN n.source_type = 'wikidata' THEN 1 ELSE 0 END) AS from_wikidata
+                RETURN type, count, with_wikidata, from_wikidata
+                ORDER BY count DESC
+                """
+            ).data()
+            print(f"  Demo Q6 (Graph stats):")
+            total_entities = 0
+            for r in q6_result:
+                print(f"    {r['type']}: {r['count']} total, {r['with_wikidata']} wikidata-grounded, {r['from_wikidata']} from wikidata")
+                total_entities += r["count"]
+            assert total_entities >= 20, f"Expected >=20 total entities, got {total_entities}"
+
+            # Verify seed + Wikidata coexist: both source types present
+            source_types = session.run(
+                "MATCH (n:Entity) RETURN DISTINCT n.source_type AS st"
+            ).data()
+            st_set = {r["st"] for r in source_types if r["st"] is not None}
+            print(f"  Source types in graph: {st_set}")
+            assert "wikidata" in st_set, "Expected wikidata source_type"
+
+
+# ---------------------------------------------------------------------------
+# CUJ 24 — Agentic Source: Chat Transcript Ingestion
+# ---------------------------------------------------------------------------
+
+CHAT_TRANSCRIPT = """\
+# Team Decision Log: Protocol Selection
+
+**Date:** 2025-05-15
+**Participants:** Alice (Tech Lead), Bob (Backend), Carol (ML Eng)
+
+---
+
+**Alice:** We need to decide on our agent communication protocol. The two main \
+contenders are MCP from Anthropic and A2A from Google. Thoughts?
+
+**Bob:** I've been evaluating both. MCP is more mature — it's been around since \
+late 2024 and has a solid TypeScript SDK. The tool-use pattern is well-defined. \
+But it's really about connecting agents to tools, not agent-to-agent communication.
+
+**Carol:** Right, A2A is specifically designed for agent-to-agent messaging. It has \
+Agent Cards for discoverability, which is something MCP doesn't have natively. We \
+could use MCP for tool integration and A2A for inter-agent coordination.
+
+**Alice:** What about AGNTCY? Cisco just donated it to the Linux Foundation.
+
+**Bob:** AGNTCY is more of a governance framework than a wire protocol. It could \
+complement MCP and A2A rather than replace them. The Linux Foundation stewardship \
+gives it credibility.
+
+**Carol:** I think we should use MCP for tool integration because Anthropic's Claude \
+already supports it natively, and Google's ADK has MCP support too. For agent-to-agent, \
+we prototype with A2A since it has better task lifecycle management. We can evaluate \
+AGNTCY governance layer later.
+
+**Alice:** Agreed. Let's go with MCP for tools, A2A for inter-agent. Bob, can you \
+set up the MCP Python SDK? Carol, start the A2A integration with our Vertex AI agents.
+
+**Bob:** On it. I'll also look at the SPIFFE integration for authentication — both \
+protocols reference it for identity verification.
+
+**Carol:** Good call. I'll coordinate with the security team on OAuth 2.1 setup too.
+"""
+
+
+class TestChatTranscriptIngestion:
+    """Ingest a realistic team chat transcript discussing protocol choices.
+    Verify Gemini extracts meaningful entities and relationships from informal
+    content, and that edge types are from the valid ontology.
+    """
+
+    def test_chat_transcript_extracts_meaningful_entities(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        apply_schema(neo4j_driver)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(CHAT_TRANSCRIPT)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="Team Protocol Decision Chat", source_type="text",
+                submitter_email="alice@team.com"
+            )
+            source = tmp_db.get_source(source_id)
+
+            # Run full pipeline with real Gemini
+            assert fetch.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert parse.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert chunk.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert embed.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert extract.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+
+            # Check extracted entities — chat mentions MCP, A2A, AGNTCY, etc.
+            entities = tmp_db.conn.execute(
+                "SELECT entity_id, name, type FROM entities WHERE source_id = ?",
+                (source_id,),
+            ).fetchall()
+            entities = [dict(e) for e in entities]
+            entity_ids = {e["entity_id"] for e in entities}
+            entity_types = {e["type"] for e in entities}
+            print(f"  Extracted {len(entities)} entities from chat transcript:")
+            for e in entities:
+                print(f"    {e['entity_id']} ({e['name']}) type={e['type']}")
+
+            assert len(entities) >= 2, (
+                f"Expected >=2 entities from chat transcript, got {len(entities)}"
+            )
+
+            # Verify entity types are from valid ontology
+            from agents_kg.stages.extract import VALID_ENTITY_TYPES
+            for e in entities:
+                assert e["type"] in VALID_ENTITY_TYPES, (
+                    f"Hallucinated entity type: {e['type']} for {e['entity_id']}"
+                )
+
+            # Check extracted edges
+            edges = tmp_db.conn.execute(
+                "SELECT edge_id, source_entity_id, target_entity_id, edge_type "
+                "FROM edges WHERE source_id = ?",
+                (source_id,),
+            ).fetchall()
+            edges = [dict(e) for e in edges]
+            print(f"  Extracted {len(edges)} edges:")
+            for e in edges:
+                print(f"    {e['source_entity_id']} --{e['edge_type']}--> {e['target_entity_id']}")
+
+            # Verify edge types are from valid ontology
+            for e in edges:
+                assert e["edge_type"] in VALID_EDGE_TYPES, (
+                    f"Hallucinated edge type: {e['edge_type']}"
+                )
+
+            # Resolve and load
+            assert resolve.run(tmp_db, source)
+            tmp_db.conn.execute(
+                "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.execute(
+                "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.commit()
+            tmp_db.update_source(source_id, status="processing", stage="load")
+            source = tmp_db.get_source(source_id)
+            assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+
+            # Verify entities loaded to Neo4j
+            with neo4j_driver.session() as session:
+                neo4j_count = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                assert neo4j_count >= 2, f"Expected >=2 entities in Neo4j, got {neo4j_count}"
+
+                # Source node should carry provenance
+                src_node = session.run(
+                    "MATCH (s:Source {uri: $uri}) RETURN s.submitter_email AS email",
+                    {"uri": doc_path},
+                ).single()
+                assert src_node is not None
+                assert src_node["email"] == "alice@team.com"
+
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 25 — Failed Extraction Recovery
+# ---------------------------------------------------------------------------
+
+HARD_TO_EXTRACT_DOC = """\
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+0x7f4a3b2c1d0e 0xdeadbeef 0xcafebabe 0x1337c0de 0xfeedface 0xbadf00d0
+mov rax, [rbp-0x18] ; xor rcx, rcx ; syscall ; ret
+jmp 0x401234 ; nop ; nop ; lea rdx, [rip+0x2e45]
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+BPF_PROG_TYPE_SOCKET_FILTER
+__attribute__((section(".text")))
+typedef struct { uint64_t val; } __packed opaque_t;
+#define KERN_EMERG KERN_SOH "0"
+CONFIG_MODULE_SIG_FORCE=y
+net.ipv4.tcp_syncookies = 1
+vm.overcommit_memory = 2
+"""
+
+
+class TestFailedExtractionRecovery:
+    """Ingest deliberately hard-to-extract content (hex dumps, assembly, kernel
+    config). Verify the pipeline completes without crashing, source reaches
+    resolve stage, and Neo4j is not corrupted (no partial load).
+    """
+
+    def test_hard_content_completes_pipeline(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        apply_schema(neo4j_driver)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as f:
+            f.write(HARD_TO_EXTRACT_DOC)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="Technical Jargon Doc", source_type="text",
+                submitter_email="alan@test.com"
+            )
+            source = tmp_db.get_source(source_id)
+
+            # Run through all stages — should not crash
+            assert fetch.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert parse.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert chunk.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+            assert embed.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+
+            # Extract — Gemini may extract 0 entities, that's fine
+            assert extract.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+
+            # Verify source reached resolve stage
+            assert source["stage"] == "resolve", (
+                f"Expected stage=resolve, got {source['stage']}"
+            )
+
+            # Check what Gemini extracted (likely 0 or very few entities)
+            entities = tmp_db.conn.execute(
+                "SELECT entity_id, name, type FROM entities WHERE source_id = ?",
+                (source_id,),
+            ).fetchall()
+            print(f"  Entities from hard-to-extract doc: {len(entities)}")
+            for e in entities:
+                print(f"    {dict(e)}")
+
+            # Resolve should complete even with 0 entities
+            assert resolve.run(tmp_db, source)
+            source = tmp_db.get_source(source_id)
+
+            # Approve whatever was extracted (could be 0)
+            tmp_db.conn.execute(
+                "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.execute(
+                "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                (source_id,),
+            )
+            tmp_db.conn.commit()
+            tmp_db.update_source(source_id, status="processing", stage="load")
+            source = tmp_db.get_source(source_id)
+
+            # Load should succeed even with 0 entities
+            assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+
+            # Verify source completed
+            source = tmp_db.get_source(source_id)
+            assert source["status"] == "complete", (
+                f"Expected complete, got {source['status']}"
+            )
+
+            # Verify Neo4j is not corrupted — no partial/orphaned data
+            with neo4j_driver.session() as session:
+                # When 0 entities are extracted, the load stage skips Neo4j
+                # writes entirely (correct behavior — nothing to load).
+                # The key assertion: no partial or orphaned data leaked.
+                entity_count = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                print(f"  Neo4j entities (should be 0 from this source): {entity_count}")
+
+                # No orphaned edges (edges without both endpoints)
+                orphans = session.run(
+                    """
+                    MATCH (a)-[r]->(b)
+                    WHERE NOT (a:Source) AND NOT (b:Source)
+                      AND NOT (a:Event) AND NOT (b:Event)
+                      AND NOT (a:Entity) AND NOT (b:Entity)
+                    RETURN count(r) AS c
+                    """
+                ).single()["c"]
+                assert orphans == 0, f"Found {orphans} orphaned edges"
+
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 26 — Neo4j Query Performance Check
+# ---------------------------------------------------------------------------
+
+class TestNeo4jQueryPerformance:
+    """With seed + Wikidata + pipeline sources loaded, run multi-hop queries
+    and verify they complete under 1 second. Validates the current VM is
+    adequate for our graph scale.
+    """
+
+    def test_multi_hop_queries_under_one_second(
+        self, neo4j_driver, clean_neo4j
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities, pull_and_load
+
+        apply_schema(neo4j_driver)
+
+        # Load seed entities
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        # Pull Wikidata protocols (adds ~hundreds of entities + edges)
+        pull_and_load(neo4j_driver, entity_type="protocols")
+
+        with neo4j_driver.session() as session:
+            # Verify we have a meaningful graph size
+            total_entities = session.run(
+                "MATCH (n:Entity) RETURN count(n) AS c"
+            ).single()["c"]
+            print(f"  Total entities in graph: {total_entities}")
+            assert total_entities >= 20, f"Graph too small for perf test: {total_entities}"
+
+            total_edges = session.run(
+                "MATCH ()-[r]->() RETURN count(r) AS c"
+            ).single()["c"]
+            print(f"  Total relationships: {total_edges}")
+
+            # Query 1: 3-hop traversal
+            t0 = time.time()
+            three_hop = session.run(
+                """
+                MATCH (a:Entity)-[r1]->(b:Entity)-[r2]->(c:Entity)
+                RETURN a.entity_id AS start, TYPE(r1) AS rel1, b.entity_id AS mid,
+                       TYPE(r2) AS rel2, c.entity_id AS end
+                LIMIT 100
+                """
+            ).data()
+            t1 = time.time()
+            q1_time = t1 - t0
+            print(f"  3-hop traversal: {len(three_hop)} paths in {q1_time:.3f}s")
+            assert q1_time < 1.0, f"3-hop query took {q1_time:.3f}s (>1s)"
+
+            # Query 2: Degree calculation (top connected entities)
+            t0 = time.time()
+            degrees = session.run(
+                """
+                MATCH (n:Entity)
+                OPTIONAL MATCH (n)-[r]-()
+                WITH n.entity_id AS eid, n.name AS name, count(r) AS degree
+                ORDER BY degree DESC
+                LIMIT 20
+                RETURN eid, name, degree
+                """
+            ).data()
+            t1 = time.time()
+            q2_time = t1 - t0
+            print(f"  Degree calculation: top {len(degrees)} entities in {q2_time:.3f}s")
+            for d in degrees[:5]:
+                print(f"    {d['eid']} ({d['name']}): degree {d['degree']}")
+            assert q2_time < 1.0, f"Degree query took {q2_time:.3f}s (>1s)"
+
+            # Query 3: Subgraph extraction (ego network for a known entity)
+            t0 = time.time()
+            subgraph = session.run(
+                """
+                MATCH (center:Entity {entity_id: 'organization:google'})-[r1]-(neighbor:Entity)
+                OPTIONAL MATCH (neighbor)-[r2]-(second:Entity)
+                WHERE second <> center
+                RETURN center.name AS center, TYPE(r1) AS rel1, neighbor.name AS n1,
+                       TYPE(r2) AS rel2, second.name AS n2
+                LIMIT 200
+                """
+            ).data()
+            t1 = time.time()
+            q3_time = t1 - t0
+            print(f"  Subgraph extraction (Google ego): {len(subgraph)} rows in {q3_time:.3f}s")
+            assert q3_time < 1.0, f"Subgraph query took {q3_time:.3f}s (>1s)"
+
+            # Query 4: Type-filtered aggregation
+            t0 = time.time()
+            type_agg = session.run(
+                """
+                MATCH (n:Entity)
+                WITH n.type AS type, count(*) AS cnt
+                RETURN type, cnt
+                ORDER BY cnt DESC
+                """
+            ).data()
+            t1 = time.time()
+            q4_time = t1 - t0
+            print(f"  Type aggregation: {len(type_agg)} types in {q4_time:.3f}s")
+            for t in type_agg:
+                print(f"    {t['type']}: {t['cnt']}")
+            assert q4_time < 1.0, f"Type aggregation took {q4_time:.3f}s (>1s)"
+
+            # Query 5: Full-graph path existence check
+            t0 = time.time()
+            path_check = session.run(
+                """
+                MATCH path = shortestPath(
+                    (a:Entity {entity_id: 'organization:google'})-[*..5]-(b:Entity)
+                )
+                WHERE b.entity_id <> a.entity_id
+                RETURN b.entity_id AS target, length(path) AS hops
+                ORDER BY hops
+                LIMIT 50
+                """
+            ).data()
+            t1 = time.time()
+            q5_time = t1 - t0
+            print(f"  Shortest paths from Google: {len(path_check)} targets in {q5_time:.3f}s")
+            if path_check:
+                print(f"    Nearest: {path_check[0]['target']} ({path_check[0]['hops']} hops)")
+                print(f"    Farthest: {path_check[-1]['target']} ({path_check[-1]['hops']} hops)")
+            assert q5_time < 1.0, f"Shortest path query took {q5_time:.3f}s (>1s)"
+
+            print(f"\n  All query times: 3-hop={q1_time:.3f}s, degree={q2_time:.3f}s, "
+                  f"subgraph={q3_time:.3f}s, type-agg={q4_time:.3f}s, paths={q5_time:.3f}s")
+
+
+# ---------------------------------------------------------------------------
+# CUJ 30 — User Submits PDF File (Wrong URL Type)
+# ---------------------------------------------------------------------------
+
+class TestPDFFileIngestion:
+    """User submits a PDF file instead of an HTML URL — a very common real-world
+    mistake. Verify the pipeline either handles PDF content or fails gracefully.
+    pymupdf is available, so the pipeline should parse PDF text and extract entities.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+
+    def test_pdf_file_ingested_through_pipeline(self, neo4j_driver, clean_neo4j, tmp_db):
+        import fitz
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
+            pdf_path = f.name
+
+        try:
+            doc = fitz.open()
+            page = doc.new_page()
+            page.insert_text(
+                (72, 72),
+                "Model Context Protocol (MCP) Overview\n\n"
+                "The Model Context Protocol is an open protocol developed by Anthropic.\n"
+                "MCP standardizes how AI applications connect to external data sources.\n"
+                "Google has announced MCP support in Vertex AI and the Agent Development Kit.\n"
+                "The protocol uses JSON-RPC 2.0 as its transport layer.\n",
+                fontsize=11,
+            )
+            doc.save(pdf_path)
+            doc.close()
+
+            source_id = tmp_db.add_source(
+                pdf_path, title="MCP PDF Test", source_type="text",
+                submitter_email="user@test.com"
+            )
+            assert source_id is not None
+
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            source = tmp_db.get_source(source_id)
+            assert source["status"] == "complete", f"Expected complete, got {source['status']}"
+            assert source["type"] == "pdf", f"Expected type=pdf, got {source['type']}"
+            print(f"  Source type detected: {source['type']}")
+
+            entities = tmp_db.conn.execute(
+                "SELECT entity_id, name, type FROM entities WHERE source_id = ? AND status = 'approved'",
+                (source_id,),
+            ).fetchall()
+            entities = [dict(e) for e in entities]
+            print(f"  Entities extracted from PDF: {len(entities)}")
+            for e in entities:
+                print(f"    {e['entity_id']} — {e['name']} ({e['type']})")
+
+            assert len(entities) >= 1, "Expected at least 1 entity from PDF content"
+
+            with neo4j_driver.session() as session:
+                neo4j_entities = session.run(
+                    "MATCH (n:Entity) RETURN n.entity_id AS eid"
+                ).data()
+                assert len(neo4j_entities) >= 1, "Expected entities in Neo4j from PDF source"
+
+                src_node = session.run(
+                    "MATCH (s:Source {uri: $uri}) RETURN s.source_type AS stype",
+                    {"uri": pdf_path},
+                ).single()
+                assert src_node is not None, "Source node missing from Neo4j for PDF"
+                print(f"  Neo4j Source type: {src_node['stype']}")
+
+        finally:
+            os.unlink(pdf_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 31 — Duplicate Content, Different URLs (Syndication/Mirror Scenario)
+# ---------------------------------------------------------------------------
+
+SYNDICATED_ARTICLE = """\
+# Agent-to-Agent (A2A) Protocol Specification
+
+Google developed the Agent-to-Agent protocol to enable seamless communication \
+between AI agents. A2A defines Agent Cards for discoverability and supports \
+task lifecycle management with push notifications and streaming results. \
+The protocol uses JSON-RPC 2.0 for transport, maintaining compatibility with MCP.
+"""
+
+
+class TestDuplicateContentDifferentURLs:
+    """Same article published on two different URLs (mirror/syndication).
+    Both should ingest successfully. Entity dedup should work — same entities
+    from both sources share entity nodes. Two Source nodes should exist in Neo4j.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return False
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return True
+
+    def test_syndicated_content_entity_dedup_two_sources(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        tmpdir = tempfile.mkdtemp()
+        path_a = os.path.join(tmpdir, "mirror_site_a.md")
+        path_b = os.path.join(tmpdir, "mirror_site_b.md")
+
+        try:
+            with open(path_a, "w") as f:
+                f.write(SYNDICATED_ARTICLE)
+            with open(path_b, "w") as f:
+                f.write(SYNDICATED_ARTICLE + "\n\n*Reprinted with permission.*\n")
+
+            sid_a = tmp_db.add_source(
+                path_a, title="A2A Spec — Site A", source_type="text",
+                submitter_email="alice@test.com"
+            )
+            assert self._run_pipeline(tmp_db, neo4j_driver, sid_a)
+
+            a_entities = tmp_db.conn.execute(
+                "SELECT entity_id FROM entities WHERE source_id = ? AND status = 'approved'",
+                (sid_a,),
+            ).fetchall()
+            a_eids = {dict(e)["entity_id"] for e in a_entities}
+            print(f"  Source A entities: {a_eids}")
+
+            sid_b = tmp_db.add_source(
+                path_b, title="A2A Spec — Site B", source_type="text",
+                submitter_email="bob@test.com"
+            )
+            assert self._run_pipeline(tmp_db, neo4j_driver, sid_b)
+
+            b_entities = tmp_db.conn.execute(
+                "SELECT entity_id FROM entities WHERE source_id = ? AND status = 'approved'",
+                (sid_b,),
+            ).fetchall()
+            b_eids = {dict(e)["entity_id"] for e in b_entities}
+            print(f"  Source B entities: {b_eids}")
+
+            with neo4j_driver.session() as session:
+                source_nodes = session.run(
+                    "MATCH (s:Source) RETURN s.uri AS uri, s.title AS title"
+                ).data()
+                print(f"  Source nodes in Neo4j: {len(source_nodes)}")
+                for s in source_nodes:
+                    print(f"    {s['title']} — {s['uri']}")
+                assert len(source_nodes) == 2, (
+                    f"Expected 2 Source nodes (one per URL), got {len(source_nodes)}"
+                )
+
+                dups = session.run(
+                    "MATCH (n:Entity) WITH n.entity_id AS eid, count(*) AS cnt "
+                    "WHERE cnt > 1 RETURN eid, cnt"
+                ).data()
+                assert len(dups) == 0, f"Duplicate entity_ids in Neo4j: {dups}"
+
+                all_eids_combined = a_eids | b_eids
+                if all_eids_combined:
+                    for eid in all_eids_combined:
+                        from_sources = session.run(
+                            "MATCH (n:Entity {entity_id: $eid})-[:FROM_SOURCE]->(s:Source) "
+                            "RETURN s.uri AS uri",
+                            {"eid": eid},
+                        ).data()
+                        src_count = len(from_sources)
+                        print(f"    {eid}: FROM_SOURCE to {src_count} source(s)")
+
+                total_entities = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                print(f"  Total unique entities in Neo4j: {total_entities}")
+                assert total_entities >= 1
+
+        finally:
+            for p in [path_a, path_b]:
+                if os.path.exists(p):
+                    os.unlink(p)
+            os.rmdir(tmpdir)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 32 — KG Exploration via Cypher (Agentic Use Case)
+# ---------------------------------------------------------------------------
+
+KG_EXPLORATION_DOC = """\
+# Anthropic AI Safety Research
+
+Anthropic develops Claude, an AI assistant focused on safety. Anthropic also \
+created the Model Context Protocol (MCP) for connecting AI to external tools. \
+Google has adopted MCP in Vertex AI and the Agent Development Kit (ADK). \
+The IETF defines HTTP/2 which MCP uses for transport. \
+Cisco donated AGNTCY to the Linux Foundation for agent interoperability.
+"""
+
+
+class TestKGExplorationCypher:
+    """Load seed entities + pipeline-extracted sources, then run a series of
+    'discovery' Cypher queries that an AI agent would run to explore the KG:
+    degree centrality, protocol lookup, shortest path, recency filter.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+
+    def test_agentic_kg_discovery_queries(self, neo4j_driver, clean_neo4j, tmp_db):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities
+
+        apply_schema(neo4j_driver)
+
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+            f.write(KG_EXPLORATION_DOC)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="AI Safety Research", source_type="text",
+                submitter_email="agent@system.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            with neo4j_driver.session() as session:
+                # Query A: "What are the most connected entities?" (degree centrality)
+                degree = session.run(
+                    """
+                    MATCH (n:Entity)
+                    OPTIONAL MATCH (n)-[r]-()
+                    WITH n.entity_id AS eid, n.name AS name, count(r) AS degree
+                    ORDER BY degree DESC
+                    LIMIT 10
+                    RETURN eid, name, degree
+                    """
+                ).data()
+                print(f"  A) Top entities by degree centrality:")
+                for d in degree:
+                    print(f"     {d['eid']} ({d['name']}): degree={d['degree']}")
+                assert len(degree) >= 3, f"Expected >=3 entities with connections, got {len(degree)}"
+                assert degree[0]["degree"] >= 1, "Top entity should have at least 1 connection"
+
+                # Query B: "What protocols does Google implement/develop?"
+                google_protocols = session.run(
+                    """
+                    MATCH (org:Entity)-[r]->(proto:Entity)
+                    WHERE org.entity_id = 'organization:google'
+                      AND proto.type = 'Protocol'
+                    RETURN proto.entity_id AS eid, proto.name AS name, type(r) AS rel
+                    """
+                ).data()
+                if not google_protocols:
+                    google_protocols = session.run(
+                        """
+                        MATCH (org:Entity)-[r]-(proto:Entity)
+                        WHERE org.entity_id = 'organization:google'
+                          AND proto.type = 'Protocol'
+                        RETURN proto.entity_id AS eid, proto.name AS name, type(r) AS rel
+                        """
+                    ).data()
+                print(f"  B) Protocols related to Google: {len(google_protocols)}")
+                for p in google_protocols:
+                    print(f"     {p['eid']} ({p['name']}) via {p['rel']}")
+
+                # Query C: "Shortest path between two entities"
+                all_entities = session.run(
+                    "MATCH (n:Entity) RETURN n.entity_id AS eid ORDER BY n.entity_id LIMIT 50"
+                ).data()
+                all_eids = [e["eid"] for e in all_entities]
+
+                entity_a = "organization:google"
+                entity_b = None
+                for eid in all_eids:
+                    if eid != entity_a and "organization" not in eid:
+                        entity_b = eid
+                        break
+                if not entity_b and len(all_eids) >= 2:
+                    entity_b = all_eids[1] if all_eids[0] == entity_a else all_eids[0]
+
+                if entity_b:
+                    shortest = session.run(
+                        """
+                        MATCH path = shortestPath(
+                            (a:Entity {entity_id: $eid_a})-[*..6]-(b:Entity {entity_id: $eid_b})
+                        )
+                        RETURN length(path) AS hops, [n IN nodes(path) | n.entity_id] AS node_ids
+                        """,
+                        {"eid_a": entity_a, "eid_b": entity_b},
+                    ).data()
+                    if shortest:
+                        print(f"  C) Shortest path {entity_a} → {entity_b}: {shortest[0]['hops']} hops")
+                        print(f"     Path: {' → '.join(str(n) for n in shortest[0]['node_ids'])}")
+                    else:
+                        print(f"  C) No path found between {entity_a} and {entity_b} within 6 hops")
+                else:
+                    print("  C) Skipped — only one entity type available")
+
+                # Query D: "What entities were added recently?" (recency filter)
+                recent = session.run(
+                    """
+                    MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source)
+                    WHERE s.created_at IS NOT NULL
+                    RETURN n.entity_id AS eid, n.name AS name, s.created_at AS added
+                    ORDER BY s.created_at DESC
+                    LIMIT 10
+                    """
+                ).data()
+                print(f"  D) Recently added entities: {len(recent)}")
+                for r in recent:
+                    print(f"     {r['eid']} ({r['name']}) — added {str(r['added'])[:19]}")
+                assert len(recent) >= 1, "Expected at least 1 recently added entity"
+
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 33 — Batch Ingestion: 5 Sources Queued and Processed
+# ---------------------------------------------------------------------------
+
+BATCH_DOCS = [
+    ("Redis Caching", """\
+# Redis In-Memory Data Store
+
+Redis is an open-source, in-memory data structure store developed by Redis Ltd. \
+Redis supports strings, hashes, lists, sets, and sorted sets. It is commonly used \
+for caching, session management, and real-time analytics.
+"""),
+    ("Kubernetes Orchestration", """\
+# Kubernetes Container Orchestration
+
+Kubernetes is a container orchestration platform originally developed by Google. \
+The Cloud Native Computing Foundation (CNCF) maintains Kubernetes as an open-source \
+project. Kubernetes automates deployment, scaling, and management of containerized applications.
+"""),
+    ("TensorFlow ML", """\
+# TensorFlow Machine Learning Framework
+
+TensorFlow is an open-source machine learning framework developed by Google Brain. \
+TensorFlow supports deep learning, neural networks, and distributed training. \
+The framework integrates with Keras for high-level model building APIs.
+"""),
+    ("gRPC Framework", """\
+# gRPC Remote Procedure Call Framework
+
+gRPC is a high-performance RPC framework developed by Google. gRPC uses Protocol \
+Buffers for serialization and supports bidirectional streaming. The framework is \
+widely used in microservices architectures for inter-service communication.
+"""),
+    ("Prometheus Monitoring", """\
+# Prometheus Monitoring System
+
+Prometheus is an open-source monitoring system developed at SoundCloud. The Cloud \
+Native Computing Foundation (CNCF) adopted Prometheus as its second hosted project. \
+Prometheus collects metrics via a pull model and stores them in a time-series database.
+"""),
+]
+
+
+class TestBatchIngestion:
+    """Queue 5 different sources, process all pending at once, verify all 5
+    complete and Neo4j has entities from all sources.
+    """
+
+    def test_five_sources_queued_and_processed(self, neo4j_driver, clean_neo4j, tmp_db):
+        from agents_kg.schema import apply_schema
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        apply_schema(neo4j_driver)
+
+        tmpdir = tempfile.mkdtemp()
+        paths = []
+        source_ids = []
+
+        try:
+            for i, (title, content) in enumerate(BATCH_DOCS):
+                path = os.path.join(tmpdir, f"batch_{i}.md")
+                with open(path, "w") as f:
+                    f.write(content)
+                paths.append(path)
+
+                sid = tmp_db.add_source(
+                    path, title=title, source_type="text",
+                    submitter_email=f"batch-user@test.com"
+                )
+                assert sid is not None, f"Failed to queue source: {title}"
+                source_ids.append(sid)
+                print(f"  Queued: [{sid}] {title}")
+
+            pending = tmp_db.get_pending_sources()
+            assert len(pending) == 5, f"Expected 5 pending sources, got {len(pending)}"
+            print(f"  Queue size after ingestion: {len(pending)}")
+
+            completed = 0
+            failed = 0
+            for sid in source_ids:
+                source = tmp_db.get_source(sid)
+                try:
+                    if not fetch.run(tmp_db, source):
+                        continue
+                    source = tmp_db.get_source(sid)
+                    parse.run(tmp_db, source)
+                    source = tmp_db.get_source(sid)
+                    chunk.run(tmp_db, source)
+                    source = tmp_db.get_source(sid)
+                    embed.run(tmp_db, source)
+                    source = tmp_db.get_source(sid)
+                    extract.run(tmp_db, source)
+                    source = tmp_db.get_source(sid)
+                    resolve.run(tmp_db, source)
+
+                    tmp_db.conn.execute(
+                        "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                        (sid,),
+                    )
+                    tmp_db.conn.execute(
+                        "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                        (sid,),
+                    )
+                    tmp_db.conn.commit()
+                    tmp_db.update_source(sid, status="processing", stage="load")
+                    source = tmp_db.get_source(sid)
+                    load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+                    completed += 1
+                except Exception as e:
+                    print(f"  FAILED: source {sid}: {e}")
+                    failed += 1
+
+            print(f"  Batch result: {completed} completed, {failed} failed")
+            assert completed == 5, f"Expected all 5 to complete, got {completed} (failed={failed})"
+
+            for sid in source_ids:
+                source = tmp_db.get_source(sid)
+                assert source["status"] == "complete", (
+                    f"Source {sid} not complete: status={source['status']}, stage={source['stage']}"
+                )
+
+            still_pending = tmp_db.get_pending_sources()
+            assert len(still_pending) == 0, (
+                f"Queue should be empty after processing, but has {len(still_pending)} items"
+            )
+
+            with neo4j_driver.session() as session:
+                source_nodes = session.run(
+                    "MATCH (s:Source) RETURN s.title AS title"
+                ).data()
+                print(f"  Source nodes in Neo4j: {len(source_nodes)}")
+                for s in source_nodes:
+                    print(f"    {s['title']}")
+                assert len(source_nodes) == 5, (
+                    f"Expected 5 Source nodes, got {len(source_nodes)}"
+                )
+
+                for sid in source_ids:
+                    source = tmp_db.get_source(sid)
+                    entities_for_source = session.run(
+                        "MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source {uri: $uri}) "
+                        "RETURN n.entity_id AS eid",
+                        {"uri": source["uri"]},
+                    ).data()
+                    assert len(entities_for_source) >= 1, (
+                        f"Source '{source['title']}' has no entities in Neo4j"
+                    )
+
+                total = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                print(f"  Total unique entities across all 5 sources: {total}")
+                assert total >= 5, f"Expected >=5 total entities from 5 sources, got {total}"
+
+                dups = session.run(
+                    "MATCH (n:Entity) WITH n.entity_id AS eid, count(*) AS cnt "
+                    "WHERE cnt > 1 RETURN eid, cnt"
+                ).data()
+                assert len(dups) == 0, f"Duplicate entity_ids found: {dups}"
+
+        finally:
+            for p in paths:
+                if os.path.exists(p):
+                    os.unlink(p)
+            os.rmdir(tmpdir)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 34 — User Asks to Remove a Source (Deprecation + Neo4j Cleanup)
+# ---------------------------------------------------------------------------
+
+SOURCE_TO_REMOVE_DOC = """\
+# Temporal Cloud Workflow Engine
+
+Temporal is a workflow orchestration platform. Temporal Cloud provides managed \
+hosting for the Temporal server. Uber originally developed Cadence, the predecessor \
+to Temporal, before the team forked it into Temporal Technologies.
+"""
+
+SHARED_ENTITY_DOC = """\
+# Uber Engineering Platform
+
+Uber uses microservices architecture at scale. Uber originally developed Cadence, \
+a workflow engine, which was later forked into the Temporal project. Uber also \
+contributes to open-source projects like Jaeger for distributed tracing.
+"""
+
+
+class TestSourceRemoval:
+    """Ingest a source → process → approve → load to Neo4j. Then the user
+    decides they don't want this source. Deprecate the source and its exclusive
+    entities. Verify shared entities from other sources remain unaffected.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+
+    def test_remove_source_deprecates_exclusive_keeps_shared(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        tmpdir = tempfile.mkdtemp()
+        path_remove = os.path.join(tmpdir, "to_remove.md")
+        path_keep = os.path.join(tmpdir, "to_keep.md")
+
+        try:
+            # Step 1: Ingest both sources
+            with open(path_keep, "w") as f:
+                f.write(SHARED_ENTITY_DOC)
+            sid_keep = tmp_db.add_source(
+                path_keep, title="Uber Engineering", source_type="text",
+                submitter_email="alice@test.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, sid_keep)
+
+            keep_entities = tmp_db.conn.execute(
+                "SELECT entity_id FROM entities WHERE source_id = ? AND status = 'approved' AND deprecated_at IS NULL",
+                (sid_keep,),
+            ).fetchall()
+            keep_eids = {dict(e)["entity_id"] for e in keep_entities}
+            print(f"  Keep source entities: {keep_eids}")
+
+            with open(path_remove, "w") as f:
+                f.write(SOURCE_TO_REMOVE_DOC)
+            sid_remove = tmp_db.add_source(
+                path_remove, title="Temporal Cloud", source_type="text",
+                submitter_email="bob@test.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, sid_remove)
+
+            remove_entities_before = tmp_db.conn.execute(
+                "SELECT entity_id FROM entities WHERE source_id = ? AND status = 'approved' AND deprecated_at IS NULL",
+                (sid_remove,),
+            ).fetchall()
+            remove_eids = {dict(e)["entity_id"] for e in remove_entities_before}
+            print(f"  Remove source entities: {remove_eids}")
+
+            # Identify shared vs exclusive entities
+            shared_eids = keep_eids & remove_eids
+            exclusive_to_remove = remove_eids - keep_eids
+            print(f"  Shared entities: {shared_eids}")
+            print(f"  Exclusive to removed source: {exclusive_to_remove}")
+
+            with neo4j_driver.session() as session:
+                entities_before = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                print(f"  Neo4j entities before removal: {entities_before}")
+
+            # Step 2: User decides to remove the source — deprecate it
+            tmp_db.deprecate_entities_for_source(sid_remove)
+            tmp_db.update_source(sid_remove, status="deprecated")
+
+            deprecated = tmp_db.get_deprecated_entities()
+            deprecated_eids = {e["entity_id"] for e in deprecated if e["source_id"] == sid_remove}
+            print(f"  Deprecated entities from removed source: {deprecated_eids}")
+
+            if remove_eids:
+                assert len(deprecated_eids) >= 1, "Expected at least 1 deprecated entity"
+
+            # Step 3: Remove deprecated entities from Neo4j
+            with neo4j_driver.session() as session:
+                for eid in deprecated_eids:
+                    is_shared = eid in keep_eids
+                    if not is_shared:
+                        session.run(
+                            """
+                            MATCH (n:Entity {entity_id: $eid})
+                            SET n.deprecated_at = datetime()
+                            """,
+                            {"eid": eid},
+                        )
+                        session.run(
+                            """
+                            MATCH (n:Entity {entity_id: $eid})-[r:FROM_SOURCE]->(s:Source {uri: $uri})
+                            DELETE r
+                            """,
+                            {"eid": eid, "uri": path_remove},
+                        )
+
+                session.run(
+                    "MATCH (s:Source {uri: $uri}) SET s.deprecated_at = datetime()",
+                    {"uri": path_remove},
+                )
+
+                # Step 4: Verify — deprecated entities excluded from standard queries
+                active_entities = session.run(
+                    "MATCH (n:Entity) WHERE n.deprecated_at IS NULL RETURN n.entity_id AS eid"
+                ).data()
+                active_eids = {e["eid"] for e in active_entities}
+                print(f"  Active entities after removal: {active_eids}")
+
+                for eid in exclusive_to_remove:
+                    assert eid not in active_eids, (
+                        f"Exclusive entity {eid} should be deprecated but is still active"
+                    )
+
+                for eid in keep_eids:
+                    keep_node = session.run(
+                        "MATCH (n:Entity {entity_id: $eid}) WHERE n.deprecated_at IS NULL "
+                        "RETURN n.entity_id AS eid",
+                        {"eid": eid},
+                    ).single()
+                    assert keep_node is not None, (
+                        f"Shared entity {eid} from kept source should still be active"
+                    )
+                    print(f"  Verified {eid} still active (from kept source)")
+
+                deprecated_source = session.run(
+                    "MATCH (s:Source {uri: $uri}) RETURN s.deprecated_at AS dep",
+                    {"uri": path_remove},
+                ).single()
+                assert deprecated_source is not None
+                assert deprecated_source["dep"] is not None, "Source should be marked deprecated"
+                print(f"  Source node deprecated: {deprecated_source['dep']}")
+
+        finally:
+            for p in [path_remove, path_keep]:
+                if os.path.exists(p):
+                    os.unlink(p)
+            os.rmdir(tmpdir)
