@@ -1100,8 +1100,7 @@ conversations.
 
         active = _get_active_entity_ids(db)
         assert "project:crewai" in active
-        # LangGraph merges into project:langchain via seed alias resolution
-        assert "project:langchain" in active or "project:langgraph" in active
+        assert "project:langgraph" in active
         assert "project:autogen" in active
         assert "capability:agent-orchestration" in active
 
