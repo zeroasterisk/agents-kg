@@ -1,0 +1,8 @@
+aliases:
+- distributed ledgers
+description: A decentralized database shared across a network, often used as a verifiable
+  data registry.
+id: project:distributed-ledger
+kind: platform
+name: Distributed Ledger
+type: Project

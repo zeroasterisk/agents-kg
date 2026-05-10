@@ -1,0 +1,6 @@
+aliases:
+- integrated pest management
+description: Management strategies to control pests in agriculture.
+id: capability:pest-management
+name: Pest Management
+type: Capability

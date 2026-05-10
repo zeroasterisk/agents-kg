@@ -1,0 +1,9 @@
+aliases:
+- DIDs
+- DID
+description: A new type of identifier that enables verifiable, decentralized digital
+  identity.
+id: protocol:did
+kind: spec
+name: Decentralized Identifiers
+type: Protocol

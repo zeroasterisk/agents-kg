@@ -1,0 +1,7 @@
+aliases:
+- DID-SPEC-REGISTRIES
+description: A registry for terms used in DID specifications.
+id: protocol:did-spec-registries
+kind: spec
+name: DID Specification Registries
+type: Protocol

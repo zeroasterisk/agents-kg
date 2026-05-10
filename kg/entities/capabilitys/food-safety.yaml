@@ -1,0 +1,6 @@
+aliases:
+- food safety regulations
+description: Ensuring food is safe for consumption.
+id: capability:food-safety
+name: Food Safety
+type: Capability

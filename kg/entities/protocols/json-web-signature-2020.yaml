@@ -1,0 +1,7 @@
+aliases:
+- JWS 2020
+description: A specification for JSON Web Signatures.
+id: protocol:json-web-signature-2020
+kind: spec
+name: JSON Web Signature 2020
+type: Protocol

@@ -1,0 +1,6 @@
+aliases: []
+description: The process of taking a DID as input and producing a conforming DID document
+  as output.
+id: capability:did-resolution
+name: DID Resolution
+type: Capability

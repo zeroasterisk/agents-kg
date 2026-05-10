@@ -1,0 +1,5 @@
+aliases: []
+description: A model for representing data.
+id: capability:data-model
+name: data model
+type: Capability

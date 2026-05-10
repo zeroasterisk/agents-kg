@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to process a large volume of data.
+id: capability:high-throughput
+name: High-Throughput
+type: Capability

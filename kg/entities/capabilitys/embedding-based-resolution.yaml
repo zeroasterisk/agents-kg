@@ -1,0 +1,7 @@
+aliases:
+- embedding-based resolution
+description: A method for entity resolution that uses vector embeddings of entity
+  descriptions and cosine similarity to find near-duplicates.
+id: capability:embedding-based-resolution
+name: Embedding-Based Resolution
+type: Capability

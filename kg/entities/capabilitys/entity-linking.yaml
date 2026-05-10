@@ -1,0 +1,6 @@
+aliases: []
+description: The process of identifying and disambiguating named entities in text
+  and linking them to corresponding entries in a knowledge base.
+id: capability:entity-linking
+name: Entity Linking
+type: Capability

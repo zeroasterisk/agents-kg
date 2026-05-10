@@ -1,0 +1,6 @@
+aliases: []
+description: Documents that contain information about Decentralized Identifiers.
+id: protocol:did-documents
+kind: spec
+name: DID Documents
+type: Protocol

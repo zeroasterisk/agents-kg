@@ -1,0 +1,8 @@
+aliases:
+- JWK
+description: A JavaScript Object Notation (JSON) data structure that represents a
+  cryptographic key.
+id: protocol:json-web-key
+kind: spec
+name: JSON Web Key
+type: Protocol

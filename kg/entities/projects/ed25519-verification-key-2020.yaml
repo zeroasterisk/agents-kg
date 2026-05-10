@@ -1,0 +1,7 @@
+aliases:
+- Ed25519VerificationKey2020
+description: A verification key type for Ed25519 signatures.
+id: project:ed25519-verification-key-2020
+kind: framework
+name: Ed25519VerificationKey2020
+type: Project

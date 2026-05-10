@@ -1,0 +1,6 @@
+aliases:
+- publicKeyMultibase
+description: A public key represented in Multibase encoding.
+id: capability:public-key-multibase
+name: Public Key Multibase
+type: Capability

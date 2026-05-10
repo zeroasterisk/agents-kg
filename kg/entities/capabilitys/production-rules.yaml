@@ -1,0 +1,5 @@
+aliases: []
+description: Rules for generating a specific data representation from a data model.
+id: capability:production-rules
+name: Production Rules
+type: Capability

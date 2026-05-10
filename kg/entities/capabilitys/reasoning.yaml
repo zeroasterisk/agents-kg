@@ -1,7 +1,6 @@
 aliases:
-- Prompts
-description: The ability to structure interactions with language models using reusable
-  templates.
+- enhanced reasoning
+description: The ability to think logically and draw conclusions.
 id: capability:reasoning
 name: Reasoning
 type: Capability

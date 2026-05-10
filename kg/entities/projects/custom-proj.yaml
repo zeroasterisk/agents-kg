@@ -1,0 +1,5 @@
+aliases: []
+id: test:custom-proj
+kind: custom
+name: Custom Project
+type: Project

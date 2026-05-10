@@ -1,0 +1,6 @@
+aliases:
+- extended thinking capabilities
+description: The ability to devise a sequence of actions to achieve a goal.
+id: capability:planning
+name: Planning
+type: Capability

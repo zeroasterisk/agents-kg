@@ -1,0 +1,6 @@
+aliases: []
+description: Entries within a DID document that are specific to a particular representation
+  format.
+id: capability:representation-specific-entries
+name: Representation-Specific Entries
+type: Capability

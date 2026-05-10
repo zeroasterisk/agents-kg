@@ -1,6 +1,7 @@
 aliases:
-- Azure
-description: Technology company providing cloud services and metadata endpoints.
+- Microsoft Corp
+- MSFT
+description: A technology company that has adopted MCP.
 id: organization:microsoft
 kind: company
 name: Microsoft

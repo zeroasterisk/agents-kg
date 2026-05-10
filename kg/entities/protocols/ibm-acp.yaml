@@ -1,0 +1,8 @@
+aliases:
+- IBM ACP
+- ACP
+description: IBM's protocol for agent communication.
+id: protocol:ibm-acp
+kind: spec
+name: IBM Agent Communication Protocol
+type: Protocol

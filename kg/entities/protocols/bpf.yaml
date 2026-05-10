@@ -1,0 +1,8 @@
+aliases:
+- BPF
+description: Berkeley Packet Filter specification, used for network packet filtering
+  and other kernel-level operations.
+id: protocol:bpf
+kind: spec
+name: BPF
+type: Protocol

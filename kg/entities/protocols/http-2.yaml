@@ -1,0 +1,6 @@
+aliases: []
+description: The second major version of the Hypertext Transfer Protocol.
+id: protocol:http-2
+kind: standard
+name: HTTP/2
+type: Protocol

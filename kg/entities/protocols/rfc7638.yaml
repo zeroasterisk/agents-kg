@@ -1,0 +1,7 @@
+aliases:
+- RFC7638
+description: A standard for JWK Thumbprints.
+id: protocol:rfc7638
+kind: rfc
+name: RFC 7638
+type: Protocol

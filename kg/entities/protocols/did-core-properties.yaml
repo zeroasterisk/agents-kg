@@ -1,0 +1,6 @@
+aliases: []
+description: Specifies the generic properties supported in a DID document.
+id: protocol:did-core-properties
+kind: spec
+name: DID Core Properties
+type: Protocol

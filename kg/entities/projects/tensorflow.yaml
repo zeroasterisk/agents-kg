@@ -1,0 +1,6 @@
+aliases: []
+description: A widely-used open-source ML framework.
+id: project:tensorflow
+kind: framework
+name: TensorFlow
+type: Project

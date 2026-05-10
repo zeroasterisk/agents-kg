@@ -1,4 +1,7 @@
-aliases: []
-id: org:google
+aliases:
+- Google's security team
+description: A multinational technology company.
+id: organization:google
+kind: company
 name: Google
 type: Organization

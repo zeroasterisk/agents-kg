@@ -1,0 +1,7 @@
+aliases:
+- WASI
+description: A modular system interface for WebAssembly.
+id: protocol:wasi
+kind: spec
+name: WebAssembly System Interface
+type: Protocol

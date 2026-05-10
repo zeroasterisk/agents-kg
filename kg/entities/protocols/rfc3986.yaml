@@ -1,0 +1,7 @@
+aliases:
+- RFC3986
+description: 'Uniform Resource Identifier (URI): Generic Syntax'
+id: protocol:rfc3986
+kind: standard
+name: RFC 3986
+type: Protocol

@@ -1,0 +1,6 @@
+aliases: []
+description: An operating system developed by Apple that runs on iPhone devices.
+id: project:ios
+kind: operating_system
+name: iOS
+type: Project

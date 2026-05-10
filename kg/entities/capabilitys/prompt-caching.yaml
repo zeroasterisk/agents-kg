@@ -1,0 +1,5 @@
+aliases: []
+description: Storing and reusing previous prompt responses to improve efficiency.
+id: capability:prompt-caching
+name: Prompt Caching
+type: Capability

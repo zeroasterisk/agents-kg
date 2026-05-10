@@ -1,0 +1,7 @@
+aliases:
+- DID
+description: A specification for Decentralized Identifiers (DIDs).
+id: protocol:did-spec
+kind: spec
+name: DID Specification
+type: Protocol

@@ -1,0 +1,5 @@
+aliases: []
+description: Storing data in a temporary location for faster access.
+id: capability:caching
+name: Caching
+type: Capability

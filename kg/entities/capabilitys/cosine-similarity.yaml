@@ -1,0 +1,6 @@
+aliases: []
+description: A measure of similarity between two non-zero vectors of an inner product
+  space that measures the cosine of the angle between them.
+id: capability:cosine-similarity
+name: Cosine Similarity
+type: Capability

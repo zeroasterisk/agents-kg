@@ -1,0 +1,6 @@
+aliases: []
+description: A specific version of the Gemini large language model.
+id: project:gemini-2.5-flash
+kind: platform
+name: Gemini 2.5 Flash
+type: Project

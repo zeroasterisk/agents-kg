@@ -1,5 +1,7 @@
-aliases: []
+aliases:
+- MCP
+description: A protocol for managing context between models.
 id: protocol:mcp
 kind: spec
-name: MCP
+name: Model Context Protocol
 type: Protocol

@@ -1,0 +1,5 @@
+aliases: []
+description: Monitoring the operational status of services.
+id: capability:health-checking
+name: Health Checking
+type: Capability

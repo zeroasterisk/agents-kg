@@ -1,0 +1,6 @@
+aliases: []
+description: The automated arrangement, coordination, and management of complex computer
+  systems, middleware, and services.
+id: capability:orchestration
+name: Orchestration
+type: Capability

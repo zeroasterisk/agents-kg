@@ -1,0 +1,5 @@
+aliases: []
+description: Unregistered extensions to DID document properties.
+id: capability:unregistered-property-extensions
+name: Unregistered Property Extensions
+type: Capability

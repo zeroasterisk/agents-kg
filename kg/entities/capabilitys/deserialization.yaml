@@ -1,0 +1,6 @@
+aliases: []
+description: The process of converting serialized data back into its original data
+  structures.
+id: capability:deserialization
+name: Deserialization
+type: Capability

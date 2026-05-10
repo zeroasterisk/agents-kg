@@ -1,0 +1,5 @@
+aliases: []
+description: A specification for cryptographic operations.
+id: capability:cryptographic-suite
+name: Cryptographic Suite
+type: Capability

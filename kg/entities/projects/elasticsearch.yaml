@@ -1,0 +1,6 @@
+aliases: []
+description: A distributed search and analytics engine.
+id: project:elasticsearch
+kind: search_engine
+name: Elasticsearch
+type: Project

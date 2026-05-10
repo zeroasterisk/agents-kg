@@ -1,0 +1,7 @@
+aliases:
+- RFC8174
+description: Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words.
+id: protocol:rfc8174
+kind: rfc
+name: RFC 8174
+type: Protocol

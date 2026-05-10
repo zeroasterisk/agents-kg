@@ -1,7 +1,5 @@
-aliases:
-- agent security
-description: The ability to protect systems, data, and communications from unauthorized
-  access or attacks.
+aliases: []
+description: The state of being free from danger or threat.
 id: capability:security
 name: Security
 type: Capability

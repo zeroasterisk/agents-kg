@@ -1,0 +1,6 @@
+aliases: []
+description: High-throughput LLM serving engine
+id: us:project-vllm
+kind: engine
+name: vLLM
+type: Project

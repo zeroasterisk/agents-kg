@@ -1,0 +1,6 @@
+aliases:
+- URI query syntax
+description: The syntax rules for the query component of a Uniform Resource Identifier.
+id: capability:uri-query-syntax
+name: URI Query Syntax
+type: Capability

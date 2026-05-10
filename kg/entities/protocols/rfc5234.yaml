@@ -1,0 +1,7 @@
+aliases:
+- RFC5234
+description: 'Augmented BNF for Syntax Specifications: ABNF.'
+id: protocol:rfc5234
+kind: standard
+name: RFC 5234
+type: Protocol

@@ -1,0 +1,7 @@
+aliases:
+- RFC7231
+description: 'Hypertext Transfer Protocol (HTTP): Semantics and Content'
+id: protocol:rfc7231
+kind: standard
+name: RFC 7231
+type: Protocol

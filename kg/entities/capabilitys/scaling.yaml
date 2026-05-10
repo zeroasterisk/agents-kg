@@ -1,0 +1,6 @@
+aliases: []
+description: The ability of a system to handle a growing amount of work, or its potential
+  to be enlarged to accommodate that growth.
+id: capability:scaling
+name: Scaling
+type: Capability

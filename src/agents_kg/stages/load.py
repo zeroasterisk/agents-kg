@@ -82,6 +82,7 @@ def _export_yaml(entity: dict, base_dir: str = YAML_DIR):
     dir_path.mkdir(parents=True, exist_ok=True)
 
     eid = entity["entity_id"].split(":", 1)[-1] if ":" in entity["entity_id"] else entity["entity_id"]
+    eid = eid.replace("/", "_").replace("+", "_").replace(" ", "_")
     file_path = dir_path / f"{eid}.yaml"
 
     aliases = json.loads(entity["aliases"]) if isinstance(entity["aliases"], str) else entity["aliases"]

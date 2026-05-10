@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to send notifications to agents or users.
+id: capability:push-notifications
+name: Push Notifications
+type: Capability

@@ -1,0 +1,5 @@
+aliases: []
+description: Rules for parsing and interpreting a specific data representation.
+id: capability:consumption-rules
+name: Consumption Rules
+type: Capability

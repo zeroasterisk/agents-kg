@@ -1,6 +1,7 @@
 aliases:
 - '@modelcontextprotocol/sdk'
-description: A language-specific SDK for implementing MCP servers and clients in TypeScript.
+- MCP TS SDK
+description: The TypeScript SDK for the Model Context Protocol.
 id: project:mcp-sdk-typescript
 kind: sdk
 name: MCP TypeScript SDK

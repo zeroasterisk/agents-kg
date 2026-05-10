@@ -1,5 +1,6 @@
 aliases: []
-description: Framework for building agents
+description: Extends LangChain with graph-based orchestration, enabling developers
+  to define agent workflows as directed graphs.
 id: project:langgraph
 kind: framework
 name: LangGraph

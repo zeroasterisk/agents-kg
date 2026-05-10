@@ -1,0 +1,8 @@
+aliases:
+- DNS
+description: A hierarchical and decentralized naming system for computers, services,
+  or other resources connected to the Internet or a private network.
+id: protocol:dns
+kind: standard
+name: Domain Name System
+type: Protocol

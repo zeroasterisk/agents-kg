@@ -1,5 +1,7 @@
-aliases: []
-id: cap:multi-agent
-kind: feature
-name: Multi-Agent
+aliases:
+- custom agents
+- multi-agent
+description: Systems involving multiple autonomous agents interacting with each other.
+id: capability:multi-agent
+name: Multi-Agent Systems
 type: Capability

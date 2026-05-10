@@ -1,0 +1,6 @@
+aliases: []
+description: The group that maintains PostgreSQL.
+id: organization:postgresql-global-development-group
+kind: development_group
+name: PostgreSQL Global Development Group
+type: Group

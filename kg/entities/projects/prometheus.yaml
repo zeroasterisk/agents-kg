@@ -1,0 +1,6 @@
+aliases: []
+description: An open-source monitoring and alerting toolkit.
+id: project:prometheus
+kind: toolkit
+name: Prometheus
+type: Project

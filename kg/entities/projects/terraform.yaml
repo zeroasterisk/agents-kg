@@ -1,0 +1,8 @@
+aliases:
+- Terraform by HashiCorp
+description: An infrastructure as code tool that enables defining cloud resources
+  using declarative HCL configuration files.
+id: project:terraform
+kind: tool
+name: Terraform
+type: Project

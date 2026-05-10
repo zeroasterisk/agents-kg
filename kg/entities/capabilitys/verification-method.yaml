@@ -1,0 +1,7 @@
+aliases:
+- verification methods
+description: A method used to verify the authenticity or integrity of data, such as
+  cryptographic public keys.
+id: capability:verification-method
+name: Verification Method
+type: Capability

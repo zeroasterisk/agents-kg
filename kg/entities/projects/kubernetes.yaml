@@ -1,0 +1,7 @@
+aliases: []
+description: An open-source system for automating deployment, scaling, and management
+  of containerized applications.
+id: project:kubernetes
+kind: platform
+name: Kubernetes
+type: Project

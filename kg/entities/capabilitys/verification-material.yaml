@@ -1,0 +1,5 @@
+aliases: []
+description: Information used by a process that applies a verification method.
+id: capability:verification-material
+name: Verification Material
+type: Capability

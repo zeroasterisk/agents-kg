@@ -1,0 +1,6 @@
+aliases:
+- URI path syntax
+description: The syntax rules for the path component of a Uniform Resource Identifier.
+id: capability:uri-path-syntax
+name: URI Path Syntax
+type: Capability

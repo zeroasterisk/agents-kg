@@ -1,0 +1,6 @@
+aliases: []
+description: A declarative graph query language enabling expressive pattern matching.
+id: protocol:cypher
+kind: query language
+name: Cypher
+type: Protocol

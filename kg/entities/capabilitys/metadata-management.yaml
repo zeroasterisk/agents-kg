@@ -1,0 +1,6 @@
+aliases: []
+description: The process of managing information about data, such as cluster configuration
+  and topic partitioning.
+id: capability:metadata-management
+name: Metadata Management
+type: Capability

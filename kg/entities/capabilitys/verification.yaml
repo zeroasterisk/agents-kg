@@ -1,0 +1,7 @@
+aliases:
+- verification method
+description: The process of confirming the truth or accuracy of something, often using
+  a verification method.
+id: capability:verification
+name: Verification
+type: Capability

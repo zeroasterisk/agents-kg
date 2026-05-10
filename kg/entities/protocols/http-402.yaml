@@ -1,0 +1,7 @@
+aliases:
+- Payment Required
+description: The HTTP 'Payment Required' status code, used for metered usage.
+id: protocol:http-402
+kind: standard
+name: HTTP 402
+type: Protocol

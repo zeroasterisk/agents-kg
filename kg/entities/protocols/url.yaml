@@ -1,0 +1,7 @@
+aliases:
+- URL
+description: A specific type of URI used for web pages.
+id: protocol:url
+kind: standard
+name: Uniform Resource Locator
+type: Protocol

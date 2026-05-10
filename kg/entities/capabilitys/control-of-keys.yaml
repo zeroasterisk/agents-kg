@@ -1,0 +1,7 @@
+aliases:
+- control of a set of cryptographic keys
+description: The capability to control cryptographic keys, often used to assert control
+  over a DID.
+id: capability:control-of-keys
+name: Control of Keys
+type: Capability

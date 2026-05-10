@@ -1,0 +1,7 @@
+aliases: []
+description: A communication protocol providing full-duplex communication channels
+  over a single TCP connection.
+id: protocol:websocket
+kind: standard
+name: WebSocket
+type: Protocol

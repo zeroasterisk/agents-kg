@@ -1,5 +1,8 @@
-aliases: []
-id: org:amazon
+aliases:
+- AWS
+- Amazon Web Services
+description: A multinational technology and e-commerce company.
+id: organization:amazon
 kind: company
 name: Amazon
 type: Organization

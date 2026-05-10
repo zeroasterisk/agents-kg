@@ -1,0 +1,6 @@
+aliases:
+- URI syntax
+description: The syntax rules for Uniform Resource Identifiers.
+id: capability:uri-syntax
+name: URI Syntax
+type: Capability

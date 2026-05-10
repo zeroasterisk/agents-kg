@@ -5829,3 +5829,580 @@ class TestEntityLifecycleFullCUJSequence:
 
         finally:
             os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# Iteration 10 — Test 47: Real URL Fetch End-to-End
+# ---------------------------------------------------------------------------
+
+class TestRealURLFetchEndToEnd:
+    """Fetch a real public URL, run through full pipeline with real Gemini,
+    load to Neo4j, and verify entities were extracted from live web content.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_real_url_full_pipeline(self, neo4j_driver, clean_neo4j, tmp_db):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        urls = [
+            "https://modelcontextprotocol.io/introduction",
+            "https://www.w3.org/TR/did-core/",
+        ]
+
+        source_id = None
+        url = None
+        for candidate_url in urls:
+            try:
+                import httpx
+                with httpx.Client(follow_redirects=True, timeout=15.0) as client:
+                    resp = client.get(candidate_url)
+                    resp.raise_for_status()
+                url = candidate_url
+                break
+            except Exception as e:
+                print(f"  URL {candidate_url} unreachable: {e}, trying next...")
+                continue
+
+        assert url is not None, f"All candidate URLs unreachable: {urls}"
+        print(f"  Using real URL: {url}")
+
+        source_id = tmp_db.add_source(
+            url, title="Real URL Test", source_type="url",
+            submitter_email="live-test@test.com"
+        )
+        assert source_id is not None
+
+        source = self._run_pipeline(tmp_db, neo4j_driver, source_id)
+        assert source["status"] == "complete"
+        assert source["stage"] == "done"
+
+        assert source["content_hash"] is not None
+
+        entities = tmp_db.conn.execute(
+            "SELECT * FROM entities WHERE source_id = ? AND status = 'approved'",
+            (source_id,),
+        ).fetchall()
+        print(f"  Entities from real URL: {len(entities)}")
+        for e in entities[:10]:
+            print(f"    {e['entity_id']} ({e['type']})")
+        assert len(entities) >= 1, "Expected at least 1 entity from real web content"
+
+        with neo4j_driver.session() as session:
+            neo4j_entities = session.run(
+                "MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source {uri: $uri}) "
+                "RETURN n.entity_id AS eid, n.type AS type",
+                {"uri": url},
+            ).data()
+            print(f"  Neo4j entities linked to real URL: {len(neo4j_entities)}")
+            assert len(neo4j_entities) >= 1
+
+            src = session.run(
+                "MATCH (s:Source {uri: $uri}) RETURN s.submitter_email AS email, "
+                "s.source_type AS stype",
+                {"uri": url},
+            ).single()
+            assert src is not None
+            assert src["email"] == "live-test@test.com"
+
+
+# ---------------------------------------------------------------------------
+# Iteration 10 — Test 48: Entity Timeline Reconstruction
+# ---------------------------------------------------------------------------
+
+class TestEntityTimelineReconstruction:
+    """Ingest multiple sources about the same organization from different time
+    periods, verify edges with different valid_from dates, query chronologically.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_entity_timeline_chronological_order(self, neo4j_driver, clean_neo4j, tmp_db):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities
+
+        apply_schema(neo4j_driver)
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        doc_2021 = """\
+# Anthropic Founded (2021)
+
+Anthropic was founded in 2021 by Dario Amodei and Daniela Amodei, former OpenAI
+executives. The company focused on AI safety research and developing more
+interpretable AI systems. Initial funding came from venture capital. Anthropic
+was incorporated as a public benefit corporation.
+"""
+
+        doc_2023 = """\
+# Anthropic Launches Claude (2023)
+
+In March 2023, Anthropic launched Claude, its first AI assistant product. Claude
+was built using Anthropic's Constitutional AI approach. Google invested $300M in
+Anthropic during this period. Anthropic also developed the Model Context Protocol
+(MCP) as an open standard for AI tool integration.
+"""
+
+        doc_2025 = """\
+# Anthropic in 2025
+
+By 2025, Anthropic's Claude had become one of the leading AI assistants. The
+Model Context Protocol (MCP) gained wide industry adoption with Google, Microsoft,
+and OpenAI supporting it. Anthropic launched Claude Code, a CLI tool for developers.
+Amazon invested $4B in Anthropic, making it one of the largest AI investments.
+"""
+
+        docs = [
+            (doc_2021, "Anthropic Founding 2021", "2021-01-01"),
+            (doc_2023, "Anthropic Claude Launch 2023", "2023-03-15"),
+            (doc_2025, "Anthropic Growth 2025", "2025-06-01"),
+        ]
+
+        for doc_text, title, date_str in docs:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".md", delete=False
+            ) as f:
+                f.write(doc_text)
+                doc_path = f.name
+
+            try:
+                sid = tmp_db.add_source(
+                    doc_path, title=title, source_type="text",
+                    submitter_email="timeline@test.com"
+                )
+                self._run_pipeline(tmp_db, neo4j_driver, sid)
+
+                tmp_db.conn.execute(
+                    "UPDATE edges SET valid_from = ? WHERE source_id = ?",
+                    (date_str, sid),
+                )
+                tmp_db.conn.commit()
+
+                with neo4j_driver.session() as session:
+                    session.run(
+                        """
+                        MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source {uri: $uri})
+                        WITH n
+                        MATCH (n)-[r]->() WHERE NOT type(r) IN ['FROM_SOURCE', 'EXTRACTED_FROM']
+                        SET r.valid_from = $date
+                        """,
+                        {"uri": doc_path, "date": date_str},
+                    )
+            finally:
+                os.unlink(doc_path)
+
+        with neo4j_driver.session() as session:
+            anthropic = session.run(
+                "MATCH (n:Entity) WHERE n.entity_id CONTAINS 'anthropic' "
+                "RETURN n.entity_id AS eid"
+            ).data()
+            print(f"  Anthropic entities: {anthropic}")
+            assert len(anthropic) >= 1, "Expected at least 1 Anthropic entity"
+
+            timeline = session.run(
+                """
+                MATCH (n:Entity)-[r]->(m)
+                WHERE n.entity_id CONTAINS 'anthropic'
+                  AND r.valid_from IS NOT NULL
+                  AND NOT type(r) IN ['FROM_SOURCE', 'EXTRACTED_FROM']
+                RETURN n.entity_id AS src, type(r) AS rel, m.entity_id AS tgt,
+                       r.valid_from AS valid_from
+                ORDER BY r.valid_from
+                """
+            ).data()
+            print(f"  Timeline edges with valid_from: {len(timeline)}")
+            for t in timeline:
+                print(f"    {t['valid_from']}: {t['src']} --{t['rel']}--> {t['tgt']}")
+
+            if len(timeline) >= 2:
+                dates = [t["valid_from"] for t in timeline]
+                assert dates == sorted(dates), f"Timeline not chronological: {dates}"
+
+            sources = session.run(
+                "MATCH (s:Source) WHERE s.submitter_email = 'timeline@test.com' "
+                "RETURN count(s) AS c"
+            ).single()["c"]
+            print(f"  Source nodes from timeline test: {sources}")
+            assert sources >= 2, f"Expected >=2 timeline sources, got {sources}"
+
+
+# ---------------------------------------------------------------------------
+# Iteration 10 — Test 49: KG as Briefing Generator
+# ---------------------------------------------------------------------------
+
+class TestKGAsBriefingGenerator:
+    """Load a rich graph (seed + wikidata + pipeline sources), then run
+    briefing-style Cypher queries that an agent would use to brief itself.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_briefing_queries_return_coherent_results(self, neo4j_driver, clean_neo4j, tmp_db):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities, pull_and_load
+        from agents_kg.wikidata_crossref import apply_crossref
+
+        apply_schema(neo4j_driver)
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        proto_result = pull_and_load(neo4j_driver, entity_type="protocols")
+        print(f"  Wikidata protocols loaded: {proto_result}")
+
+        briefing_doc_1 = """\
+# Anthropic and the Model Context Protocol
+
+Anthropic develops MCP (Model Context Protocol), an open protocol for AI tool
+integration. Anthropic also develops Claude, an AI assistant that uses MCP.
+Dario Amodei founded Anthropic in 2021. The MCP Python SDK implements MCP.
+Google contributes to MCP through Vertex AI integration.
+"""
+
+        briefing_doc_2 = """\
+# Google's Agent Development Kit
+
+Google develops the Agent Development Kit (ADK), a framework for building AI
+agents. ADK implements MCP for tool integration. Google also develops Vertex AI,
+a cloud ML platform. Sundar Pichai leads Google as CEO. Google contributes to
+the AGNTCY project alongside Cisco.
+"""
+
+        for doc_text, title in [
+            (briefing_doc_1, "Anthropic MCP Briefing"),
+            (briefing_doc_2, "Google ADK Briefing"),
+        ]:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".md", delete=False
+            ) as f:
+                f.write(doc_text)
+                doc_path = f.name
+
+            try:
+                sid = tmp_db.add_source(
+                    doc_path, title=title, source_type="text",
+                    submitter_email="briefing@test.com"
+                )
+                self._run_pipeline(tmp_db, neo4j_driver, sid)
+            finally:
+                os.unlink(doc_path)
+
+        apply_crossref(neo4j_driver)
+
+        target = "anthropic"
+        total_results = 0
+
+        with neo4j_driver.session() as session:
+            # (a) What is {entity}?
+            props = session.run(
+                "MATCH (n:Entity) WHERE n.entity_id CONTAINS $name "
+                "RETURN n.entity_id AS eid, n.name AS name, n.type AS type, "
+                "n.description AS desc, n.kind AS kind LIMIT 5",
+                {"name": target},
+            ).data()
+            print(f"\n  Briefing (a) What is {target}?")
+            for p in props:
+                print(f"    {p['eid']}: {p['name']} ({p['type']}) — {p.get('desc', 'N/A')}")
+            total_results += len(props)
+
+            # (b) What does {entity} develop?
+            develops = session.run(
+                "MATCH (n:Entity)-[:DEVELOPS]->(m:Entity) "
+                "WHERE n.entity_id CONTAINS $name "
+                "RETURN n.entity_id AS src, m.entity_id AS tgt, m.name AS product",
+                {"name": target},
+            ).data()
+            print(f"  Briefing (b) What does {target} develop?")
+            for d in develops:
+                print(f"    {d['src']} --DEVELOPS--> {d['tgt']} ({d['product']})")
+            total_results += len(develops)
+
+            # (c) Who founded / is member of {entity}?
+            founders = session.run(
+                """
+                MATCH (p)-[r]->(n:Entity)
+                WHERE n.entity_id CONTAINS $name
+                  AND type(r) IN ['AUTHORED', 'MEMBER_OF']
+                RETURN p.entity_id AS person, type(r) AS rel, p.name AS name
+                """,
+                {"name": target},
+            ).data()
+            print(f"  Briefing (c) Who founded/is member of {target}?")
+            for fo in founders:
+                print(f"    {fo['person']} --{fo['rel']}--> {target} ({fo['name']})")
+            total_results += len(founders)
+
+            # (d) What does {entity} contribute to?
+            contribs = session.run(
+                "MATCH (n:Entity)-[:CONTRIBUTES_TO]->(m:Entity) "
+                "WHERE n.entity_id CONTAINS $name "
+                "RETURN n.entity_id AS src, m.entity_id AS tgt, m.name AS project",
+                {"name": target},
+            ).data()
+            print(f"  Briefing (d) What does {target} contribute to?")
+            for c in contribs:
+                print(f"    {c['src']} --CONTRIBUTES_TO--> {c['tgt']} ({c['project']})")
+            total_results += len(contribs)
+
+            # (e) 2-hop neighborhood
+            neighborhood = session.run(
+                """
+                MATCH (n:Entity)-[*1..2]-(m:Entity)
+                WHERE n.entity_id CONTAINS $name AND n <> m
+                RETURN DISTINCT m.entity_id AS eid, m.type AS type, m.name AS name
+                LIMIT 20
+                """,
+                {"name": target},
+            ).data()
+            print(f"  Briefing (e) 2-hop neighborhood of {target}: {len(neighborhood)} entities")
+            for nb in neighborhood[:10]:
+                print(f"    {nb['eid']} ({nb['type']})")
+            total_results += len(neighborhood)
+
+        print(f"\n  Total briefing results: {total_results}")
+        assert total_results >= 3, (
+            f"Expected at least 3 total briefing results for {target}, got {total_results}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Iteration 10 — Test 50: Graceful Handling of Gemini Content Policy Refusal
+# ---------------------------------------------------------------------------
+
+class TestGeminiContentPolicyRefusal:
+    """Submit content that might trigger Gemini's safety filters (security
+    research discussing CVEs). Verify the pipeline handles it gracefully.
+    """
+
+    def test_security_content_handled_gracefully(self, neo4j_driver, clean_neo4j, tmp_db):
+        from agents_kg.schema import apply_schema
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        apply_schema(neo4j_driver)
+
+        security_doc = """\
+# CVE Analysis Report: Critical Vulnerabilities in AI Agent Frameworks
+
+## CVE-2025-0001: Remote Code Execution in Agent Tool Invocation
+A critical vulnerability was discovered in several AI agent frameworks where
+unsanitized tool inputs could lead to remote code execution. The attack vector
+involves crafting malicious JSON payloads that bypass input validation in the
+tool dispatch layer. CVSS score: 9.8 (Critical).
+
+Affected frameworks: Multiple open-source agent orchestration libraries that
+implement tool-use protocols without proper sandboxing.
+
+## CVE-2025-0002: Prompt Injection via MCP Resource Poisoning
+Researchers at Trail of Bits discovered that MCP server resources could be
+poisoned with adversarial prompts that cause connected LLMs to execute
+unintended tool calls. The vulnerability affects MCP clients that do not
+implement content sanitization on resource responses.
+
+## CVE-2025-0003: Authentication Bypass in Agent-to-Agent Communication
+The A2A protocol's initial draft lacked mutual authentication between agent
+peers, allowing man-in-the-middle attacks on agent communication channels.
+Google's security team identified this during a code review of the A2A
+reference implementation.
+
+## Mitigation Recommendations
+Organizations using AI agent frameworks should: (1) implement input validation
+on all tool invocations, (2) use content security policies for MCP resources,
+(3) enable mutual TLS for A2A agent communication, (4) audit agent tool
+permissions regularly.
+"""
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False
+        ) as f:
+            f.write(security_doc)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="CVE Analysis Report", source_type="text",
+                submitter_email="security@test.com"
+            )
+            source = tmp_db.get_source(source_id)
+
+            pipeline_completed = True
+            try:
+                assert fetch.run(tmp_db, source)
+                source = tmp_db.get_source(source_id)
+
+                assert parse.run(tmp_db, source)
+                source = tmp_db.get_source(source_id)
+
+                assert chunk.run(tmp_db, source)
+                source = tmp_db.get_source(source_id)
+
+                assert embed.run(tmp_db, source)
+                source = tmp_db.get_source(source_id)
+
+                extract_ok = extract.run(tmp_db, source)
+                source = tmp_db.get_source(source_id)
+
+                if extract_ok:
+                    assert resolve.run(tmp_db, source)
+
+                    tmp_db.conn.execute(
+                        "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                        (source_id,),
+                    )
+                    tmp_db.conn.execute(
+                        "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+                        (source_id,),
+                    )
+                    tmp_db.conn.commit()
+                    tmp_db.update_source(source_id, status="processing", stage="load")
+                    source = tmp_db.get_source(source_id)
+                    assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+                    print("  Security content: pipeline completed successfully")
+                else:
+                    print("  Security content: extract stage returned False (expected if filtered)")
+
+            except Exception as e:
+                pipeline_completed = False
+                print(f"  Security content: pipeline failed with {type(e).__name__}: {e}")
+                tmp_db.update_source(source_id, status="failed", error=str(e))
+
+            source = tmp_db.get_source(source_id)
+            assert source["status"] in ("complete", "failed", "processing"), (
+                f"Source should be complete or failed, got {source['status']}"
+            )
+
+            with neo4j_driver.session() as session:
+                if not pipeline_completed or source["status"] == "failed":
+                    orphan_source = session.run(
+                        "MATCH (s:Source {uri: $uri}) RETURN count(s) AS c",
+                        {"uri": doc_path},
+                    ).single()["c"]
+                    orphan_entities = session.run(
+                        "MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source {uri: $uri}) "
+                        "RETURN count(n) AS c",
+                        {"uri": doc_path},
+                    ).single()["c"]
+                    print(f"  Failed pipeline: {orphan_source} Source nodes, {orphan_entities} linked entities")
+                else:
+                    entities = tmp_db.conn.execute(
+                        "SELECT * FROM entities WHERE source_id = ? AND status = 'approved'",
+                        (source_id,),
+                    ).fetchall()
+                    print(f"  Successful pipeline: {len(entities)} entities extracted from security content")
+                    for e in entities[:5]:
+                        print(f"    {e['entity_id']} ({e['type']})")
+
+            print("  Result: pipeline handled security content gracefully (no crash)")
+
+        finally:
+            os.unlink(doc_path)

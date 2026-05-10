@@ -1,0 +1,5 @@
+aliases: []
+description: Enables real-time data pipelines.
+id: capability:real-time-data-pipelines
+name: Real-time Data Pipelines
+type: Capability

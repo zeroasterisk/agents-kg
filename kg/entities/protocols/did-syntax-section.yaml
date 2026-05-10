@@ -1,0 +1,7 @@
+aliases:
+- 3.1 DID Syntax
+description: Defines the generic DID scheme and prefix.
+id: protocol:did-syntax-section
+kind: standard
+name: DID Syntax Section
+type: Protocol

@@ -1,0 +1,7 @@
+aliases:
+- DID documents
+description: The JSON representation of a DID document.
+id: protocol:did-json
+kind: spec
+name: DID JSON
+type: Protocol

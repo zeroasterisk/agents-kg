@@ -1,0 +1,7 @@
+aliases:
+- bidirectional streaming
+description: The ability to send data in both directions simultaneously over a single
+  connection.
+id: capability:bidirectional-streaming
+name: Bidirectional Streaming
+type: Capability

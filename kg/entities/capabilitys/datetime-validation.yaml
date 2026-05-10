@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to validate and normalize datetime values according to XML
+  Schema Datatypes.
+id: capability:datetime-validation
+name: Datetime Validation
+type: Capability

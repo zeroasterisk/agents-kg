@@ -1,0 +1,6 @@
+aliases:
+- publicKeyJwk
+description: A public key represented in JSON Web Key format.
+id: capability:public-key-jwk
+name: Public Key JWK
+type: Capability

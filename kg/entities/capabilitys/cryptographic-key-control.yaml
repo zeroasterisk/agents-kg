@@ -1,0 +1,6 @@
+aliases: []
+description: The capability to control cryptographic keys, often used to assert control
+  over a DID.
+id: capability:cryptographic-key-control
+name: Cryptographic Key Control
+type: Capability

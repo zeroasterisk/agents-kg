@@ -1,0 +1,7 @@
+aliases:
+- DID fragment syntax and semantics
+description: A method-independent reference into a DID document or external resource.
+id: protocol:did-fragment
+kind: spec
+name: DID fragment
+type: Protocol

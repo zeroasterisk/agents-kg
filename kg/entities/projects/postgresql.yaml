@@ -1,0 +1,7 @@
+aliases:
+- PostgreSQL Database
+description: An advanced open-source relational database management system.
+id: project:postgresql
+kind: database
+name: PostgreSQL
+type: Project

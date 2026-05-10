@@ -1,6 +1,5 @@
 aliases: []
-description: Allows servers to request language model completions from the client’s
-  AI application.
+description: A capability for sampling model outputs.
 id: capability:sampling
 name: Sampling
 type: Capability

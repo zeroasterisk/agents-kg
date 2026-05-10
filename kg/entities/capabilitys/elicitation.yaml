@@ -1,6 +1,6 @@
 aliases: []
-description: Allows servers to request additional information or confirmation from
-  users.
+description: The ability for a server to request structured input from a user through
+  a client.
 id: capability:elicitation
 name: Elicitation
 type: Capability

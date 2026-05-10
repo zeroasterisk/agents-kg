@@ -1,0 +1,8 @@
+aliases:
+- Protobuf
+description: A language-neutral, platform-neutral, extensible mechanism for serializing
+  structured data.
+id: protocol:protobuf
+kind: spec
+name: Protocol Buffers
+type: Protocol

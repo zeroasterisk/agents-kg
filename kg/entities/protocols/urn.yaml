@@ -1,0 +1,6 @@
+aliases: []
+description: Uniform Resource Name, a persistent identifier.
+id: protocol:urn
+kind: standard
+name: URN
+type: Protocol

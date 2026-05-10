@@ -1,0 +1,7 @@
+aliases:
+- query component
+description: The query component of a URL.
+id: protocol:query
+kind: spec
+name: Query
+type: Protocol

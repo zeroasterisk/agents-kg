@@ -1,6 +1,8 @@
 aliases:
 - context memory
-description: The ability to share and persist context between servers and clients.
+- long-term memory
+- short-term memory
+description: The ability of an AI to store and retrieve information.
 id: capability:memory
 name: Memory
 type: Capability

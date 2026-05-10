@@ -1,0 +1,6 @@
+aliases:
+- trusted data storage
+description: The ability to store trusted data, such as DIDs and DID documents.
+id: capability:data-storage
+name: Data Storage
+type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- resource
+description: Anything that might be identified by a URI.
+id: protocol:resource
+kind: spec
+name: Resource
+type: Protocol

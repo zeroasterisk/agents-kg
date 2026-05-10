@@ -1,4 +1,5 @@
 aliases: []
+description: A modular framework for building applications powered by language models.
 id: project:langchain
 kind: framework
 name: LangChain

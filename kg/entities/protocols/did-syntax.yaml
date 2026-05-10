@@ -1,0 +1,7 @@
+aliases:
+- DID Syntax
+description: The syntax rules for Decentralized Identifiers.
+id: protocol:did-syntax
+kind: spec
+name: DID Syntax
+type: Protocol

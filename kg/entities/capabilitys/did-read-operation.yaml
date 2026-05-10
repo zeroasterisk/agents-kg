@@ -1,0 +1,6 @@
+aliases:
+- Read operation
+description: The 'Read' operation of a DID method, used in DID resolution.
+id: capability:did-read-operation
+name: DID Read Operation
+type: Capability

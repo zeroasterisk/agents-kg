@@ -1,5 +1,8 @@
-aliases: []
-description: Access control and permissions within the transport layer.
+aliases:
+- access control
+- permissions
+description: The process of granting or denying access to specific resources or actions
+  for an agent.
 id: capability:authorization
 name: Authorization
 type: Capability

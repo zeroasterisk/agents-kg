@@ -1,0 +1,6 @@
+aliases: []
+description: Lightweight protocol for agent-to-agent exchange (Draft 1)
+id: us:protocol-acp
+kind: spec
+name: Agent Communication Protocol
+type: Protocol

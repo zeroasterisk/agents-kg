@@ -1,0 +1,6 @@
+aliases:
+- Prompts
+description: The ability to interact with an AI using templated inputs.
+id: capability:prompting
+name: Prompting
+type: Capability

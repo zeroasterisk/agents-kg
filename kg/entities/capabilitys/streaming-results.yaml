@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to send results incrementally as they are generated.
+id: capability:streaming-results
+name: Streaming Results
+type: Capability

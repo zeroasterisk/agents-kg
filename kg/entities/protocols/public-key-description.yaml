@@ -1,0 +1,8 @@
+aliases:
+- public key description
+description: A data object contained inside a DID document that contains all the metadata
+  necessary to use a public key or a verification key.
+id: protocol:public-key-description
+kind: spec
+name: Public Key Description
+type: Protocol

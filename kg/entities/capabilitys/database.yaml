@@ -1,0 +1,5 @@
+aliases: []
+description: Storing and retrieving structured data.
+id: capability:database
+name: Database
+type: Capability

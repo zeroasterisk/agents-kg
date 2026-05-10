@@ -1,0 +1,5 @@
+aliases: []
+id: us:project-genai-sdk
+kind: library
+name: Google GenAI SDK
+type: Project

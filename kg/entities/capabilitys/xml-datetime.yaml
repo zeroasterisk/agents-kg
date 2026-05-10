@@ -1,0 +1,6 @@
+aliases: []
+description: A standardized string format for representing dates and times, often
+  used in XML.
+id: capability:xml-datetime
+name: XML Datetime
+type: Capability

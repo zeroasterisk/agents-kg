@@ -1,0 +1,7 @@
+aliases:
+- JSON-LD representation
+description: A JSON-based serialization format for Linked Data.
+id: protocol:json-ld
+kind: spec
+name: JSON-LD
+type: Protocol

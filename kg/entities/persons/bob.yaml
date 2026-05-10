@@ -1,0 +1,5 @@
+aliases: []
+description: Backend participant in the decision log.
+id: person:bob
+name: Bob
+type: Person

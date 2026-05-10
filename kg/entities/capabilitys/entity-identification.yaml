@@ -1,0 +1,6 @@
+aliases:
+- entity identified by the DID
+description: The ability to identify an entity using a DID.
+id: capability:entity-identification
+name: Entity Identification
+type: Capability

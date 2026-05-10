@@ -1,0 +1,6 @@
+aliases: []
+description: The fraudulent replication and assertion of an identity by a malicious
+  third-party.
+id: capability:identity-theft
+name: Identity Theft
+type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- extraction-time normalization
+- canonical forms
+description: The process of converting data into a standard or canonical form.
+id: capability:normalization
+name: Normalization
+type: Capability

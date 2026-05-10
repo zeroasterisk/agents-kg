@@ -1,0 +1,6 @@
+aliases:
+- Read operation
+description: The ability to retrieve information.
+id: capability:read-operation
+name: Read Operation
+type: Capability

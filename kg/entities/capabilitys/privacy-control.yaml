@@ -1,0 +1,6 @@
+aliases: []
+description: Enables entities to control the privacy of their information, including
+  minimal, selective, and progressive disclosure of attributes or other data.
+id: capability:privacy-control
+name: Privacy Control
+type: Capability

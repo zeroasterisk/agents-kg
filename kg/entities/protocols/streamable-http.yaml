@@ -1,5 +1,6 @@
 aliases: []
-description: A transport protocol used by MCP for production-ready communication.
+description: A bidirectional HTTP transport protocol with improved connection management
+  and resumability.
 id: protocol:streamable-http
 kind: spec
 name: Streamable HTTP

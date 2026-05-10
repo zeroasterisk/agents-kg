@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to protect the integrity of a DID document using resource
+  hashes.
+id: capability:did-document-integrity-protection
+name: DID Document Integrity Protection
+type: Capability

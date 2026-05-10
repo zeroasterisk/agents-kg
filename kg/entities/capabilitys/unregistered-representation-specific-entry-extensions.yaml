@@ -1,0 +1,5 @@
+aliases: []
+description: Unregistered representation-specific entries for a DID document.
+id: capability:unregistered-representation-specific-entry-extensions
+name: Unregistered Representation-specific Entry Extensions
+type: Capability

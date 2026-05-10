@@ -1,0 +1,6 @@
+aliases: []
+description: The process of converting data, such as text descriptions, into numerical
+  vector representations.
+id: capability:vector-embedding
+name: Vector Embedding
+type: Capability

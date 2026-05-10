@@ -1,0 +1,6 @@
+aliases:
+- conforming representation
+description: A conforming format for a DID document.
+id: capability:did-representation
+name: DID Representation
+type: Capability

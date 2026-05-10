@@ -1,0 +1,5 @@
+aliases: []
+description: The ability for agents to be discovered.
+id: capability:agent-discoverability
+name: Agent Discoverability
+type: Capability

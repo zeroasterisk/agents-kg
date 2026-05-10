@@ -1,0 +1,6 @@
+aliases: []
+description: The entity that has the capability to make changes to a DID document.
+id: protocol:did-controller
+kind: spec
+name: DID Controller
+type: Protocol

@@ -1,0 +1,7 @@
+aliases: []
+description: A specification defining maps as finite ordered sequences of key/value
+  pairs.
+id: protocol:infra-spec
+kind: spec
+name: INFRA Specification
+type: Protocol

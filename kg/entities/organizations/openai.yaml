@@ -1,6 +1,5 @@
-aliases:
-- Open AI
-description: The company that develops ChatGPT.
+aliases: []
+description: An AI research and deployment company.
 id: organization:openai
 kind: company
 name: OpenAI

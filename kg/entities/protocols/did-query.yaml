@@ -1,0 +1,8 @@
+aliases:
+- DID query
+description: The portion of a DID URL that follows and includes the first question
+  mark character (?).
+id: protocol:did-query
+kind: standard
+name: DID Query
+type: Protocol

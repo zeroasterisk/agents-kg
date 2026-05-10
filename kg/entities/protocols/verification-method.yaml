@@ -1,0 +1,7 @@
+aliases:
+- verification methods
+description: A cryptographic key or other mechanism used to authenticate a DID subject.
+id: protocol:verification-method
+kind: spec
+name: Verification Method
+type: Protocol

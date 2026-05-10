@@ -1,0 +1,6 @@
+aliases: []
+description: Kafka's own consensus protocol for metadata management, replacing ZooKeeper.
+id: project:kraft
+kind: framework
+name: KRaft
+type: Project

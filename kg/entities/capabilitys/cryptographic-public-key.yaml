@@ -1,0 +1,7 @@
+aliases:
+- cryptographic public key
+description: A public key used for cryptographic operations, often expressed in a
+  DID document.
+id: capability:cryptographic-public-key
+name: Cryptographic Public Key
+type: Capability

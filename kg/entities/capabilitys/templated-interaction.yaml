@@ -1,0 +1,6 @@
+aliases:
+- Prompts
+description: The ability for an AI model to engage in structured, templated interactions.
+id: capability:templated-interaction
+name: Templated Interaction
+type: Capability

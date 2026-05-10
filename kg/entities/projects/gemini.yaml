@@ -1,0 +1,10 @@
+aliases:
+- Gemini 2.0
+- Gemini 2.5
+- Gemini Pro
+- Gemini Flash
+description: Google's family of multimodal large language models.
+id: project:gemini
+kind: platform
+name: Gemini
+type: Project

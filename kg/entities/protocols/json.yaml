@@ -1,0 +1,7 @@
+aliases:
+- JSON serialization rules
+description: A lightweight data-interchange format.
+id: protocol:json
+kind: spec
+name: JSON
+type: Protocol

@@ -1,0 +1,6 @@
+aliases: []
+description: A high-performance, open-source universal RPC framework.
+id: protocol:grpc
+kind: standard
+name: gRPC
+type: Protocol

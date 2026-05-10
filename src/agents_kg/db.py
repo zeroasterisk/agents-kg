@@ -273,6 +273,11 @@ class Database:
             (now, now, source_id),
         )
         self.conn.execute(
+            "UPDATE entities SET chunk_id = NULL, updated_at = ? "
+            "WHERE source_id = ? AND chunk_id IS NOT NULL AND (merged_into IS NOT NULL OR deprecated_at IS NOT NULL)",
+            (now, source_id),
+        )
+        self.conn.execute(
             "UPDATE edges SET chunk_id = NULL, updated_at = ? "
             "WHERE source_id = ?",
             (now, source_id),

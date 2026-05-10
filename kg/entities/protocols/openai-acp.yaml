@@ -1,0 +1,8 @@
+aliases:
+- OpenAI ACP
+- Payments ACP
+description: A protocol for handling agent payments, likely related to OpenAI's services.
+id: protocol:openai-acp
+kind: spec
+name: OpenAI Agent Payments Protocol
+type: Protocol

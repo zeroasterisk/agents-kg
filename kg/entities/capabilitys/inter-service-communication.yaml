@@ -1,0 +1,7 @@
+aliases:
+- inter-service communication
+description: The ability for different software services to communicate with each
+  other.
+id: capability:inter-service-communication
+name: Inter-service Communication
+type: Capability

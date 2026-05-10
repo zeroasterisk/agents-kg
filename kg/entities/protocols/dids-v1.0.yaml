@@ -1,0 +1,7 @@
+aliases:
+- DIDs v1.0
+description: A specification for Decentralized Identifiers.
+id: protocol:dids-v1.0
+kind: spec
+name: Decentralized Identifiers (DIDs) v1.0
+type: Protocol

@@ -1,0 +1,8 @@
+aliases:
+- Agent-to-UI
+- GenUI
+description: A protocol for agent-to-UI communication.
+id: protocol:a2ui
+kind: spec
+name: A2UI
+type: Protocol

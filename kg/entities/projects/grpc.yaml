@@ -1,0 +1,6 @@
+aliases: []
+description: A high-performance RPC framework.
+id: project:grpc
+kind: framework
+name: gRPC
+type: Project

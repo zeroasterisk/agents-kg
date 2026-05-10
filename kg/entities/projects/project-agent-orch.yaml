@@ -1,0 +1,6 @@
+aliases: []
+description: Coordinates multi-agent workflows
+id: us:project-agent-orch
+kind: service
+name: Agent Orchestrator
+type: Project

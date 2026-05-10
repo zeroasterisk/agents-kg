@@ -1,0 +1,6 @@
+aliases: []
+description: A standard for secure production identity framework for everyone.
+id: protocol:spiffe
+kind: standard
+name: SPIFFE
+type: Protocol

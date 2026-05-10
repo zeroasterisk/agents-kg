@@ -1,0 +1,7 @@
+aliases:
+- DID URL Syntax
+description: The syntax rules for DID URLs.
+id: protocol:did-url-syntax
+kind: spec
+name: DID URL Syntax
+type: Protocol

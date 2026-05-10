@@ -1,0 +1,6 @@
+aliases: []
+description: Makes it possible for entities to discover DIDs for other entities, to
+  learn more about or interact with those entities.
+id: capability:discoverability
+name: Discoverability
+type: Capability

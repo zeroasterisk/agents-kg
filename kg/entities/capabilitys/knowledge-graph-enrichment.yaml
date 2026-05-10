@@ -1,0 +1,6 @@
+aliases: []
+description: The process of adding more information and context to existing entities
+  within a knowledge graph.
+id: capability:knowledge-graph-enrichment
+name: Knowledge Graph Enrichment
+type: Capability

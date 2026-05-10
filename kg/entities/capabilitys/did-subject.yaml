@@ -1,0 +1,6 @@
+aliases:
+- DID Subject
+description: The entity that a DID is intended to identify.
+id: capability:did-subject
+name: DID Subject
+type: Capability

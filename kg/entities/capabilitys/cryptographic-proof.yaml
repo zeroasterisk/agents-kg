@@ -1,0 +1,6 @@
+aliases: []
+description: Enables DID controllers to provide cryptographic proof when interacting
+  with other entities.
+id: capability:cryptographic-proof
+name: Cryptographic Proof
+type: Capability

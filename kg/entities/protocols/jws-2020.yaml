@@ -1,0 +1,6 @@
+aliases: []
+description: JSON Web Signature 2020 cryptographic suite.
+id: protocol:jws-2020
+kind: spec
+name: JWS 2020
+type: Protocol

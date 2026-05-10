@@ -1,0 +1,6 @@
+aliases:
+- revoked
+description: The process of invalidating a previously issued credential or key.
+id: capability:revocation
+name: Revocation
+type: Capability

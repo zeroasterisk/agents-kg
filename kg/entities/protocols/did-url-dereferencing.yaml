@@ -1,0 +1,8 @@
+aliases:
+- DID URL dereferencing
+description: The process that takes as its input a DID URL and a set of input metadata,
+  and returns a resource.
+id: protocol:did-url-dereferencing
+kind: spec
+name: DID URL Dereferencing
+type: Protocol

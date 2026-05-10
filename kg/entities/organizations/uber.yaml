@@ -1,0 +1,6 @@
+aliases: []
+description: A multinational ride-sharing company.
+id: organization:uber
+kind: company
+name: Uber
+type: Organization

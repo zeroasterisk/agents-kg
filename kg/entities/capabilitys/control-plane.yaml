@@ -1,0 +1,5 @@
+aliases: []
+description: The component of Kubernetes that manages the cluster state.
+id: capability:control-plane
+name: Control Plane
+type: Capability

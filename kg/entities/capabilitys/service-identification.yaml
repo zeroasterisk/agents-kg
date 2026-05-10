@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to identify a specific service within a DID document by its
+  service ID.
+id: capability:service-identification
+name: Service Identification
+type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- Kafka
+description: A distributed event streaming platform.
+id: project:apache-kafka
+kind: platform
+name: Apache Kafka
+type: Project

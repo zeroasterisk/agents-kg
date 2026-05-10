@@ -1,0 +1,6 @@
+aliases: []
+description: A protocol for agent-to-UI communication.
+id: protocol:ag-ui
+kind: spec
+name: AG-UI
+type: Protocol

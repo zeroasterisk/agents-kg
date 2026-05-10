@@ -1,0 +1,8 @@
+aliases:
+- pub-sub
+description: A messaging pattern where senders of messages, called publishers, do
+  not broadcast messages to specific receivers, but instead categorize messages into
+  classes of services, without knowledge of which receivers, if any, there may be.
+id: capability:publish-subscribe
+name: Publish-Subscribe
+type: Capability

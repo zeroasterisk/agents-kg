@@ -1,0 +1,7 @@
+aliases:
+- extraction model
+description: A model used for extracting information and entities from text.
+id: project:extraction-model
+kind: model
+name: Extraction Model
+type: Project

@@ -1,6 +1,6 @@
 aliases:
-- '@modelcontextprotocol/inspector'
-description: A debugging and inspection tool for the Model Context Protocol.
+- Inspector
+description: A tool for inspecting MCP traffic.
 id: project:mcp-inspector
 kind: tool
 name: MCP Inspector

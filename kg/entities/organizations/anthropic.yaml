@@ -1,6 +1,7 @@
-aliases: []
-description: AI safety company, valued at $15B as of Jan 2024
-id: org:anthropic
+aliases:
+- Anthropic PBC
+description: AI company focused on safety and research.
+id: organization:anthropic
 kind: company
 name: Anthropic
 type: Organization

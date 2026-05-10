@@ -1,0 +1,6 @@
+aliases:
+- DID Parameters
+description: A parameter used in DID resolution or DID documents.
+id: capability:did-parameter
+name: DID Parameter
+type: Capability

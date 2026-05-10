@@ -1,0 +1,7 @@
+aliases:
+- Envoy
+description: A high-performance edge and service proxy for microservice architectures.
+id: project:envoy
+kind: proxy
+name: Envoy Proxy
+type: Project

@@ -1,0 +1,8 @@
+aliases:
+- entity resolution
+- entity linking
+description: The process of identifying and linking mentions of the same real-world
+  entity across different data sources.
+id: capability:entity-resolution
+name: Entity Resolution
+type: Capability

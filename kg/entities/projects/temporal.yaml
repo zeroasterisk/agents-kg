@@ -1,0 +1,7 @@
+aliases: []
+description: A distributed, scalable, durable, and highly available workflow orchestration
+  platform.
+id: project:temporal
+kind: framework
+name: Temporal
+type: Project

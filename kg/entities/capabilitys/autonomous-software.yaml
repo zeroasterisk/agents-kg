@@ -1,0 +1,6 @@
+aliases:
+- autonomous software
+description: Software that can act independently, potentially controlling a DID.
+id: capability:autonomous-software
+name: Autonomous Software
+type: Capability

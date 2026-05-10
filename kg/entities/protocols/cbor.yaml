@@ -1,0 +1,7 @@
+aliases: []
+description: Concise Binary Object Representation, a data format whose design goals
+  are explicitness, correctness, completeness, and simplicity.
+id: protocol:cbor
+kind: standard
+name: CBOR
+type: Protocol

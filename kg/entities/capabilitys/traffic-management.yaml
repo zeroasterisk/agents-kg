@@ -1,0 +1,5 @@
+aliases: []
+description: Controlling and directing network traffic flow.
+id: capability:traffic-management
+name: Traffic Management
+type: Capability

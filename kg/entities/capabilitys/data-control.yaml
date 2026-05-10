@@ -1,0 +1,6 @@
+aliases: []
+description: The ability for entities to control the revelation of their personal
+  or private data.
+id: capability:data-control
+name: Data Control
+type: Capability

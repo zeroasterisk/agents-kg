@@ -1,0 +1,6 @@
+aliases: []
+description: The company that develops Elasticsearch.
+id: organization:elastic
+kind: company
+name: Elastic
+type: Organization

@@ -1,0 +1,6 @@
+aliases: []
+description: A widely used graph database for knowledge graph applications.
+id: project:neo4j
+kind: database
+name: Neo4j
+type: Project

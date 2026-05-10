@@ -1,0 +1,8 @@
+aliases:
+- knowledge graphs
+description: A structured representation of knowledge, connecting entities and their
+  relationships.
+id: project:knowledge-graph
+kind: framework
+name: Knowledge Graph
+type: Project

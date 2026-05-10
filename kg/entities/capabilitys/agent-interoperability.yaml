@@ -1,0 +1,5 @@
+aliases: []
+description: The ability for different agents to work together.
+id: capability:agent-interoperability
+name: Agent Interoperability
+type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- Internet Engineering Task Force
+description: The Internet Engineering Task Force.
+id: organization:ietf
+kind: standards_body
+name: IETF
+type: Organization

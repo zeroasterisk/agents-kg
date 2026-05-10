@@ -1,0 +1,7 @@
+aliases: []
+description: A distributed key-value store that provides a reliable way to store data
+  for distributed systems.
+id: project:etcd
+kind: tool
+name: etcd
+type: Project

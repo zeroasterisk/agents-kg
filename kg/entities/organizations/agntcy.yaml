@@ -1,6 +1,7 @@
-aliases: []
-description: An organization
+aliases:
+- The Agency
+description: A consortium for agent development.
 id: organization:agntcy
-kind: foundation
+kind: consortium
 name: AGNTCY
 type: Organization

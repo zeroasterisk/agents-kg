@@ -1,0 +1,6 @@
+aliases:
+- assertionMethod
+description: The ability to assert claims or proofs.
+id: capability:assertion-method
+name: Assertion Method
+type: Capability

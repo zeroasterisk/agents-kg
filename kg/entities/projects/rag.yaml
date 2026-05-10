@@ -1,0 +1,7 @@
+aliases:
+- RAG
+description: A technique for improving LLM responses by retrieving relevant information.
+id: project:rag
+kind: framework
+name: Retrieval-Augmented Generation
+type: Project

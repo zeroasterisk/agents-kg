@@ -1,0 +1,8 @@
+aliases:
+- DID method specification
+description: Specifies the operations for creating, resolving, updating, and deactivating
+  DIDs and DID documents for a specific DID method scheme.
+id: protocol:did-method-spec
+kind: spec
+name: DID Method Specification
+type: Protocol

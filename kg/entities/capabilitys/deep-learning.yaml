@@ -1,0 +1,6 @@
+aliases: []
+description: A subset of machine learning that uses artificial neural networks with
+  multiple layers.
+id: capability:deep-learning
+name: Deep Learning
+type: Capability

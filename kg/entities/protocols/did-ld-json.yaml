@@ -1,0 +1,7 @@
+aliases:
+- application/did+ld+json
+description: A representation of a DID document using JSON-LD.
+id: protocol:did-ld-json
+kind: spec
+name: DID JSON-LD
+type: Protocol

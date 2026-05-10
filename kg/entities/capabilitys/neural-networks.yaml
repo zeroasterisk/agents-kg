@@ -1,0 +1,6 @@
+aliases: []
+description: A type of machine learning model inspired by the structure and function
+  of the human brain.
+id: capability:neural-networks
+name: Neural Networks
+type: Capability

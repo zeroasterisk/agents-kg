@@ -1,0 +1,7 @@
+aliases:
+- DID subject
+description: The entity identified by a DID and described by a DID document.
+id: protocol:did-subject
+kind: standard
+name: DID Subject
+type: Protocol

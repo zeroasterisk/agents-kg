@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to use predefined templates for generating prompts.
+id: capability:prompt-templating
+name: Prompt Templating
+type: Capability

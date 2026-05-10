@@ -1,0 +1,5 @@
+aliases: []
+description: A real number without a fractional component.
+id: capability:integer
+name: integer
+type: Capability

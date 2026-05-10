@@ -1,0 +1,7 @@
+aliases:
+- AGNTCY
+description: A comprehensive framework for building interoperable AI agent ecosystems.
+id: project:agncy
+kind: framework
+name: AGNTCY Framework
+type: Project

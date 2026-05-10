@@ -1,0 +1,6 @@
+aliases: []
+description: A marketplace for third-party applications provided by Apple.
+id: project:app-store
+kind: marketplace
+name: App Store
+type: Project

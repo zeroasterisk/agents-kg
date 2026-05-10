@@ -1,0 +1,6 @@
+aliases: []
+description: The ability of an AI model to process and understand information from
+  multiple modalities, such as text, images, and audio.
+id: capability:multi-modal-understanding
+name: Multi-modal Understanding
+type: Capability

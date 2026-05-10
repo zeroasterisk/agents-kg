@@ -1,6 +1,8 @@
 aliases:
-- elicitation
-description: The ability to involve human oversight or interaction in agent workflows.
+- HITL
+- human oversight
+- human review
+description: A process that involves human oversight or intervention in AI workflows.
 id: capability:human-in-the-loop
 name: Human-in-the-Loop
 type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- Ed25519 2020
+description: A specification for Ed25519 signatures.
+id: protocol:ed25519-signature-2020
+kind: spec
+name: Ed25519 Signature 2020
+type: Protocol

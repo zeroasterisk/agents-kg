@@ -1,0 +1,8 @@
+aliases:
+- Vertex AI Agent Engine
+- Vertex AI Agent Builder
+description: Google's AI platform for building and deploying machine learning models.
+id: project:vertex-ai
+kind: platform
+name: Vertex AI
+type: Project

@@ -1,7 +1,5 @@
-aliases:
-- server-discovery
-description: The ability for clients to discover server capabilities and metadata
-  without direct connection.
+aliases: []
+description: The ability for agents to find and identify other agents or services.
 id: capability:discovery
 name: Discovery
 type: Capability

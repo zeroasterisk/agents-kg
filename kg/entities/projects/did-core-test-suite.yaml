@@ -1,0 +1,7 @@
+aliases:
+- DID Core Test Suite issues
+description: A test suite for determining conformance with the DID Core specification.
+id: project:did-core-test-suite
+kind: tool
+name: DID Core Test Suite
+type: Project

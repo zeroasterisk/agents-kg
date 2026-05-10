@@ -1,0 +1,7 @@
+aliases:
+- Ed25519VerificationKey2020
+description: A verification method specification using Ed25519 keys.
+id: protocol:ed25519-2020
+kind: spec
+name: Ed25519VerificationKey2020
+type: Protocol

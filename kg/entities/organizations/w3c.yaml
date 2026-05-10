@@ -1,0 +1,7 @@
+aliases:
+- World Wide Web Consortium
+description: The World Wide Web Consortium, a standards organization.
+id: organization:w3c
+kind: standards_body
+name: W3C
+type: Organization

@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to store and retrieve container images.
+id: capability:container-image-hosting
+name: Container Image Hosting
+type: Capability

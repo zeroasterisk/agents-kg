@@ -1,0 +1,7 @@
+aliases: []
+description: A specification used for formally defining data models, including types
+  like string, set, and map.
+id: protocol:infra
+kind: spec
+name: INFRA
+type: Protocol
