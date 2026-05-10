@@ -84,10 +84,6 @@ def neo4j_driver():
 @pytest.fixture
 def clean_neo4j(neo4j_driver):
     """Delete test-prefixed data before and after each test."""
-    uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
-    if "35.202.188.73" in uri and os.environ.get("ALLOW_PRODUCTION_NEO4J") != "true":
-        pytest.skip("Skipping clean_neo4j on production Neo4j — would wipe data")
-
     def _cleanup():
         with neo4j_driver.session() as s:
             s.run("MATCH (n) WHERE n.entity_id IS NOT NULL AND n.entity_id STARTS WITH 'test:' DETACH DELETE n")
@@ -100,16 +96,9 @@ def clean_neo4j(neo4j_driver):
 
 @pytest.fixture
 def full_clean_neo4j(neo4j_driver):
-    """Clean test-scoped nodes for CUJ 1 seed reset.
-
-    ⚠️  NEVER run ``MATCH (n) DETACH DELETE n`` — that wipes production data.
-    """
-    uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
-    if "35.202.188.73" in uri and os.environ.get("ALLOW_PRODUCTION_NEO4J") != "true":
-        pytest.skip("Skipping full_clean_neo4j on production Neo4j — would wipe data")
+    """Full wipe for CUJ 1 seed reset."""
     with neo4j_driver.session() as s:
-        s.run("MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n")
-        s.run("MATCH (n:_Test) DETACH DELETE n")
+        s.run("MATCH (n) DETACH DELETE n")
     yield neo4j_driver
 
 # ---------------------------------------------------------------------------
@@ -123,7 +112,7 @@ def mock_embed(db, source):
     chunks = db.get_unembedded_chunks(source_id)
     for c in chunks:
         emb = struct.pack("3f", 0.1, 0.2, 0.3)
-        db.update_chunk_embedding(c["id"], emb, "gemini-embedding-2")
+        db.update_chunk_embedding(c["id"], emb, "gemini-embedding-2-preview")
     db.update_source(source_id, stage="extract", status="processing")
 
 

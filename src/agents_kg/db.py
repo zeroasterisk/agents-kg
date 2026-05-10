@@ -123,15 +123,8 @@ class Database:
     # --- Sources ---
 
     def add_source(self, uri: str, title: Optional[str] = None, source_type: str = "url",
-                   submitter_email: Optional[str] = None, force: bool = False) -> Optional[int]:
-        """Add a source. Returns id or None if duplicate.
-
-        When force=True, bypasses URI dedup by appending a #reingest fragment.
-        Old source records are preserved; HTTP clients strip fragments per RFC.
-        """
-        # TODO: detect when a URL's content has changed (via MD5 of fetched
-        # content) and trigger a re-ingest automatically, instead of requiring
-        # manual force=true calls.
+                   submitter_email: Optional[str] = None) -> Optional[int]:
+        """Add a source. Returns id or None if duplicate."""
         now = _now()
         store_uri = uri
         if force:
@@ -140,7 +133,7 @@ class Database:
         try:
             cur = self.conn.execute(
                 "INSERT INTO sources (uri, title, type, submitter_email, status, stage, created_at, updated_at) VALUES (?, ?, ?, ?, 'pending', 'fetch', ?, ?)",
-                (store_uri, title, source_type, submitter_email, now, now),
+                (uri, title, source_type, submitter_email, now, now),
             )
             self.conn.commit()
             return cur.lastrowid
@@ -295,11 +288,6 @@ class Database:
             "UPDATE entities SET deprecated_at = ?, chunk_id = NULL, updated_at = ? "
             "WHERE source_id = ? AND merged_into IS NULL AND deprecated_at IS NULL",
             (now, now, source_id),
-        )
-        self.conn.execute(
-            "UPDATE entities SET chunk_id = NULL, updated_at = ? "
-            "WHERE source_id = ? AND chunk_id IS NOT NULL AND (merged_into IS NOT NULL OR deprecated_at IS NOT NULL)",
-            (now, source_id),
         )
         self.conn.execute(
             "UPDATE edges SET chunk_id = NULL, updated_at = ? "
