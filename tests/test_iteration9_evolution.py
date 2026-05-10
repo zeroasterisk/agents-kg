@@ -5,8 +5,21 @@ news, deprecations, corrections, and temporal snapshot verification.
 """
 
 import json
+import os
+import tempfile
 from datetime import datetime, timezone, timedelta
 import pytest
+from agents_kg.db import Database
+
+
+@pytest.fixture
+def db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        path = f.name
+    d = Database(path)
+    yield d
+    d.close()
+    os.unlink(path)
 
 
 def _make_date(day_offset: int) -> str:

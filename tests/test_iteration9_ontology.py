@@ -5,10 +5,22 @@ new types, renamed types, unknown types, and prompt-ontology alignment.
 """
 
 import json
+import os
+import tempfile
 import pytest
 from agents_kg.db import Database
 from agents_kg.stages import extract as extract_stage
 from agents_kg.stages import load as load_stage
+
+
+@pytest.fixture
+def db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        path = f.name
+    d = Database(path)
+    yield d
+    d.close()
+    os.unlink(path)
 
 
 # ---------------------------------------------------------------------------
@@ -49,11 +61,15 @@ class TestNewEntityType:
         assert ":Entity," in query or "n:Entity" in query
         assert params["type"] == "DataSource"
 
-    def test_adding_type_to_valid_set_enables_extraction(self, monkeypatch):
+    def test_adding_type_to_valid_set_enables_extraction(self):
         """Simulates extending VALID_ENTITY_TYPES with a new type."""
-        extended = extract_stage.VALID_ENTITY_TYPES | {"DataSource"}
-        monkeypatch.setattr(extract_stage, "VALID_ENTITY_TYPES", extended)
-        assert "DataSource" in extract_stage.VALID_ENTITY_TYPES
+        original = extract_stage.VALID_ENTITY_TYPES.copy()
+        try:
+            extract_stage.VALID_ENTITY_TYPES.add("DataSource")
+            assert "DataSource" in extract_stage.VALID_ENTITY_TYPES
+        finally:
+            extract_stage.VALID_ENTITY_TYPES.clear()
+            extract_stage.VALID_ENTITY_TYPES.update(original)
 
     def test_all_valid_types_produce_proper_labels(self):
         """Every valid entity type in the ontology gets its own Neo4j label."""
@@ -114,11 +130,15 @@ class TestNewEdgeType:
         query, _ = load_stage._edge_to_cypher(edge)
         assert "FUNDED_BY" in query
 
-    def test_adding_edge_to_valid_set(self, monkeypatch):
+    def test_adding_edge_to_valid_set(self):
         """Simulates extending VALID_EDGE_TYPES with a new type."""
-        extended = extract_stage.VALID_EDGE_TYPES | {"FUNDED_BY"}
-        monkeypatch.setattr(extract_stage, "VALID_EDGE_TYPES", extended)
-        assert "FUNDED_BY" in extract_stage.VALID_EDGE_TYPES
+        original = extract_stage.VALID_EDGE_TYPES.copy()
+        try:
+            extract_stage.VALID_EDGE_TYPES.add("FUNDED_BY")
+            assert "FUNDED_BY" in extract_stage.VALID_EDGE_TYPES
+        finally:
+            extract_stage.VALID_EDGE_TYPES.clear()
+            extract_stage.VALID_EDGE_TYPES.update(original)
 
     def test_all_valid_edge_types_are_uppercase(self):
         """Convention: edge types are UPPER_SNAKE_CASE."""
@@ -298,8 +318,8 @@ class TestOntologyPromptAlignment:
         assert len(extract_stage.VALID_EDGE_TYPES) == 15
 
     def test_prompt_entity_count_matches_code(self):
-        """The prompt defines exactly 7 entity types (including Concept)."""
-        assert len(extract_stage.VALID_ENTITY_TYPES) == 7
+        """The prompt defines exactly 6 entity types."""
+        assert len(extract_stage.VALID_ENTITY_TYPES) == 6
 
     def test_edge_types_are_all_documented(self):
         """Every edge type in the code set appears in the edge direction rules."""

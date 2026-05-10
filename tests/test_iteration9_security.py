@@ -8,7 +8,9 @@ import json
 import os
 import re
 import ast
+import tempfile
 import pytest
+from agents_kg.db import Database
 from agents_kg.stages import load as load_stage
 from agents_kg.stages import extract as extract_stage
 
@@ -16,6 +18,16 @@ from agents_kg.stages import extract as extract_stage
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        path = f.name
+    d = Database(path)
+    yield d
+    d.close()
+    os.unlink(path)
 
 
 # ---------------------------------------------------------------------------
@@ -329,8 +341,8 @@ class TestParameterizedQueries:
 
     def test_extract_py_validates_entity_types(self):
         """extract.py rejects entity types not in VALID_ENTITY_TYPES."""
-        assert len(extract_stage.VALID_ENTITY_TYPES) == 7
-        for t in ["Organization", "Group", "Person", "Project", "Protocol", "Capability", "Concept"]:
+        assert len(extract_stage.VALID_ENTITY_TYPES) == 6
+        for t in ["Organization", "Group", "Person", "Project", "Protocol", "Capability"]:
             assert t in extract_stage.VALID_ENTITY_TYPES
 
     def test_extract_py_validates_edge_types(self):

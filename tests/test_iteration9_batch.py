@@ -5,10 +5,22 @@ batch-loading to Neo4j, approving all, and retrying all failed.
 """
 
 import json
+import os
+import tempfile
 import pytest
 from click.testing import CliRunner
 from agents_kg.cli import cli
 from agents_kg.db import Database
+
+
+@pytest.fixture
+def db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        path = f.name
+    d = Database(path)
+    yield d
+    d.close()
+    os.unlink(path)
 
 
 @pytest.fixture
