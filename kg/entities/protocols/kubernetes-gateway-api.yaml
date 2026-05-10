@@ -1,7 +1,6 @@
 aliases:
 - Gateway API
-description: The next-generation ingress specification for Kubernetes providing expressive
-  routing for HTTP and TCP traffic.
+description: The next-generation ingress specification for Kubernetes.
 id: protocol:kubernetes-gateway-api
 kind: spec
 name: Kubernetes Gateway API

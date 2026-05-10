@@ -1,7 +1,6 @@
 aliases:
-- function calling
 - tool calling
-description: The ability of an agent to use external tools or functions.
+description: The ability of an AI application to use external tools.
 id: capability:tool-use
 name: Tool Use
 type: Capability

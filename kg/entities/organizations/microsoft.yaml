@@ -1,7 +1,6 @@
 aliases:
 - Microsoft Corp
-- MSFT
-description: A technology company that has adopted MCP.
+description: A technology company that developed C# as part of the .NET initiative.
 id: organization:microsoft
 kind: company
 name: Microsoft
