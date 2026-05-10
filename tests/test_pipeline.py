@@ -1,19 +1,7 @@
 """Tests for the agents-kg pipeline."""
 
-import os
-import tempfile
 import pytest
 from agents_kg.db import Database, content_hash
-
-
-@pytest.fixture
-def db():
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        path = f.name
-    d = Database(path)
-    yield d
-    d.close()
-    os.unlink(path)
 
 
 class TestDatabase:

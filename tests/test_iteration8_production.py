@@ -183,22 +183,18 @@ class TestSQLiteLockContention:
 
 class TestSPARQLTimeout:
 
-    def test_sparql_timeout_raises(self):
+    def test_sparql_timeout_raises(self, monkeypatch):
         """SPARQL endpoint timeout should raise, not silently succeed."""
         import httpx
         from agents_kg import wikidata
 
-        original_rate = wikidata.RATE_LIMIT
-        wikidata.RATE_LIMIT = 0.0
-        wikidata._last_request_time = 0.0
-        try:
-            with patch.object(httpx, "post", side_effect=httpx.ReadTimeout("SPARQL timed out")):
-                with pytest.raises(httpx.ReadTimeout):
-                    wikidata.sparql_query("SELECT * WHERE { ?s ?p ?o } LIMIT 1", retries=1)
-        finally:
-            wikidata.RATE_LIMIT = original_rate
+        monkeypatch.setattr(wikidata, "RATE_LIMIT", 0.0)
+        monkeypatch.setattr(wikidata, "_last_request_time", 0.0)
+        with patch.object(httpx, "post", side_effect=httpx.ReadTimeout("SPARQL timed out")):
+            with pytest.raises(httpx.ReadTimeout):
+                wikidata.sparql_query("SELECT * WHERE { ?s ?p ?o } LIMIT 1", retries=1)
 
-    def test_sparql_server_error_raises(self):
+    def test_sparql_server_error_raises(self, monkeypatch):
         """SPARQL 500 error should raise after retries exhausted."""
         import httpx
         from agents_kg import wikidata
@@ -212,15 +208,11 @@ class TestSPARQLTimeout:
             response=MagicMock(status_code=500),
         )
 
-        original_rate = wikidata.RATE_LIMIT
-        wikidata.RATE_LIMIT = 0.0
-        wikidata._last_request_time = 0.0
-        try:
-            with patch.object(httpx, "post", return_value=mock_resp):
-                with pytest.raises(httpx.HTTPStatusError):
-                    wikidata.sparql_query("SELECT * WHERE { ?s ?p ?o }", retries=1)
-        finally:
-            wikidata.RATE_LIMIT = original_rate
+        monkeypatch.setattr(wikidata, "RATE_LIMIT", 0.0)
+        monkeypatch.setattr(wikidata, "_last_request_time", 0.0)
+        with patch.object(httpx, "post", return_value=mock_resp):
+            with pytest.raises(httpx.HTTPStatusError):
+                wikidata.sparql_query("SELECT * WHERE { ?s ?p ?o }", retries=1)
 
 
 # ---------------------------------------------------------------------------

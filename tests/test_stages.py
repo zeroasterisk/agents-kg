@@ -3,7 +3,7 @@
 import json
 import struct
 import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 from agents_kg.db import Database, content_hash
 
 
@@ -236,31 +236,6 @@ class TestEmbedStage:
 
         mock_client = MagicMock()
         mock_client.models.embed_content.return_value = mock_result
-
-        with patch("agents_kg.stages.embed.genai", create=True) as mock_genai:
-            # Patch the import inside the function
-            with patch.dict("sys.modules", {"google": MagicMock(), "google.genai": MagicMock()}):
-                with patch("agents_kg.stages.embed.run", wraps=None):
-                    # Directly test by mocking at module level
-                    pass
-
-        # Simpler approach: mock the whole run and test DB transitions
-        # Actually let's mock google.genai properly
-        mock_genai_module = MagicMock()
-        mock_genai_module.Client.return_value = mock_client
-
-        import sys
-        with patch.dict(sys.modules, {"google": MagicMock(), "google.genai": mock_genai_module}):
-            # Need to reimport
-            import importlib
-            from agents_kg.stages import embed as embed_mod
-            importlib.reload(embed_mod)
-            # But the import is inside the function, so just patch it
-            pass
-
-        # Simplest: patch inside run
-        from agents_kg.stages import embed as embed_mod
-        original_run = embed_mod.run
 
         def mock_run(db, source):
             # Simulate what embed.run does with mocked API
@@ -571,6 +546,3 @@ class TestLoadStage:
         # No approved entities/edges
         result = run(db, source)
         assert result is True
-
-
-import json

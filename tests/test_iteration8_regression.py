@@ -5,12 +5,10 @@ re-introduction. Each test documents the original bug and fix.
 """
 
 import os
-import tempfile
 
 import pytest
 from unittest.mock import patch
 
-from agents_kg.db import Database
 from agents_kg.seed import SEED_ENTITIES
 from agents_kg.stages import chunk, parse
 
@@ -18,15 +16,6 @@ from agents_kg.stages import chunk, parse
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
-@pytest.fixture
-def db():
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        path = f.name
-    d = Database(path)
-    yield d
-    d.close()
-    os.unlink(path)
 
 
 # ---------------------------------------------------------------------------

@@ -5,15 +5,12 @@ of edges, source/chunk traceability, and wikidata ID format correctness.
 """
 
 import json
-import os
 import re
-import tempfile
 
 import pytest
 import yaml
 from pathlib import Path
 
-from agents_kg.db import Database
 from agents_kg.seed import get_seed_entities, SEED_ENTITIES
 from agents_kg.stages import parse, chunk, load
 from agents_kg.stages.extract import VALID_ENTITY_TYPES, VALID_EDGE_TYPES
@@ -22,15 +19,6 @@ from agents_kg.stages.extract import VALID_ENTITY_TYPES, VALID_EDGE_TYPES
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
-
-@pytest.fixture
-def db():
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        path = f.name
-    d = Database(path)
-    yield d
-    d.close()
-    os.unlink(path)
 
 
 def _build_populated_db(db, n_sources=2, n_entities_per=3):

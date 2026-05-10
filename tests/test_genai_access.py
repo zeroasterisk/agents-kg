@@ -1,5 +1,4 @@
 import os
-import sys
 import pytest
 from google import genai
 from google.genai import types
@@ -45,29 +44,17 @@ def test_genai_access():
             contents="Hello, are you working?",
             config=config
         )
-        print(f"Generation response: {response.text}")
-        print("Generation SUCCESS")
+        assert response.text, "Generation returned empty text"
     except Exception as e:
-        print(f"Generation FAILED: {e}")
-        return False
+        pytest.fail(f"Generation FAILED: {e}")
 
     # Test embedding
     embed_model = "gemini-embedding-2-preview"
-    print(f"Testing embedding with model: {embed_model} at location: us-central1")
-    
     try:
         result = client_embed.models.embed_content(
             model=embed_model,
             contents="Hello world",
         )
-        print(f"Embedding successful, got {len(result.embeddings)} embeddings")
-        print("Embedding SUCCESS")
+        assert len(result.embeddings) > 0, "Embedding returned no results"
     except Exception as e:
-        print(f"Embedding FAILED: {e}")
-        return False
-
-    return True
-
-if __name__ == "__main__":
-    success = test_genai_access()
-    sys.exit(0 if success else 1)
+        pytest.fail(f"Embedding FAILED: {e}")

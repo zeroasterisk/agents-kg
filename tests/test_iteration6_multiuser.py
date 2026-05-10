@@ -4,21 +4,8 @@ Simulates three users ingesting different content types with distinct submitter 
 then verifies provenance tracking, entity merging, source isolation, and deprecation behavior.
 """
 
-import os
-import tempfile
 import pytest
-from agents_kg.db import Database
 from agents_kg.stages import parse, chunk
-
-
-@pytest.fixture
-def db():
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        path = f.name
-    d = Database(path)
-    yield d
-    d.close()
-    os.unlink(path)
 
 
 RESEARCHER_EMAIL = "alice@university.edu"

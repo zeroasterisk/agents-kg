@@ -4,22 +4,10 @@ Tests each pipeline stage independently with controlled inputs,
 verifies failure isolation, stage progression, and retry behavior.
 """
 
-import os
-import tempfile
 import pytest
-from agents_kg.db import Database, content_hash
+from agents_kg.db import content_hash
 from agents_kg.stages import parse, chunk
 from agents_kg.pipeline import STAGE_ORDER
-
-
-@pytest.fixture
-def db():
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        path = f.name
-    d = Database(path)
-    yield d
-    d.close()
-    os.unlink(path)
 
 
 # ── Stage order and progression ──────────────────────────────────────────────
