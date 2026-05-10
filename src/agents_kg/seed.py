@@ -112,7 +112,7 @@ SEED_ENTITIES = [
     {"entity_id": "project:chatgpt", "name": "ChatGPT", "type": "Project", "kind": "platform",
      "aliases": ["GPT-4", "GPT-4o"]},
     {"entity_id": "project:langchain", "name": "LangChain", "type": "Project", "kind": "framework",
-     "aliases": ["LangGraph", "LangSmith"]},
+     "aliases": ["LangSmith"]},
     {"entity_id": "project:langgraph", "name": "LangGraph", "type": "Project", "kind": "framework",
      "aliases": []},
     {"entity_id": "project:mcp-sdk-typescript", "name": "MCP TypeScript SDK", "type": "Project", "kind": "sdk",
