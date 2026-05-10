@@ -1,11 +1,23 @@
 """Iteration 6: Data export, YAML well-formedness, and round-trip tests."""
 
 import json
+import os
+import tempfile
 import pytest
 import yaml
 from pathlib import Path
 from agents_kg.db import Database
 from agents_kg.stages.load import _export_yaml, _entity_to_cypher, _edge_to_cypher
+
+
+@pytest.fixture
+def db():
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        path = f.name
+    d = Database(path)
+    yield d
+    d.close()
+    os.unlink(path)
 
 
 @pytest.fixture
