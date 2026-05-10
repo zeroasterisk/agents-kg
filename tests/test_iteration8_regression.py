@@ -193,6 +193,10 @@ class TestNeo4jDefaultURIRegression:
 
     def test_neo4j_integration_test_uses_localhost(self):
         """Integration test module defaults to localhost, not Docker hostname."""
-        import tests.test_neo4j_integration as mod
-        assert "localhost" in mod.NEO4J_URI, \
-            f"Integration tests should default to localhost, got {mod.NEO4J_URI}"
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("NEO4J_URI", None)
+            import importlib
+            import tests.test_neo4j_integration as mod
+            importlib.reload(mod)
+            assert "localhost" in mod.NEO4J_URI, \
+                f"Integration tests should default to localhost, got {mod.NEO4J_URI}"
