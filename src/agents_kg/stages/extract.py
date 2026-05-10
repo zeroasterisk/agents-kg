@@ -190,15 +190,21 @@ def run(db: Database, source: dict) -> bool:
 
         for edge in data.get("edges", []):
             edge_type = edge.get("edge_type", "")
+            src_eid = edge.get("source_entity_id")
+            tgt_eid = edge.get("target_entity_id")
+            if not src_eid or not tgt_eid:
+                _log().warning("Skipping edge with missing endpoint: src=%s, tgt=%s, type=%s",
+                             src_eid, tgt_eid, edge_type)
+                continue
             if edge_type not in VALID_EDGE_TYPES:
                 _log().warning("Skipping edge with invalid type %r: %s -> %s",
-                             edge_type, edge.get("source_entity_id"), edge.get("target_entity_id"))
+                             edge_type, src_eid, tgt_eid)
                 continue
-            edge_id = _make_edge_id(edge["source_entity_id"], edge["target_entity_id"], edge_type)
+            edge_id = _make_edge_id(src_eid, tgt_eid, edge_type)
             db.add_edge(
                 edge_id=edge_id,
-                source_entity_id=edge["source_entity_id"],
-                target_entity_id=edge["target_entity_id"],
+                source_entity_id=src_eid,
+                target_entity_id=tgt_eid,
                 edge_type=edge_type,
                 properties=edge.get("properties"),
                 confidence=edge.get("confidence", 0.5),
