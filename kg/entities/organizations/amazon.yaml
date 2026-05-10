@@ -1,7 +1,5 @@
-aliases:
-- AWS
-description: Provider of cloud infrastructure services via AWS.
-id: organization:amazon
+aliases: []
+id: org:amazon
 kind: company
 name: Amazon
 type: Organization

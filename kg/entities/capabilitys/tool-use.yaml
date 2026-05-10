@@ -1,8 +1,5 @@
-aliases:
-- tool calling
-- tools
-description: The ability of an agent to execute external tools and functions.
-id: capability:tool-use
-kind: function
+aliases: []
+id: cap:tool-use
+kind: feature
 name: Tool Use
 type: Capability

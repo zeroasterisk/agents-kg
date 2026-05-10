@@ -1,8 +1,5 @@
-aliases:
-- MCP
-description: An open protocol developed by Anthropic that standardizes how AI applications
-  connect to external data sources and tools.
+aliases: []
 id: protocol:mcp
 kind: spec
-name: Model Context Protocol
+name: MCP
 type: Protocol

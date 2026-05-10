@@ -1,6 +1,4 @@
-aliases:
-- LangChain framework
-description: A modular framework for building applications powered by language models.
+aliases: []
 id: project:langchain
 kind: framework
 name: LangChain

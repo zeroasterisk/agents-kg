@@ -1,7 +1,6 @@
-aliases:
-- Anthropic PBC
-description: Anthropic PBC, creators of Claude and the Model Context Protocol.
-id: organization:anthropic
+aliases: []
+description: AI safety company, valued at $15B as of Jan 2024
+id: org:anthropic
 kind: company
 name: Anthropic
 type: Organization
