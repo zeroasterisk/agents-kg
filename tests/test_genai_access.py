@@ -1,11 +1,15 @@
 import os
 import sys
+import pytest
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
+_has_genai_creds = bool(os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+
+@pytest.mark.skipif(not _has_genai_creds, reason="No Gemini/Vertex AI credentials configured")
 def test_genai_access():
     kwargs_gen = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
