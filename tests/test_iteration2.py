@@ -315,9 +315,7 @@ class TestNegativeInputs:
         run_chunk(db, source)
 
         chunks = db.get_chunks(sid)
-        assert len(chunks) >= 1
-        for c in chunks:
-            assert c["text"].strip() == ""
+        assert len(chunks) == 0
 
     def test_very_long_document(self, db):
         """Repeated content produces chunks without crashing."""
