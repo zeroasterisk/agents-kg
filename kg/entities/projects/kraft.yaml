@@ -1,7 +1,6 @@
-aliases:
-- Kafka Raft
-description: Kafka Raft metadata mode for managing cluster metadata.
+aliases: []
+description: Kafka's own consensus protocol for metadata management, replacing ZooKeeper.
 id: project:kraft
-kind: protocol
+kind: framework
 name: KRaft
 type: Project

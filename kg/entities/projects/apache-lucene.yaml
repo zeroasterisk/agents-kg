@@ -1,5 +1,6 @@
 aliases: []
-description: Search engine software library.
+description: A high-performance, full-featured text search engine library written
+  entirely in Java.
 id: project:apache-lucene
 kind: library
 name: Apache Lucene

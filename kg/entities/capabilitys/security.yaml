@@ -1,6 +1,5 @@
-aliases:
-- resource permission model
-description: Agent security and resource protection capabilities.
+aliases: []
+description: The state of being free from danger or threat.
 id: capability:security
 kind: feature
 name: Security

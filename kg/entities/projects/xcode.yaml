@@ -1,6 +1,6 @@
 aliases: []
 description: An integrated development environment developed by Apple.
 id: project:xcode
-kind: tool
+kind: ide
 name: Xcode
 type: Project

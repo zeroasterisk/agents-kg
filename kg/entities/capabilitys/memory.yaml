@@ -1,6 +1,8 @@
 aliases:
-- persistent memory layer
-description: Persistent memory layer that enables agents to store and retrieve information.
+- context memory
+- long-term memory
+- short-term memory
+description: The ability of an AI to store and retrieve information.
 id: capability:memory
 kind: function
 name: Memory

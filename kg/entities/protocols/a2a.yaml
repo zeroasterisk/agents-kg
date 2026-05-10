@@ -1,6 +1,7 @@
-aliases: []
-description: Agent-to-Agent protocol for multi-agent orchestration
+aliases:
+- A2A protocol
+description: A protocol for communication between agents.
 id: protocol:a2a
 kind: spec
-name: A2A
+name: Agent-to-Agent Protocol
 type: Protocol

@@ -1,7 +1,5 @@
-aliases:
-- auth
-- identity verification
-description: Verifying the identity of a user or system.
+aliases: []
+description: The process of verifying the identity of a user or system.
 id: capability:authentication
 kind: function
 name: Authentication

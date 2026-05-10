@@ -1,7 +1,6 @@
 aliases:
 - Kafka
-description: A distributed event streaming platform for high-throughput, low-latency
-  message queuing.
+description: A distributed event streaming platform.
 id: project:apache-kafka
 kind: platform
 name: Apache Kafka

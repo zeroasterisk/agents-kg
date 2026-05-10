@@ -1,5 +1,5 @@
 aliases: []
-description: A frontier model for heavy lifting of initial planning and complex reasoning.
+description: A specific version of the Gemini large language model.
 id: project:gemini-2.5-pro
 kind: platform
 name: Gemini 2.5 Pro

@@ -1,7 +1,6 @@
-aliases:
-- User Input Elicitation
-description: The ability for servers to request structured input, decisions, or confirmations
-  from a user through a client.
+aliases: []
+description: The ability for a server to request structured input from a user through
+  a client.
 id: capability:elicitation
 kind: feature
 name: Elicitation

@@ -1,7 +1,6 @@
 aliases: []
-description: A cybersecurity research and technology firm that identifies security
-  vulnerabilities.
-id: organization:trail-of-bits
+description: A cybersecurity research company.
+id: project:trail-of-bits
 kind: company
 name: Trail of Bits
 type: Organization

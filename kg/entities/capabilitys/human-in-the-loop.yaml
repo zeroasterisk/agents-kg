@@ -2,7 +2,7 @@ aliases:
 - HITL
 - human oversight
 - human review
-description: Involving human oversight and review in automated operations.
+description: A process that involves human oversight or intervention in AI workflows.
 id: capability:human-in-the-loop
 kind: feature
 name: Human-in-the-Loop

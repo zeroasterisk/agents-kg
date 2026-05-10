@@ -1,7 +1,6 @@
-aliases:
-- UMN
-description: A public research university in Minneapolis and Saint Paul, Minnesota.
+aliases: []
+description: The University of Minnesota developed the Honeycrisp apple variety.
 id: organization:university-of-minnesota
-kind: foundation
+kind: company
 name: University of Minnesota
 type: Organization

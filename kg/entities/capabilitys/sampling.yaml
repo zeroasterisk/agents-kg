@@ -1,6 +1,5 @@
 aliases: []
-description: The ability for an MCP server to request LLM completions or generation
-  from the client.
+description: A capability for sampling model outputs.
 id: capability:sampling
 kind: feature
 name: Sampling

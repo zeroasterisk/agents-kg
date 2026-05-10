@@ -1,5 +1,5 @@
 aliases: []
-description: The ability of an agent to securely read and access external data sources.
+description: The ability of an AI agent to access external resources.
 id: capability:resource-access
 kind: feature
 name: Resource Access

@@ -1,8 +1,6 @@
-aliases:
-- Cypher query language
-description: Graph query language that enables expressive pattern matching across
-  complex relationship structures.
+aliases: []
+description: A declarative graph query language enabling expressive pattern matching.
 id: protocol:cypher
-kind: spec
+kind: query language
 name: Cypher
 type: Protocol

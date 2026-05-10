@@ -1,6 +1,5 @@
-aliases:
-- Open AI
-description: OpenAI is an artificial intelligence research organization and company.
+aliases: []
+description: An AI research and deployment company.
 id: organization:openai
 kind: company
 name: OpenAI

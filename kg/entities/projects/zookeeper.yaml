@@ -1,8 +1,7 @@
-aliases:
-- ZooKeeper
+aliases: []
 description: A centralized service for maintaining configuration information, naming,
   providing distributed synchronization, and providing group services.
 id: project:zookeeper
-kind: tool
-name: Apache ZooKeeper
+kind: framework
+name: ZooKeeper
 type: Project

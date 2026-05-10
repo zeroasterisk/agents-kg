@@ -1,6 +1,6 @@
-aliases:
-- OAuth
-description: An authorization framework for token-based authentication and authorization.
+aliases: []
+description: An authorization framework that enables applications to obtain limited
+  access to user accounts on an HTTP service.
 id: protocol:oauth-2.1
 kind: standard
 name: OAuth 2.1

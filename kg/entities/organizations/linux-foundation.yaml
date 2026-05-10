@@ -1,7 +1,7 @@
 aliases:
-- CNCF
-description: Cloud Native Computing Foundation (CNCF) is a vendor-neutral home for
-  cloud-native projects.
+- LF
+description: A non-profit technology consortium supporting and sustaining open source
+  projects.
 id: organization:linux-foundation
 kind: foundation
 name: Cloud Native Computing Foundation

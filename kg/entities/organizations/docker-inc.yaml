@@ -1,7 +1,6 @@
-aliases:
-- Docker Inc
-description: Company that developed the Docker containerization platform.
+aliases: []
+description: The company that developed Docker.
 id: organization:docker-inc
 kind: company
-name: Docker Inc.
+name: Docker Inc
 type: Organization

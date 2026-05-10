@@ -1,6 +1,6 @@
 aliases: []
-description: The primary node agent that runs on each worker node in a Kubernetes
-  cluster.
+description: An agent that runs on each worker node in a Kubernetes cluster and ensures
+  that containers are running in a Pod.
 id: project:kubelet
 kind: tool
 name: Kubelet

@@ -2,9 +2,7 @@ aliases:
 - OpenAPI
 - OAS
 - Swagger
-description: A longstanding standard that provides a structured contract describing
-  a tool's purpose, parameters, and expected response, enabling agents to perform
-  function calling.
+description: A standard for describing RESTful APIs.
 id: protocol:openapi
 kind: standard
 name: OpenAPI Specification
