@@ -101,16 +101,14 @@ def _compute_entity_embeddings(db: Database, entities: list[dict], log):
         return
 
     log.info("Computing embeddings for %d entities", len(to_embed))
-    texts = [e["description"] or e["name"] for e in to_embed]
-    
     try:
-        result = client.models.embed_content(
-            model=EMBEDDING_MODEL,
-            contents=texts,
-        )
-        
-        for ent, embedding in zip(to_embed, result.embeddings):
-            emb_bytes = _floats_to_bytes(embedding.values)
+        for ent in to_embed:
+            text = ent["description"] or ent["name"]
+            result = client.models.embed_content(
+                model=EMBEDDING_MODEL,
+                contents=text,
+            )
+            emb_bytes = _floats_to_bytes(result.embeddings[0].values)
             db.conn.execute(
                 "UPDATE entities SET embedding = ? WHERE id = ?",
                 (emb_bytes, ent["id"])
