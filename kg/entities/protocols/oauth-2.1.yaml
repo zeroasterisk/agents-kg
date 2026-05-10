@@ -1,6 +1,8 @@
-aliases: []
-description: An authorization framework that enables applications to obtain limited
-  access to user accounts on an HTTP service.
+aliases:
+- OAuth 2.0
+description: An open standard for access delegation, commonly used as a way for Internet
+  users to grant websites or applications access to their information on the internet
+  without giving them the passwords.
 id: protocol:oauth-2.1
 kind: standard
 name: OAuth 2.1

@@ -1,7 +1,8 @@
 aliases:
-- custom agents
 - multi-agent
-description: Systems involving multiple autonomous agents interacting with each other.
+- MAS
+- multi-agent collaboration
+description: The ability for multiple AI agents to collaborate and interact.
 id: capability:multi-agent
 name: Multi-Agent Systems
 type: Capability

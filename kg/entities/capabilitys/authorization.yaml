@@ -1,8 +1,7 @@
 aliases:
 - access control
 - permissions
-description: The process of granting or denying access to specific resources or actions
-  for an agent.
+description: Determining the permissions of an authenticated user or system.
 id: capability:authorization
 name: Authorization
 type: Capability

@@ -1,5 +1,6 @@
-aliases: []
-description: An AI assistant developed by Anthropic.
+aliases:
+- Claude Desktop
+description: An AI application developed by Anthropic.
 id: project:claude
 kind: platform
 name: Claude
