@@ -20,7 +20,7 @@ def neo4j_driver():
     try:
         from neo4j import GraphDatabase
         driver = GraphDatabase.driver(
-            os.environ.get("NEO4J_URI", "bolt://agents-kg-neo4j:7687"),
+            os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
             auth=(
                 os.environ.get("NEO4J_USER", "neo4j"),
                 os.environ.get("NEO4J_PASSWORD", "agents-kg-2026"),
