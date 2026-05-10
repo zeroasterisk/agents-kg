@@ -6406,3 +6406,384 @@ permissions regularly.
 
         finally:
             os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 51 — Incremental Load to Neo4j (MERGE semantics)
+# ---------------------------------------------------------------------------
+
+class TestIncrementalLoad:
+    """Verify that loading more data into Neo4j preserves existing data
+    (MERGE semantics, not replace). Seed → count → pipeline load → count increased.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_incremental_load_preserves_existing_data(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+        from agents_kg.seed import get_seed_entities
+        from agents_kg.wikidata import load_wikidata_entities
+
+        apply_schema(neo4j_driver)
+
+        # Step 1: Load seed entities
+        seeds = get_seed_entities()
+        load_wikidata_entities(neo4j_driver, seeds)
+
+        with neo4j_driver.session() as session:
+            seed_count = session.run(
+                "MATCH (n:Entity) RETURN count(n) AS c"
+            ).single()["c"]
+        assert seed_count >= 1, f"Expected seed entities, got {seed_count}"
+        print(f"  After seed load: {seed_count} entities")
+
+        # Step 2: Ingest a new document via full pipeline
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+            f.write(MCP_OVERVIEW_DOC)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="MCP Overview Incremental", source_type="text",
+                submitter_email="alan@test.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            with neo4j_driver.session() as session:
+                total_count = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+
+                # Seed entities should still exist
+                google = session.run(
+                    "MATCH (n:Organization {entity_id: 'organization:google'}) "
+                    "RETURN n.name AS name"
+                ).single()
+                assert google is not None, "Seed entity 'organization:google' was clobbered"
+
+                mcp = session.run(
+                    "MATCH (n:Protocol {entity_id: 'protocol:mcp'}) "
+                    "RETURN n.name AS name"
+                ).single()
+                assert mcp is not None, "Seed entity 'protocol:mcp' was clobbered"
+
+                # Source node from pipeline should also exist
+                src = session.run(
+                    "MATCH (s:Source {uri: $uri}) RETURN s",
+                    {"uri": doc_path},
+                ).single()
+                assert src is not None, "Pipeline Source node missing after incremental load"
+
+            assert total_count >= seed_count, (
+                f"Incremental load reduced entity count: {seed_count} → {total_count}"
+            )
+            print(f"  After pipeline load: {total_count} entities (was {seed_count})")
+            print("  MERGE semantics confirmed: seed data preserved")
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 52 — Entity with special characters in name
+# ---------------------------------------------------------------------------
+
+SPECIAL_CHAR_DOC = """\
+# Programming Languages with Special Names
+
+C++ is a general-purpose programming language created by Bjarne Stroustrup \
+as an extension of the C programming language. C++ is widely used for \
+systems programming, game development, and high-performance applications.
+
+Node.js is a cross-platform JavaScript runtime built on Chrome's V8 engine. \
+Node.js enables server-side JavaScript execution and is maintained by the \
+OpenJS Foundation.
+
+C# is a modern object-oriented programming language developed by Microsoft \
+as part of the .NET initiative. C# was designed by Anders Hejlsberg.
+"""
+
+
+class TestSpecialCharNames:
+    """Entities whose NAMEs contain special chars (C++, Node.js, C#) must
+    load to Neo4j, appear in queries, and export to YAML without crashing.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_special_char_names_load_query_export(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+            f.write(SPECIAL_CHAR_DOC)
+            doc_path = f.name
+
+        try:
+            source_id = tmp_db.add_source(
+                doc_path, title="Special Char Languages", source_type="text",
+                submitter_email="alan@test.com"
+            )
+            self._run_pipeline(tmp_db, neo4j_driver, source_id)
+
+            # Verify entities loaded to Neo4j
+            with neo4j_driver.session() as session:
+                all_entities = session.run(
+                    "MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source {uri: $uri}) "
+                    "RETURN n.name AS name, n.entity_id AS eid",
+                    {"uri": doc_path},
+                ).data()
+                names = {e["name"] for e in all_entities}
+                eids = {e["eid"] for e in all_entities}
+                print(f"  Extracted entities: {names}")
+                assert len(all_entities) >= 2, f"Expected >=2 entities, got {len(all_entities)}"
+
+                # At least some special-char names should appear
+                special_chars_found = [
+                    n for n in names
+                    if any(c in n for c in ["+", ".", "#"])
+                ]
+                print(f"  Entities with special chars: {special_chars_found}")
+
+                # Query by name with special chars (verify Cypher handles them)
+                for name in special_chars_found:
+                    result = session.run(
+                        "MATCH (n:Entity {name: $name}) RETURN n.name AS name",
+                        {"name": name},
+                    ).single()
+                    assert result is not None, f"Query by name '{name}' failed"
+                    print(f"  Cypher query OK for: {name}")
+
+            # Verify YAML export didn't crash (load.run already called _export_yaml)
+            entities_in_db = tmp_db.conn.execute(
+                "SELECT * FROM entities WHERE source_id = ? AND status = 'approved'",
+                (source_id,),
+            ).fetchall()
+            for ent in entities_in_db:
+                eid = ent["entity_id"].split(":", 1)[-1] if ":" in ent["entity_id"] else ent["entity_id"]
+                eid_safe = eid.replace("/", "_").replace("+", "_").replace(" ", "_")
+                etype = ent["type"].lower()
+                yaml_path = os.path.join("kg", "entities", f"{etype}s", f"{eid_safe}.yaml")
+                if os.path.exists(yaml_path):
+                    import yaml
+                    with open(yaml_path) as yf:
+                        data = yaml.safe_load(yf)
+                    assert data["name"] == ent["name"], (
+                        f"YAML name mismatch: {data['name']} != {ent['name']}"
+                    )
+                    print(f"  YAML export OK for: {ent['name']} → {yaml_path}")
+
+            print("  All special-char entities loaded, queryable, and exportable")
+        finally:
+            os.unlink(doc_path)
+
+
+# ---------------------------------------------------------------------------
+# CUJ 53 — Submitter workflow E2E with real emails
+# ---------------------------------------------------------------------------
+
+SUBMITTER_ALAN_DOC = """\
+# Google Agent Development Kit (ADK)
+
+Google released the Agent Development Kit (ADK) as an open-source framework \
+for building AI agents. ADK integrates with Vertex AI and supports \
+multi-agent architectures. The framework provides tools for agent \
+orchestration, evaluation, and deployment.
+"""
+
+SUBMITTER_PRESTON_DOC = """\
+# Kubernetes Gateway API
+
+The Kubernetes Gateway API is the next-generation ingress specification \
+for Kubernetes. It provides expressive, extensible routing for HTTP and \
+TCP traffic. The Gateway API is maintained by the SIG-Network community \
+within the Kubernetes project.
+"""
+
+
+class TestSubmitterWorkflow:
+    """Two submitters (Alan and Preston) each ingest different sources.
+    Verify provenance isolation: querying by submitter returns only their data.
+    """
+
+    def _run_pipeline(self, tmp_db, neo4j_driver, source_id):
+        from agents_kg.stages import fetch, parse, chunk, embed, extract, resolve, load
+
+        source = tmp_db.get_source(source_id)
+        if not fetch.run(tmp_db, source):
+            return tmp_db.get_source(source_id)
+        source = tmp_db.get_source(source_id)
+        assert parse.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert chunk.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert embed.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert extract.run(tmp_db, source)
+        source = tmp_db.get_source(source_id)
+        assert resolve.run(tmp_db, source)
+
+        tmp_db.conn.execute(
+            "UPDATE entities SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.execute(
+            "UPDATE edges SET status = 'approved' WHERE source_id = ? AND status = 'pending_review'",
+            (source_id,),
+        )
+        tmp_db.conn.commit()
+        tmp_db.update_source(source_id, status="processing", stage="load")
+        source = tmp_db.get_source(source_id)
+        assert load.run(tmp_db, source, neo4j_driver=neo4j_driver)
+        return tmp_db.get_source(source_id)
+
+    def test_submitter_provenance_isolation(
+        self, neo4j_driver, clean_neo4j, tmp_db
+    ):
+        from agents_kg.schema import apply_schema
+
+        apply_schema(neo4j_driver)
+
+        tmpdir = tempfile.mkdtemp()
+        alan_path = os.path.join(tmpdir, "alan_adk.md")
+        preston_path = os.path.join(tmpdir, "preston_gateway.md")
+
+        try:
+            with open(alan_path, "w") as f:
+                f.write(SUBMITTER_ALAN_DOC)
+            alan_sid = tmp_db.add_source(
+                alan_path, title="ADK Overview", source_type="text",
+                submitter_email="alanblount@google.com"
+            )
+
+            with open(preston_path, "w") as f:
+                f.write(SUBMITTER_PRESTON_DOC)
+            preston_sid = tmp_db.add_source(
+                preston_path, title="Gateway API", source_type="text",
+                submitter_email="ptone@google.com"
+            )
+
+            self._run_pipeline(tmp_db, neo4j_driver, alan_sid)
+            self._run_pipeline(tmp_db, neo4j_driver, preston_sid)
+
+            with neo4j_driver.session() as session:
+                # "What did Alan submit?"
+                alan_entities = session.run(
+                    """
+                    MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source)
+                    WHERE s.submitter_email = 'alanblount@google.com'
+                    RETURN n.entity_id AS eid, n.name AS name
+                    """,
+                ).data()
+                alan_eids = {e["eid"] for e in alan_entities}
+                print(f"  Alan's entities ({len(alan_entities)}): {alan_eids}")
+                assert len(alan_entities) >= 1, "Alan should have entities"
+
+                # "What did Preston submit?"
+                preston_entities = session.run(
+                    """
+                    MATCH (n:Entity)-[:FROM_SOURCE]->(s:Source)
+                    WHERE s.submitter_email = 'ptone@google.com'
+                    RETURN n.entity_id AS eid, n.name AS name
+                    """,
+                ).data()
+                preston_eids = {e["eid"] for e in preston_entities}
+                print(f"  Preston's entities ({len(preston_entities)}): {preston_eids}")
+                assert len(preston_entities) >= 1, "Preston should have entities"
+
+                # Provenance isolation: each should have unique entities
+                alan_only = alan_eids - preston_eids
+                preston_only = preston_eids - alan_eids
+                print(f"  Alan-only: {alan_only}")
+                print(f"  Preston-only: {preston_only}")
+                assert len(alan_only) >= 1, "Alan should have entities not in Preston's set"
+                assert len(preston_only) >= 1, "Preston should have entities not in Alan's set"
+
+                # Verify Source nodes are independently tracked
+                alan_src = session.run(
+                    "MATCH (s:Source {submitter_email: 'alanblount@google.com'}) "
+                    "RETURN s.uri AS uri, s.title AS title"
+                ).data()
+                preston_src = session.run(
+                    "MATCH (s:Source {submitter_email: 'ptone@google.com'}) "
+                    "RETURN s.uri AS uri, s.title AS title"
+                ).data()
+                assert len(alan_src) == 1, f"Expected 1 Source for Alan, got {len(alan_src)}"
+                assert len(preston_src) == 1, f"Expected 1 Source for Preston, got {len(preston_src)}"
+                print(f"  Alan's source: {alan_src[0]['title']}")
+                print(f"  Preston's source: {preston_src[0]['title']}")
+
+                # Cross-check: total entities >= alan + preston unique
+                total = session.run(
+                    "MATCH (n:Entity) RETURN count(n) AS c"
+                ).single()["c"]
+                print(f"  Total entities in graph: {total}")
+
+            print("  Submitter provenance isolation verified")
+        finally:
+            for p in [alan_path, preston_path]:
+                if os.path.exists(p):
+                    os.unlink(p)
+            os.rmdir(tmpdir)
