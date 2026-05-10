@@ -1,6 +1,5 @@
 aliases: []
-description: SDKs for the Model Context Protocol.
 id: project:mcp-sdk
 kind: sdk
-name: MCP SDKs
+name: MCP SDK
 type: Project

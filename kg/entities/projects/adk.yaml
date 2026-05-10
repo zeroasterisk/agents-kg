@@ -1,6 +1,4 @@
-aliases:
-- Google ADK
-description: Google's framework for building agents.
+aliases: []
 id: project:adk
 kind: framework
 name: Agent Development Kit

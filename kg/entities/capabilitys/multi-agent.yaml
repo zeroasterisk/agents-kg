@@ -1,6 +1,5 @@
-aliases:
-- MAS
-description: Systems where multiple agents collaborate to perform tasks.
-id: capability:multi-agent
-name: Multi-Agent Systems
+aliases: []
+id: cap:multi-agent
+kind: feature
+name: Multi-Agent
 type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: LLM launched March 2026 with improved reasoning
+id: rw:project-claude-4
+kind: model
+name: Claude 4
+type: Project

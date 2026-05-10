@@ -1,0 +1,6 @@
+aliases: []
+description: Updated MCP spec with streaming support
+id: rw:protocol-mcp-1.1
+kind: spec
+name: MCP 1.1
+type: Protocol

@@ -1,4 +1,5 @@
 aliases: []
-id: org:google
+id: rw:org-google
+kind: company
 name: Google
 type: Organization

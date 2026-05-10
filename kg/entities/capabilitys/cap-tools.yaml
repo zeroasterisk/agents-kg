@@ -1,0 +1,6 @@
+aliases: []
+description: Executable function invocation capability of MCP
+id: rw:cap-tools
+kind: feature
+name: MCP Tools
+type: Capability

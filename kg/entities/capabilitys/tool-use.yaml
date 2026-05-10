@@ -1,6 +1,5 @@
-aliases:
-- tools
-description: Enables servers to provide core functionality for AI actions.
-id: capability:tool-use
+aliases: []
+id: cap:tool-use
+kind: feature
 name: Tool Use
 type: Capability

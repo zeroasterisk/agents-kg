@@ -1,8 +1,6 @@
-aliases:
-- A2A
-description: An open protocol enabling communication and interoperability between
-  opaque agentic applications.
+aliases: []
+description: Agent-to-Agent protocol for multi-agent orchestration
 id: protocol:a2a
 kind: spec
-name: Agent2Agent Protocol
+name: A2A
 type: Protocol
