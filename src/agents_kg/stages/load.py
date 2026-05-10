@@ -141,6 +141,27 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
                 ).fetchall()
 
             with neo4j_driver.session() as session:
+                # Create Source node with provenance
+                source_data = db.get_source(source_id)
+                session.run(
+                    """
+                    MERGE (s:Source {uri: $uri})
+                    SET s.title = $title, s.source_type = $source_type,
+                        s.submitter_email = $submitter_email,
+                        s.created_at = $created_at, s.updated_at = $updated_at,
+                        s.content_hash = $content_hash
+                    """,
+                    {
+                        "uri": source_data["uri"],
+                        "title": source_data.get("title"),
+                        "source_type": source_data.get("type"),
+                        "submitter_email": source_data.get("submitter_email"),
+                        "created_at": source_data.get("created_at"),
+                        "updated_at": source_data.get("updated_at"),
+                        "content_hash": source_data.get("content_hash"),
+                    }
+                )
+
                 # Load Chunks
                 for chunk in chunks:
                     session.run(
@@ -169,6 +190,16 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
                             {"entity_id": ent["entity_id"], "chunk_id": ent["chunk_id"]}
                         )
                 
+                # Link entities to Source
+                for ent in entities:
+                    session.run(
+                        """
+                        MATCH (n {entity_id: $entity_id}), (s:Source {uri: $uri})
+                        MERGE (n)-[:FROM_SOURCE]->(s)
+                        """,
+                        {"entity_id": ent["entity_id"], "uri": source_data["uri"]}
+                    )
+
                 # Load Edges
                 for edge in edges:
                     q, p = _edge_to_cypher(dict(edge))

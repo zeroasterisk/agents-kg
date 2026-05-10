@@ -83,6 +83,11 @@ def run(db: Database, source: dict) -> bool:
         db.update_source(source_id, status="complete", stage="done")
         return False
 
+    # Content changed — mark old entities from this source as deprecated
+    if source.get("content_hash") and source["content_hash"] != new_hash:
+        db.deprecate_entities_for_source(source_id)
+        _log().info("Content changed for %s, deprecated old entities", uri)
+
     db.update_source(
         source_id,
         raw_text=raw,

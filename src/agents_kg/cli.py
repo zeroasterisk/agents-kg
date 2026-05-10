@@ -41,7 +41,8 @@ def cli():
 @click.argument("url", required=False)
 @click.option("--from", "from_file", type=click.Path(exists=True), help="File with one URL per line")
 @click.option("--file", "local_file", type=click.Path(exists=True), help="Local file (PDF, markdown, text)")
-def ingest(url, from_file, local_file):
+@click.option("--submitter-email", default=None, help="Email of the person submitting this source")
+def ingest(url, from_file, local_file, submitter_email):
     """Add source(s) to the ingestion queue."""
     db = get_db()
     urls = []
@@ -62,7 +63,7 @@ def ingest(url, from_file, local_file):
     added = 0
     skipped = 0
     for u in urls:
-        result = db.add_source(u)
+        result = db.add_source(u, submitter_email=submitter_email)
         if result:
             click.echo(f"  + {u} (id={result})")
             added += 1

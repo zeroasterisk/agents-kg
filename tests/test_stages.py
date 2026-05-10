@@ -436,7 +436,7 @@ class TestLoadStage:
 
         result = run(db, source, neo4j_driver=mock_driver)
         assert result is True
-        assert mock_session.run.call_count == 2  # 1 entity + 1 edge
+        assert mock_session.run.call_count == 4  # 1 Source node + 1 entity + 1 FROM_SOURCE + 1 edge
 
         updated = db.get_source(sid)
         assert updated["status"] == "complete"
