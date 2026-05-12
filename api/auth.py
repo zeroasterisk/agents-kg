@@ -36,10 +36,20 @@ def _check_static_key(token: str) -> User | None:
     return None
 
 
+def _get_allowed_audiences() -> list[str]:
+    """Return all Google client IDs that are valid token audiences."""
+    audiences = []
+    for var in ("GOOGLE_CLIENT_ID", "GOOGLE_DEVICE_CLIENT_ID"):
+        val = os.environ.get(var, "").strip()
+        if val:
+            audiences.append(val)
+    return audiences
+
+
 def _check_google_token(token: str) -> User | None:
-    client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    audiences = _get_allowed_audiences()
     service_account_email = os.environ.get("SERVICE_ACCOUNT_EMAIL")
-    if not client_id and not service_account_email:
+    if not audiences and not service_account_email:
         return None
 
     try:
@@ -47,7 +57,18 @@ def _check_google_token(token: str) -> User | None:
         from google.auth.transport import requests as google_requests
 
         request = google_requests.Request()
-        payload = id_token.verify_oauth2_token(token, request, audience=client_id)
+
+        # Try each allowed audience (web app and device flow client IDs)
+        payload = None
+        for aud in audiences:
+            try:
+                payload = id_token.verify_oauth2_token(token, request, audience=aud)
+                break
+            except ValueError:
+                continue
+
+        if payload is None:
+            return None
 
         email = payload.get("email", "")
         if not email:
