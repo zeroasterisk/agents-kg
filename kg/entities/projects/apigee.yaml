@@ -1,0 +1,7 @@
+aliases:
+- Apigee API management platform
+description: An API management platform that adds observability and governance.
+id: project:apigee
+kind: platform
+name: Apigee
+type: Project

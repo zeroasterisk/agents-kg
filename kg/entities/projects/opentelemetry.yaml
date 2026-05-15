@@ -1,6 +1,6 @@
 aliases:
 - OTel
-description: An observability framework for cloud-native software.
+description: An observability framework for tracing and monitoring.
 id: project:opentelemetry
 kind: framework
 name: OpenTelemetry

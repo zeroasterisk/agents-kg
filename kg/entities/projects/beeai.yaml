@@ -1,6 +1,5 @@
-aliases:
-- Bee Agent Framework
-description: A framework for building AI agents.
+aliases: []
+description: A framework for self-evolving agents.
 id: project:beeai
 kind: framework
 name: BeeAI

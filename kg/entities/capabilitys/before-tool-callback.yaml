@@ -1,0 +1,5 @@
+aliases: []
+description: A callback that is executed before a tool is invoked by an agent.
+id: capability:before-tool-callback
+name: Before Tool Callback
+type: Capability

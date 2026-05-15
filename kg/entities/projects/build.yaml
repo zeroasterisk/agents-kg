@@ -1,0 +1,6 @@
+aliases: []
+description: Google Cloud's service for building and deploying applications.
+id: project:build
+kind: platform
+name: Build
+type: Project

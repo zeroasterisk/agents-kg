@@ -1,0 +1,7 @@
+aliases:
+- Kubernetes Howto
+description: Instructions for enabling Kubernetes.
+id: protocol:kubernetes-howto
+kind: spec
+name: Kubernetes Howto
+type: Protocol

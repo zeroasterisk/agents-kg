@@ -1,7 +1,8 @@
 aliases:
 - AWS
 - Amazon Web Services
-description: A multinational technology and e-commerce company.
+description: A multinational technology company focusing on e-commerce, cloud computing,
+  and artificial intelligence.
 id: organization:amazon
 kind: company
 name: Amazon

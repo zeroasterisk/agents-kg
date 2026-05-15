@@ -1,7 +1,7 @@
 aliases:
 - Zed ACP
-- Agent Context Protocol
-description: A protocol for agent context management.
+- stdio
+description: A protocol for local communication using standard input/output.
 id: protocol:zed-acp
 kind: spec
 name: Zed Agent Context Protocol

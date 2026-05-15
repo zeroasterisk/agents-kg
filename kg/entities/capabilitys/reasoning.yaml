@@ -1,6 +1,6 @@
 aliases:
-- enhanced reasoning
-description: The ability to think logically and draw conclusions.
+- chain-of-thought reasoning
+description: The ability of an AI to process information and draw conclusions.
 id: capability:reasoning
 name: Reasoning
 type: Capability

@@ -1,6 +1,6 @@
 aliases:
 - Inspector
-description: A tool for inspecting MCP traffic.
+description: A tool for inspecting MCP metadata.
 id: project:mcp-inspector
 kind: tool
 name: MCP Inspector

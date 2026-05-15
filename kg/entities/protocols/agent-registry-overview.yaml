@@ -1,0 +1,7 @@
+aliases:
+- Agent Registry Overview
+description: An overview of the Agent Registry.
+id: protocol:agent-registry-overview
+kind: spec
+name: Agent Registry Overview
+type: Protocol

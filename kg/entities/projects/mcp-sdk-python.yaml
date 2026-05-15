@@ -1,6 +1,7 @@
 aliases:
 - mcp-python
-description: The official Python SDK for the Model Context Protocol.
+description: A Software Development Kit for interacting with the Model Context Protocol
+  in Python.
 id: project:mcp-sdk-python
 kind: sdk
 name: MCP Python SDK

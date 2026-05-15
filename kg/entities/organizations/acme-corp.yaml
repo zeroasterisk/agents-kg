@@ -1,0 +1,6 @@
+aliases: []
+description: A fictional company mentioned as an example for a customer support agent.
+id: organization:acme-corp
+kind: company
+name: Acme Corp
+type: Organization

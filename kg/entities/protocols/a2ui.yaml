@@ -1,7 +1,6 @@
 aliases:
-- Agent-to-UI
-- GenUI
-description: A protocol for agent-to-UI communication.
+- A2UI
+description: A protocol for generating UI via structured output and A2A message passing.
 id: protocol:a2ui
 kind: spec
 name: A2UI

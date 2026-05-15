@@ -1,5 +1,5 @@
 aliases: []
-description: A serverless container deployment platform by Google Cloud.
+description: An industry-standard runtime for deploying containerized applications.
 id: project:cloud-run
 kind: platform
 name: Cloud Run

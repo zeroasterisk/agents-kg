@@ -1,0 +1,8 @@
+aliases:
+- LSP
+description: A protocol for standardizing communication between development tools
+  and language servers.
+id: protocol:lsp
+kind: spec
+name: Language Server Protocol
+type: Protocol

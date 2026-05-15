@@ -24,6 +24,8 @@ class JobStatus(BaseModel):
     status: str
     stage: str | None = None
     error: str | None = None
+    entity_count: int | None = None
+    edge_count: int | None = None
     created_at: str
     updated_at: str
 

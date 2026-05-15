@@ -1,0 +1,8 @@
+aliases:
+- Identity-Aware Proxy
+- IAP
+description: A service that controls access to applications based on user identity.
+id: protocol:iap
+kind: spec
+name: Identity-Aware Proxy
+type: Protocol

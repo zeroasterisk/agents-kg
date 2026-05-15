@@ -1,6 +1,8 @@
 aliases:
-- extended thinking capabilities
-description: The ability to devise a sequence of actions to achieve a goal.
+- task planning
+- multi-step planning
+description: The ability of an AI to formulate a sequence of actions to achieve a
+  goal.
 id: capability:planning
 name: Planning
 type: Capability

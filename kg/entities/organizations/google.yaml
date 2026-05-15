@@ -3,7 +3,8 @@ aliases:
 - Google Cloud
 - Google DeepMind
 - Google AI
-description: A multinational technology company.
+description: A multinational technology company specializing in Internet-related services
+  and products.
 id: organization:google
 kind: company
 name: Google

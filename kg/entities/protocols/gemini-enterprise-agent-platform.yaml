@@ -1,0 +1,7 @@
+aliases:
+- Gemini Enterprise Agent Platform
+description: The specification for the Gemini Enterprise Agent Platform.
+id: protocol:gemini-enterprise-agent-platform
+kind: spec
+name: Gemini Enterprise Agent Platform
+type: Protocol

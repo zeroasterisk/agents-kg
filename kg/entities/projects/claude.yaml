@@ -1,6 +1,8 @@
 aliases:
+- Claude 3
+- Claude Code
 - Claude Desktop
-description: An AI application developed by Anthropic.
+description: Anthropic's family of large language models.
 id: project:claude
 kind: platform
 name: Claude

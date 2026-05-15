@@ -1,0 +1,8 @@
+aliases:
+- Firewall
+description: A network security system that controls the incoming and outgoing network
+  traffic based on an agreed-upon set of security rules.
+id: protocol:firewall
+kind: spec
+name: Firewall
+type: Protocol

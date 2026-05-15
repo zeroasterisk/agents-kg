@@ -1,0 +1,7 @@
+aliases: []
+description: Allows workloads running outside of Google Cloud to impersonate service
+  accounts.
+id: project:workload-identity-federation
+kind: platform
+name: Workload Identity Federation
+type: Project

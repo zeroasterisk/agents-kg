@@ -1,0 +1,7 @@
+aliases:
+- NGFW Tiers
+description: Tiers for Next-Generation Firewalls.
+id: protocol:ngfw-tiers
+kind: spec
+name: NGFW Tiers
+type: Protocol

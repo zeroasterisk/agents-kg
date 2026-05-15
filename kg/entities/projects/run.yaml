@@ -1,0 +1,6 @@
+aliases: []
+description: Google Cloud's fully managed compute platform.
+id: project:run
+kind: platform
+name: Run
+type: Project

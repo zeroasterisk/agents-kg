@@ -1,0 +1,5 @@
+aliases: []
+description: A system or component responsible for managing agent authentication.
+id: capability:agent-auth-manager
+name: Agent Auth Manager
+type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: A service for protecting sensitive data.
+id: project:sensitive-data-protection
+kind: platform
+name: Sensitive Data Protection
+type: Project

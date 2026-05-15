@@ -1,7 +1,7 @@
 aliases:
 - LF
-description: A non-profit technology consortium supporting and sustaining open source
-  projects.
+- Linux Foundation AI
+description: A non-profit technology consortium.
 id: organization:linux-foundation
 kind: foundation
 name: Linux Foundation

@@ -1,0 +1,8 @@
+aliases:
+- ADK Docs
+- google/adk-docs
+description: Documentation for the Agent Development Kit.
+id: project:adk-docs
+kind: framework
+name: Agent Development Kit Documentation
+type: Project

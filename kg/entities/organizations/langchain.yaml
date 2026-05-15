@@ -1,5 +1,6 @@
-aliases: []
-description: A framework for developing applications powered by language models.
+aliases:
+- LangChain Inc
+description: The company behind the LangChain framework.
 id: organization:langchain
 kind: company
 name: LangChain

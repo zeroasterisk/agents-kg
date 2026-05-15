@@ -2,7 +2,7 @@ aliases:
 - context memory
 - long-term memory
 - short-term memory
-description: The ability of an AI to store and retrieve information.
+description: The ability of an agent to store and retrieve information over time.
 id: capability:memory
 name: Memory
 type: Capability

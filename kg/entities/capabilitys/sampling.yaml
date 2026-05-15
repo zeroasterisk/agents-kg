@@ -1,5 +1,5 @@
 aliases: []
-description: A capability for sampling model outputs.
+description: A capability offered by the Client to the Server, related to sampling.
 id: capability:sampling
 name: Sampling
 type: Capability

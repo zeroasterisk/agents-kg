@@ -142,6 +142,97 @@ def _tag_source_category(db: Database, source_id: int, category: str):
     db.conn.commit()
 
 
+
+
+def _run_review(db_path: str, source_id: int, neo4j_driver):
+    """Background task: run review + load for a source in pending_review."""
+    from agents_kg.db import Database as DB
+    from agents_kg.stages import review as review_stage
+    from agents_kg.stages import load as load_stage
+
+    db = DB(db_path)
+    try:
+        source = db.get_source(source_id)
+        if not source or source["status"] != "pending_review":
+            log.warning("Source %d not in pending_review (status=%s)", source_id, source.get("status"))
+            return
+
+        review_stage.run(db, source)
+
+        source = db.get_source(source_id)
+        load_stage.run(db, source, neo4j_driver=neo4j_driver)
+
+        entity_count = db.conn.execute(
+            "SELECT COUNT(*) FROM entities WHERE source_id = ? AND status = 'approved'",
+            (source_id,),
+        ).fetchone()[0]
+        edge_count = db.conn.execute(
+            "SELECT COUNT(*) FROM edges WHERE source_id = ? AND status = 'approved'",
+            (source_id,),
+        ).fetchone()[0]
+        log.info("Review+load complete for source %d: %d entities, %d edges", source_id, entity_count, edge_count)
+    except Exception:
+        log.exception("Review failed for source %d", source_id)
+        db.fail_source(source_id, "review/load failed")
+    finally:
+        db.close()
+
+
+# ---- POST /ingest/review/all ----
+
+@router.post("/ingest/review/all")
+async def review_all(
+    background_tasks: BackgroundTasks,
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    db = _get_db(request)
+    sources = db.get_sources_by_status("pending_review")
+    if not sources:
+        return {"job_ids": [], "message": "No jobs in review_needed status"}
+
+    neo4j_driver = getattr(request.app.state, "neo4j_driver", None)
+    job_ids = []
+    for source in sources:
+        job_ids.append(source["id"])
+        background_tasks.add_task(
+            _run_review,
+            db_path=db.path,
+            source_id=source["id"],
+            neo4j_driver=neo4j_driver,
+        )
+    return {"job_ids": job_ids, "status": "review_started"}
+
+# ---- POST /ingest/review/{job_id} ----
+
+@router.post("/ingest/review/{job_id}")
+async def review_job(
+    job_id: int,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    user: User = Depends(get_current_user),
+):
+    db = _get_db(request)
+    source = db.get_source(job_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if source["status"] != "pending_review":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Job {job_id} is not in review_needed status (current: {_status_label(source)})",
+        )
+
+    neo4j_driver = getattr(request.app.state, "neo4j_driver", None)
+    background_tasks.add_task(
+        _run_review,
+        db_path=db.path,
+        source_id=job_id,
+        neo4j_driver=neo4j_driver,
+    )
+    return {"job_id": job_id, "status": "review_started"}
+
+
+
 # ---- GET /ingest/status/{job_id} ----
 
 @router.get("/ingest/status/{job_id}", response_model=JobStatus)
@@ -155,12 +246,23 @@ async def ingest_status(
     if not source:
         raise HTTPException(status_code=404, detail="Job not found")
 
+    entity_count = db.conn.execute(
+        "SELECT COUNT(*) FROM entities WHERE source_id = ? AND status = 'approved'",
+        (job_id,),
+    ).fetchone()[0] or None
+    edge_count = db.conn.execute(
+        "SELECT COUNT(*) FROM edges WHERE source_id = ? AND status = 'approved'",
+        (job_id,),
+    ).fetchone()[0] or None
+
     return JobStatus(
         job_id=source["id"],
         uri=source["uri"],
         status=_status_label(source),
         stage=source.get("stage"),
         error=source.get("error"),
+        entity_count=entity_count,
+        edge_count=edge_count,
         created_at=source["created_at"],
         updated_at=source["updated_at"],
     )

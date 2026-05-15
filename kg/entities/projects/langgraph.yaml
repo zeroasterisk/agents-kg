@@ -1,6 +1,5 @@
 aliases: []
-description: Extends LangChain with graph-based orchestration, enabling developers
-  to define agent workflows as directed graphs.
+description: A library for building stateful, multi-agent applications with LangChain.
 id: project:langgraph
 kind: framework
 name: LangGraph

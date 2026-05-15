@@ -1,5 +1,7 @@
-aliases: []
-description: The state of being free from danger or threat.
+aliases:
+- agent security
+- safety
+description: Measures and practices to protect agentic systems from threats and vulnerabilities.
 id: capability:security
 name: Security
 type: Capability

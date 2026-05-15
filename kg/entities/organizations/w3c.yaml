@@ -1,6 +1,7 @@
 aliases:
 - World Wide Web Consortium
-description: The World Wide Web Consortium, a standards organization.
+description: The World Wide Web Consortium, an international community that develops
+  open standards for the web.
 id: organization:w3c
 kind: standards_body
 name: W3C

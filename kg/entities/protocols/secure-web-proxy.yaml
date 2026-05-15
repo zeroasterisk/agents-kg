@@ -1,0 +1,7 @@
+aliases:
+- Secure Web Proxy
+description: A proxy server that provides secure access to web resources.
+id: protocol:secure-web-proxy
+kind: spec
+name: Secure Web Proxy
+type: Protocol

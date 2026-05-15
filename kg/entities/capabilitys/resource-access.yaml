@@ -1,5 +1,7 @@
-aliases: []
-description: The ability of an AI agent to access external resources.
+aliases:
+- Resources
+description: A capability offered by the Server to the Client, related to accessing
+  resources.
 id: capability:resource-access
 name: Resource Access
 type: Capability

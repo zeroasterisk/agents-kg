@@ -18,7 +18,7 @@ from prefect.artifacts import create_markdown_artifact
 from prefect.cache_policies import INPUTS, NO_CACHE
 
 from .db import Database
-from .stages import fetch, parse, chunk, embed, extract, resolve, load
+from .stages import fetch, parse, chunk, embed, extract, resolve, review, load
 
 
 # ---------------------------------------------------------------------------
@@ -133,6 +133,19 @@ def run_resolve(db_path: str, source: dict) -> bool:
 
 
 @task(
+    name="review",
+    on_failure=[_on_stage_failure],
+)
+def run_review(db_path: str, source: dict) -> bool:
+    db = Database(db_path)
+    log = get_run_logger()
+    log.info("Reviewing entities for source %d", source["id"])
+    res = review.run(db, source)
+    db.close()
+    return res
+
+
+@task(
     name="load",
     on_failure=[_on_stage_failure],
     cache_policy=NO_CACHE,
@@ -153,6 +166,7 @@ TASK_MAP = {
     "embed": run_embed,
     "extract": run_extract,
     "resolve": run_resolve,
+    "review": run_review,
     "load": run_load,
 }
 
@@ -234,9 +248,9 @@ def process_source(
         stage = source["stage"]
         status = source["status"]
 
-        if status in ("complete", "failed", "dead_letter", "pending_review"):
+        if status in ("complete", "failed", "dead_letter"):
             break
-        if stage in ("review", "done"):
+        if stage in ("done",):
             break
 
         task_fn = TASK_MAP.get(stage)

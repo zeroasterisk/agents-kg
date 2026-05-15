@@ -1,6 +1,7 @@
 aliases:
 - RAG
-description: A technique for improving LLM responses by retrieving relevant information.
+description: A technique that enhances language model generation by retrieving relevant
+  information from external sources.
 id: project:rag
 kind: framework
 name: Retrieval-Augmented Generation

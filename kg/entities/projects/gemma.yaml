@@ -1,7 +1,7 @@
 aliases:
 - Gemma 2
-description: A family of lightweight, state-of-the-art open models built from the
-  same research and technology used to create the Gemini models.
+description: A model that can be fine-tuned for specific tasks, such as screening
+  user inputs and agent outputs.
 id: project:gemma
 kind: library
 name: Gemma

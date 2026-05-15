@@ -1,5 +1,6 @@
 aliases: []
-description: A tool for securing AI models.
+description: A specialized security layer that screens prompts and responses for a
+  wide range of threats.
 id: project:model-armor
 kind: tool
 name: Model Armor

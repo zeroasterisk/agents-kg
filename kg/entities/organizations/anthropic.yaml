@@ -1,5 +1,6 @@
-aliases: []
-description: A company that develops AI models and applications.
+aliases:
+- Anthropic PBC
+description: A company that develops AI models and introduced the Model Context Protocol.
 id: organization:anthropic
 kind: company
 name: Anthropic

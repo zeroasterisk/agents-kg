@@ -1,0 +1,7 @@
+aliases:
+- VPC Service Controls
+description: A service that provides a security perimeter around Google Cloud resources.
+id: protocol:vpc-service-controls
+kind: spec
+name: VPC Service Controls
+type: Protocol

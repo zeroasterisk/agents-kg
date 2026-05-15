@@ -1,0 +1,6 @@
+aliases:
+- agent evaluation
+description: The ability to evaluate the performance and behavior of agents.
+id: capability:agent-evaluation
+name: Agent Evaluation
+type: Capability

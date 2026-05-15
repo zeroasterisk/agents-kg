@@ -1,0 +1,6 @@
+aliases: []
+description: A mechanism where a program provides custom code to be executed at specific
+  points during the execution of another program.
+id: capability:callbacks
+name: Callbacks
+type: Capability

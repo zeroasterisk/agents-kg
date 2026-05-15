@@ -1,6 +1,6 @@
 aliases:
-- JSON-RPC 2.0
-description: A lightweight remote procedure call (RPC) protocol based on JSON.
+- JSON-RPC
+description: A lightweight rpc message format, defined by rfc 8238.
 id: protocol:json-rpc-2.0
 kind: standard
 name: JSON-RPC 2.0

@@ -2,7 +2,7 @@ aliases:
 - multi-agent
 - MAS
 - multi-agent collaboration
-description: The ability for multiple AI agents to collaborate and interact.
+description: Systems involving multiple interacting agents.
 id: capability:multi-agent
 name: Multi-Agent Systems
 type: Capability
