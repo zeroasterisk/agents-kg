@@ -102,6 +102,16 @@ async def ingest(
             existing = db.get_source_by_uri(url)
             if existing:
                 job_ids.append(existing["id"])
+                if existing["status"] in ("failed", "dead_letter", "pending"):
+                    db.reset_source(existing["id"])
+                    _tag_source_category(db, existing["id"], body.source_type)
+                    background_tasks.add_task(
+                        _run_pipeline,
+                        db_path=db.path,
+                        source_id=existing["id"],
+                        source_uri=url,
+                        neo4j_driver=neo4j_driver,
+                    )
             continue
 
         _tag_source_category(db, source_id, body.source_type)

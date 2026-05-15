@@ -19,7 +19,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EXTRACT_MODEL = "gemini-3.1-flash-lite"
+EXTRACT_MODEL = "gemini-2.5-flash-lite"
 
 SYSTEM_PROMPT_TEMPLATE = """You are a knowledge graph extraction engine for the agentic web ecosystem.
 
