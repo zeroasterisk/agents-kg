@@ -68,7 +68,7 @@ const sources = [
         {stats.types.map((t: any) => (
           <div class="bg-surface border border-border rounded-lg p-5">
             <div class="text-3xl font-bold text-white">{t.count.toLocaleString()}</div>
-            <div class="text-sm text-muted mt-1">{t.type}s</div>
+            <div class="text-sm text-muted mt-1">{t.type === 'Capability' ? 'Capabilities' : t.type === 'Person' ? 'People' : `${t.type}s`}</div>
           </div>
         ))}
       </div>

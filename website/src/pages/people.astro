@@ -68,7 +68,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <section class="pb-12">
       <div class="space-y-1.5">
         {people.map((p: any) => {
-          const rels = (personRelMap[p.name] || []).slice(0, 5);
+          const allPersonRels = personRelMap[p.name] || [];
+          const rels = allPersonRels.slice(0, 3);
+          const morePersonCount = allPersonRels.length - rels.length;
           const hasDetail = p.description || rels.length > 0;
           return hasDetail ? (
             <details class="group bg-surface border border-border rounded-lg">
@@ -90,6 +92,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                         <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
                       </div>
                     ))}
+                    {morePersonCount > 0 && <p class="text-[10px] text-muted mt-1">+ {morePersonCount} more</p>}
                   </div>
                 )}
               </div>

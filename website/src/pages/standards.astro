@@ -106,7 +106,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <p class="text-sm text-muted mb-6">Groups actively developing agent-related standards, discovered from W3C, IETF, AAIF, AGNTCY, and other bodies.</p>
       <div class="space-y-1.5">
         {groups.map((g: any) => {
-          const rels = (groupRelMap[g.name] || []).slice(0, 5);
+          const allGroupRels = groupRelMap[g.name] || [];
+          const rels = allGroupRels.slice(0, 3);
+          const moreGroupCount = allGroupRels.length - rels.length;
           const hasDetail = g.description || rels.length > 0;
           return hasDetail ? (
             <details class="group bg-surface border border-border rounded-lg">
@@ -128,6 +130,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                         <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
                       </div>
                     ))}
+                    {moreGroupCount > 0 && <p class="text-[10px] text-muted mt-1">+ {moreGroupCount} more</p>}
                   </div>
                 )}
               </div>
@@ -148,7 +151,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <p class="text-sm text-muted mb-6">Companies, foundations, and agencies referenced in the knowledge graph.</p>
       <div class="space-y-1.5">
         {orgs.map((o: any) => {
-          const rels = (orgRelMap[o.name] || []).slice(0, 5);
+          const allOrgRels = orgRelMap[o.name] || [];
+          const rels = allOrgRels.slice(0, 3);
+          const moreOrgCount = allOrgRels.length - rels.length;
           const hasDetail = o.description || rels.length > 0;
           return hasDetail ? (
             <details class="group bg-surface border border-border rounded-lg">
@@ -170,6 +175,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                         <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
                       </div>
                     ))}
+                    {moreOrgCount > 0 && <p class="text-[10px] text-muted mt-1">+ {moreOrgCount} more</p>}
                   </div>
                 )}
               </div>

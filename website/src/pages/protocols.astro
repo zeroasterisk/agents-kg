@@ -44,6 +44,16 @@ function buildRelMap(rels: any[]) {
 const protRelMap = buildRelMap(protocolRels);
 const projRelMap = buildRelMap(projectRels);
 
+// Sort by relationship count (most connected first)
+protocols.sort((a: any, b: any) => (protRelMap[b.name]?.length || 0) - (protRelMap[a.name]?.length || 0));
+projects.sort((a: any, b: any) => (projRelMap[b.name]?.length || 0) - (projRelMap[a.name]?.length || 0));
+
+const CARD_LIMIT = 100;
+const protocolsTop = protocols.slice(0, CARD_LIMIT);
+const protocolsRest = protocols.slice(CARD_LIMIT);
+const projectsTop = projects.slice(0, CARD_LIMIT);
+const projectsRest = projects.slice(CARD_LIMIT);
+
 function formatRel(rel: string) {
   return rel.replace(/_/g, ' ').toLowerCase();
 }
@@ -95,10 +105,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
     <section class="py-12 border-t border-border">
       <h2 class="text-xl font-semibold text-white mb-2">All Protocols ({protocols.length.toLocaleString()})</h2>
-      <p class="text-sm text-muted mb-6">Every protocol, specification, and standard tracked in the knowledge graph.</p>
+      <p class="text-sm text-muted mb-6">Top {protocolsTop.length} most-connected protocols shown with details. {protocolsRest.length > 0 ? `${protocolsRest.length.toLocaleString()} more listed below.` : ''}</p>
       <div class="space-y-1.5">
-        {protocols.map((p: any) => {
-          const rels = (protRelMap[p.name] || []).slice(0, 5);
+        {protocolsTop.map((p: any) => {
+          const allRels = protRelMap[p.name] || [];
+          const rels = allRels.slice(0, 3);
+          const moreCount = allRels.length - rels.length;
           const hasDetail = p.description || rels.length > 0;
           return hasDetail ? (
             <details class="group bg-surface border border-border rounded-lg">
@@ -120,6 +132,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                         <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
                       </div>
                     ))}
+                    {moreCount > 0 && <p class="text-[10px] text-muted mt-1">+ {moreCount} more</p>}
                   </div>
                 )}
               </div>
@@ -133,14 +146,28 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           );
         })}
       </div>
+      {protocolsRest.length > 0 && (
+        <details class="mt-4">
+          <summary class="text-sm text-accent-light cursor-pointer hover:underline">Show {protocolsRest.length.toLocaleString()} more protocols</summary>
+          <div class="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+            {protocolsRest.map((p: any) => (
+              <div class="bg-surface border border-border rounded px-3 py-2 flex items-center gap-2">
+                <span class="text-xs text-gray-300">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </section>
 
     <section class="py-12 border-t border-border">
       <h2 class="text-xl font-semibold text-white mb-2">All Projects ({projects.length.toLocaleString()})</h2>
-      <p class="text-sm text-muted mb-6">Software projects, SDKs, implementations, and tools in the agentic ecosystem.</p>
+      <p class="text-sm text-muted mb-6">Top {projectsTop.length} most-connected projects shown with details. {projectsRest.length > 0 ? `${projectsRest.length.toLocaleString()} more listed below.` : ''}</p>
       <div class="space-y-1.5">
-        {projects.map((p: any) => {
-          const rels = (projRelMap[p.name] || []).slice(0, 5);
+        {projectsTop.map((p: any) => {
+          const allProjRels = projRelMap[p.name] || [];
+          const rels = allProjRels.slice(0, 3);
+          const moreProjCount = allProjRels.length - rels.length;
           const hasDetail = p.description || rels.length > 0;
           return hasDetail ? (
             <details class="group bg-surface border border-border rounded-lg">
@@ -162,6 +189,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                         <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
                       </div>
                     ))}
+                    {moreProjCount > 0 && <p class="text-[10px] text-muted mt-1">+ {moreProjCount} more</p>}
                   </div>
                 )}
               </div>
@@ -175,6 +203,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           );
         })}
       </div>
+      {projectsRest.length > 0 && (
+        <details class="mt-4">
+          <summary class="text-sm text-accent-light cursor-pointer hover:underline">Show {projectsRest.length.toLocaleString()} more projects</summary>
+          <div class="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+            {projectsRest.map((p: any) => (
+              <div class="bg-surface border border-border rounded px-3 py-2 flex items-center gap-2">
+                <span class="text-xs text-gray-300">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </section>
   </div>
 </Layout>

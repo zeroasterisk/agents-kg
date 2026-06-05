@@ -100,20 +100,20 @@ const dataUrl = `${base}/graph-data.json`;
   </div>
 
   <!-- Search box -->
-  <div class="absolute top-3 left-3 w-56">
-    <input id="graph-search" type="text" placeholder="Search nodes..."
+  <div class="absolute top-3 left-3 w-40 sm:w-56">
+    <input id="graph-search" type="text" aria-label="Search graph nodes" placeholder="Search nodes..."
       style="width:100%;font-size:11px;padding:5px 10px;border-radius:6px;background:rgba(15,17,23,0.95);border:1px solid #2a2d3a;color:#ffffff;outline:none;" />
     <div id="search-results" class="hidden mt-1 max-h-48 overflow-y-auto bg-bg/95 border border-border rounded backdrop-blur-sm"></div>
   </div>
 
   <!-- Info panel -->
-  <div id="node-info" class="absolute top-3 right-3 w-72 bg-bg/95 border border-border rounded-lg p-4 hidden backdrop-blur-sm">
+  <div id="node-info" class="absolute top-3 right-3 w-64 sm:w-72 max-w-[calc(100%-1.5rem)] bg-bg/95 border border-border rounded-lg p-3 sm:p-4 hidden backdrop-blur-sm">
     <div class="flex items-center justify-between mb-2">
       <div id="history-nav" class="flex items-center gap-1">
-        <button id="btn-back" class="text-muted hover:text-white disabled:opacity-20 disabled:cursor-default" disabled style="font-size:14px;">&#9664;</button>
-        <button id="btn-forward" class="text-muted hover:text-white disabled:opacity-20 disabled:cursor-default" disabled style="font-size:14px;">&#9654;</button>
+        <button id="btn-back" aria-label="Go back in browse history" class="text-muted hover:text-white disabled:opacity-20 disabled:cursor-default" disabled style="font-size:14px;">&#9664;</button>
+        <button id="btn-forward" aria-label="Go forward in browse history" class="text-muted hover:text-white disabled:opacity-20 disabled:cursor-default" disabled style="font-size:14px;">&#9654;</button>
       </div>
-      <button id="close-info" class="text-muted hover:text-white text-sm leading-none">&times;</button>
+      <button id="close-info" aria-label="Close info panel and reset view" class="text-muted hover:text-white text-sm leading-none">&times;</button>
     </div>
     <h3 id="info-name" class="text-white font-semibold text-sm mb-1"></h3>
     <span id="info-type" class="inline-block text-[10px] px-1.5 py-0.5 rounded mb-2"></span>
