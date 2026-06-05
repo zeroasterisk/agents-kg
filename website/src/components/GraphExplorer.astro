@@ -1,0 +1,270 @@
+---
+const API = 'http://35.202.188.73:8000';
+const AUTH = 'Bearer coordinator-agents-kg-2026';
+---
+
+<div id="graph-container" class="relative w-full bg-surface border border-border rounded-lg overflow-hidden" style="height: 600px;">
+  <div id="cy" class="w-full h-full"></div>
+  <div id="graph-loading" class="absolute inset-0 flex items-center justify-center bg-surface">
+    <span class="text-muted text-sm">Loading graph...</span>
+  </div>
+  <div id="node-info" class="absolute top-3 right-3 w-72 bg-bg/95 border border-border rounded-lg p-4 hidden backdrop-blur-sm">
+    <button id="close-info" class="absolute top-2 right-2 text-muted hover:text-white text-xs">&times;</button>
+    <h3 id="info-name" class="text-white font-semibold text-sm mb-1"></h3>
+    <span id="info-type" class="inline-block text-[10px] px-1.5 py-0.5 rounded mb-2"></span>
+    <p id="info-desc" class="text-xs text-muted mb-2"></p>
+    <p id="info-hint" class="text-[10px] text-accent-light">Click to expand neighbors</p>
+  </div>
+  <div class="absolute bottom-3 left-3 flex flex-wrap gap-2">
+    <span class="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300">Protocol</span>
+    <span class="text-[10px] px-2 py-1 rounded bg-emerald-500/20 text-emerald-300">Project</span>
+    <span class="text-[10px] px-2 py-1 rounded bg-green-500/20 text-green-300">Organization</span>
+    <span class="text-[10px] px-2 py-1 rounded bg-orange-500/20 text-orange-300">Person</span>
+    <span class="text-[10px] px-2 py-1 rounded bg-purple-500/20 text-purple-300">Capability</span>
+    <span class="text-[10px] px-2 py-1 rounded bg-teal-500/20 text-teal-300">Group</span>
+  </div>
+  <div class="absolute bottom-3 right-3 flex gap-1">
+    <button id="btn-reset" class="text-[10px] px-2 py-1 rounded bg-surface border border-border text-muted hover:text-white">Reset</button>
+  </div>
+</div>
+
+<script>
+  import cytoscape from 'cytoscape';
+
+  const API = 'http://35.202.188.73:8000';
+  const AUTH = 'Bearer coordinator-agents-kg-2026';
+
+  const TYPE_COLORS = {
+    Protocol: '#3b82f6',
+    Project: '#10b981',
+    Organization: '#22c55e',
+    Person: '#f97316',
+    Capability: '#a855f7',
+    Group: '#14b8a6',
+  };
+
+  async function query(cypher) {
+    const res = await fetch(`${API}/query`, {
+      method: 'POST',
+      headers: { 'Authorization': AUTH, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cypher }),
+    });
+    const data = await res.json();
+    return data.results || [];
+  }
+
+  const loadedNodes = new Set();
+  const loadedEdges = new Set();
+
+  function toElements(results) {
+    const elements = [];
+    for (const r of results) {
+      const srcId = `${r.source}::${r.source_type}`;
+      const tgtId = `${r.target}::${r.target_type}`;
+      const edgeId = `${srcId}-${r.rel}-${tgtId}`;
+
+      if (!loadedNodes.has(srcId)) {
+        loadedNodes.add(srcId);
+        elements.push({
+          data: {
+            id: srcId,
+            label: r.source.length > 30 ? r.source.slice(0, 28) + '...' : r.source,
+            fullName: r.source,
+            type: r.source_type,
+            color: TYPE_COLORS[r.source_type] || '#6b7280',
+          },
+        });
+      }
+      if (!loadedNodes.has(tgtId)) {
+        loadedNodes.add(tgtId);
+        elements.push({
+          data: {
+            id: tgtId,
+            label: r.target.length > 30 ? r.target.slice(0, 28) + '...' : r.target,
+            fullName: r.target,
+            type: r.target_type,
+            color: TYPE_COLORS[r.target_type] || '#6b7280',
+          },
+        });
+      }
+      if (!loadedEdges.has(edgeId)) {
+        loadedEdges.add(edgeId);
+        elements.push({
+          data: {
+            id: edgeId,
+            source: srcId,
+            target: tgtId,
+            label: r.rel.replace(/_/g, ' ').toLowerCase(),
+          },
+        });
+      }
+    }
+    return elements;
+  }
+
+  async function init() {
+    const results = await query(`
+      MATCH (n:Entity)-[r]->(m:Entity)
+      WHERE n.type IN ['Protocol', 'Project'] AND m.type IN ['Protocol', 'Project', 'Organization', 'Group']
+      WITH n, r, m, rand() as rnd
+      ORDER BY rnd
+      RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
+      LIMIT 120
+    `);
+
+    const elements = toElements(results);
+
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'background-color': 'data(color)',
+            'label': 'data(label)',
+            'color': '#e5e7eb',
+            'font-size': '9px',
+            'text-valign': 'bottom',
+            'text-margin-y': 4,
+            'width': 18,
+            'height': 18,
+            'border-width': 1,
+            'border-color': '#2a2d3a',
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+          },
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 1,
+            'line-color': '#2a2d3a',
+            'target-arrow-color': '#2a2d3a',
+            'target-arrow-shape': 'triangle',
+            'arrow-scale': 0.6,
+            'curve-style': 'bezier',
+          },
+        },
+        {
+          selector: 'node:selected',
+          style: {
+            'border-width': 2,
+            'border-color': '#818cf8',
+            'width': 24,
+            'height': 24,
+          },
+        },
+        {
+          selector: 'edge:selected',
+          style: {
+            'line-color': '#818cf8',
+            'target-arrow-color': '#818cf8',
+            'width': 2,
+            'label': 'data(label)',
+            'font-size': '8px',
+            'color': '#9ca3af',
+            'text-rotation': 'autorotate',
+          },
+        },
+      ],
+      layout: {
+        name: 'cose',
+        animate: false,
+        nodeOverlap: 20,
+        idealEdgeLength: 80,
+        nodeRepulsion: function() { return 8000; },
+        gravity: 0.25,
+      },
+    });
+
+    document.getElementById('graph-loading')?.remove();
+
+    const infoPanel = document.getElementById('node-info');
+    const infoName = document.getElementById('info-name');
+    const infoType = document.getElementById('info-type');
+    const infoDesc = document.getElementById('info-desc');
+
+    cy.on('tap', 'node', async function(evt) {
+      const node = evt.target;
+      const name = node.data('fullName');
+      const type = node.data('type');
+
+      if (infoPanel && infoName && infoType) {
+        infoName.textContent = name;
+        infoType.textContent = type;
+        infoType.className = `inline-block text-[10px] px-1.5 py-0.5 rounded mb-2`;
+        const colorClass = {
+          Protocol: 'bg-blue-500/20 text-blue-300',
+          Project: 'bg-emerald-500/20 text-emerald-300',
+          Organization: 'bg-green-500/20 text-green-300',
+          Person: 'bg-orange-500/20 text-orange-300',
+          Capability: 'bg-purple-500/20 text-purple-300',
+          Group: 'bg-teal-500/20 text-teal-300',
+        }[type] || 'bg-gray-500/20 text-gray-400';
+        infoType.className += ` ${colorClass}`;
+        infoPanel.classList.remove('hidden');
+      }
+
+      // Fetch description
+      const descResults = await query(`
+        MATCH (e:Entity) WHERE e.name = "${name.replace(/"/g, '\\"')}" AND e.type = "${type}"
+        RETURN e.description as description LIMIT 1
+      `);
+      if (infoDesc && descResults.length > 0 && descResults[0].description) {
+        infoDesc.textContent = descResults[0].description;
+      } else if (infoDesc) {
+        infoDesc.textContent = '';
+      }
+
+      // Expand neighbors
+      const neighbors = await query(`
+        MATCH (n:Entity {name: "${name.replace(/"/g, '\\"')}", type: "${type}"})-[r]->(m:Entity)
+        RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
+        LIMIT 15
+      `);
+      const inbound = await query(`
+        MATCH (m:Entity)-[r]->(n:Entity {name: "${name.replace(/"/g, '\\"')}", type: "${type}"})
+        RETURN m.name as source, m.type as source_type, type(r) as rel, n.name as target, n.type as target_type
+        LIMIT 15
+      `);
+
+      const newElements = toElements([...neighbors, ...inbound]);
+      if (newElements.length > 0) {
+        cy.add(newElements);
+        cy.layout({
+          name: 'cose',
+          animate: true,
+          animationDuration: 500,
+          fit: false,
+          nodeOverlap: 20,
+          idealEdgeLength: 80,
+          nodeRepulsion: function() { return 8000; },
+          gravity: 0.25,
+        }).run();
+      }
+    });
+
+    cy.on('tap', function(evt) {
+      if (evt.target === cy && infoPanel) {
+        infoPanel.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('close-info')?.addEventListener('click', () => {
+      infoPanel?.classList.add('hidden');
+    });
+
+    document.getElementById('btn-reset')?.addEventListener('click', () => {
+      loadedNodes.clear();
+      loadedEdges.clear();
+      cy.elements().remove();
+      infoPanel?.classList.add('hidden');
+      init();
+    });
+
+    return cy;
+  }
+
+  init();
+</script>

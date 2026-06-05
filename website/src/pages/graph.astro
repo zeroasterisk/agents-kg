@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GraphExplorer from '../components/GraphExplorer.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Graph Explorer" description="Interactive visualization of the agents-kg knowledge graph">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16">
+      <h1 class="text-3xl font-bold text-white">Graph Explorer</h1>
+      <p class="mt-4 text-muted max-w-2xl">
+        Interactive visualization of the knowledge graph. Click any node to expand its neighbors
+        and see its relationships. Drag to pan, scroll to zoom.
+      </p>
+    </section>
+
+    <section class="pb-16">
+      <GraphExplorer />
+    </section>
+  </div>
+</Layout>
