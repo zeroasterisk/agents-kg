@@ -1,6 +1,95 @@
 ---
+import fs from 'node:fs';
+import path from 'node:path';
+
 const API = 'http://35.202.188.73:8000';
-const AUTH = 'Bearer coordinator-agents-kg-2026';
+const headers = {
+  'Authorization': 'Bearer coordinator-agents-kg-2026',
+  'Content-Type': 'application/json',
+};
+
+async function query(cypher: string) {
+  const res = await fetch(`${API}/query`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ cypher }),
+  });
+  const data = await res.json();
+  return data.results || [];
+}
+
+let seedEdges: any[] = [];
+let entityDescs: Record<string, string> = {};
+let neighborMap: Record<string, any[]> = {};
+
+try {
+  seedEdges = await query(`
+    MATCH (n:Entity)-[r]->(m:Entity)
+    WHERE n.type IN ['Protocol', 'Project'] AND m.type IN ['Protocol', 'Project', 'Organization', 'Group']
+    WITH n, r, m
+    RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
+    LIMIT 300
+  `);
+
+  const entityNames = new Set<string>();
+  for (const e of seedEdges) {
+    entityNames.add(e.source);
+    entityNames.add(e.target);
+  }
+
+  const descResults = await query(`
+    MATCH (e:Entity)
+    WHERE e.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
+    RETURN e.name as name, e.type as type, e.description as description
+  `);
+  for (const d of descResults) {
+    entityDescs[`${d.name}::${d.type}`] = d.description || '';
+  }
+
+  const allEdges = await query(`
+    MATCH (n:Entity)-[r]->(m:Entity)
+    WHERE n.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
+    OR m.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
+    RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
+    LIMIT 3000
+  `);
+
+  for (const e of allEdges) {
+    const srcKey = `${e.source}::${e.source_type}`;
+    const tgtKey = `${e.target}::${e.target_type}`;
+    if (!neighborMap[srcKey]) neighborMap[srcKey] = [];
+    if (!neighborMap[tgtKey]) neighborMap[tgtKey] = [];
+    neighborMap[srcKey].push(e);
+    neighborMap[tgtKey].push(e);
+  }
+
+  const expandedNames = new Set<string>();
+  for (const e of allEdges) {
+    expandedNames.add(e.source);
+    expandedNames.add(e.target);
+  }
+  const newNames = [...expandedNames].filter(n => !entityNames.has(n));
+  if (newNames.length > 0) {
+    const moreDescs = await query(`
+      MATCH (e:Entity)
+      WHERE e.name IN [${newNames.slice(0, 500).map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
+      RETURN e.name as name, e.type as type, e.description as description
+    `);
+    for (const d of moreDescs) {
+      entityDescs[`${d.name}::${d.type}`] = d.description || '';
+    }
+  }
+} catch (e) {}
+
+// Write graph data to dist (available at build time during SSG)
+const distDir = path.resolve('./dist');
+fs.mkdirSync(distDir, { recursive: true });
+fs.writeFileSync(
+  path.join(distDir, 'graph-data.json'),
+  JSON.stringify({ seedEdges, entityDescs, neighborMap })
+);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const dataUrl = `${base}/graph-data.json`;
 ---
 
 <div id="graph-container" class="relative w-full bg-surface border border-border rounded-lg overflow-hidden" style="height: 600px;">
@@ -13,7 +102,7 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
     <h3 id="info-name" class="text-white font-semibold text-sm mb-1"></h3>
     <span id="info-type" class="inline-block text-[10px] px-1.5 py-0.5 rounded mb-2"></span>
     <p id="info-desc" class="text-xs text-muted mb-2"></p>
-    <p id="info-hint" class="text-[10px] text-accent-light">Click to expand neighbors</p>
+    <p id="info-rels" class="text-[10px] text-muted"></p>
   </div>
   <div class="absolute bottom-3 left-3 flex flex-wrap gap-2">
     <span class="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-300">Protocol</span>
@@ -28,13 +117,12 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
   </div>
 </div>
 
+<div id="graph-data-url" style="display:none" data-url={dataUrl}></div>
+
 <script>
   import cytoscape from 'cytoscape';
 
-  const API = 'http://35.202.188.73:8000';
-  const AUTH = 'Bearer coordinator-agents-kg-2026';
-
-  const TYPE_COLORS = {
+  const TYPE_COLORS: Record<string, string> = {
     Protocol: '#3b82f6',
     Project: '#10b981',
     Organization: '#22c55e',
@@ -43,21 +131,11 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
     Group: '#14b8a6',
   };
 
-  async function query(cypher) {
-    const res = await fetch(`${API}/query`, {
-      method: 'POST',
-      headers: { 'Authorization': AUTH, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cypher }),
-    });
-    const data = await res.json();
-    return data.results || [];
-  }
+  const loadedNodes = new Set<string>();
+  const loadedEdges = new Set<string>();
 
-  const loadedNodes = new Set();
-  const loadedEdges = new Set();
-
-  function toElements(results) {
-    const elements = [];
+  function toElements(results: any[]) {
+    const elements: any[] = [];
     for (const r of results) {
       const srcId = `${r.source}::${r.source_type}`;
       const tgtId = `${r.target}::${r.target_type}`;
@@ -102,17 +180,15 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
     return elements;
   }
 
-  async function init() {
-    const results = await query(`
-      MATCH (n:Entity)-[r]->(m:Entity)
-      WHERE n.type IN ['Protocol', 'Project'] AND m.type IN ['Protocol', 'Project', 'Organization', 'Group']
-      WITH n, r, m, rand() as rnd
-      ORDER BY rnd
-      RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
-      LIMIT 120
-    `);
+  async function start() {
+    const dataUrl = document.getElementById('graph-data-url')!.getAttribute('data-url')!;
+    const res = await fetch(dataUrl);
+    const raw = await res.json();
+    const SEED_EDGES = raw.seedEdges;
+    const ENTITY_DESCS = raw.entityDescs;
+    const NEIGHBOR_MAP = raw.neighborMap;
 
-    const elements = toElements(results);
+    const elements = toElements(SEED_EDGES);
 
     const cy = cytoscape({
       container: document.getElementById('cy'),
@@ -122,13 +198,13 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
           selector: 'node',
           style: {
             'background-color': 'data(color)',
-            'label': 'data(label)',
-            'color': '#e5e7eb',
+            label: 'data(label)',
+            color: '#e5e7eb',
             'font-size': '9px',
             'text-valign': 'bottom',
             'text-margin-y': 4,
-            'width': 18,
-            'height': 18,
+            width: 18,
+            height: 18,
             'border-width': 1,
             'border-color': '#2a2d3a',
             'text-max-width': '100px',
@@ -138,7 +214,7 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
         {
           selector: 'edge',
           style: {
-            'width': 1,
+            width: 1,
             'line-color': '#2a2d3a',
             'target-arrow-color': '#2a2d3a',
             'target-arrow-shape': 'triangle',
@@ -151,8 +227,8 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
           style: {
             'border-width': 2,
             'border-color': '#818cf8',
-            'width': 24,
-            'height': 24,
+            width: 24,
+            height: 24,
           },
         },
         {
@@ -160,10 +236,10 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
           style: {
             'line-color': '#818cf8',
             'target-arrow-color': '#818cf8',
-            'width': 2,
-            'label': 'data(label)',
+            width: 2,
+            label: 'data(label)',
             'font-size': '8px',
-            'color': '#9ca3af',
+            color: '#9ca3af',
             'text-rotation': 'autorotate',
           },
         },
@@ -173,7 +249,7 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
         animate: false,
         nodeOverlap: 20,
         idealEdgeLength: 80,
-        nodeRepulsion: function() { return 8000; },
+        nodeRepulsion: function () { return 8000; },
         gravity: 0.25,
       },
     });
@@ -184,52 +260,44 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
     const infoName = document.getElementById('info-name');
     const infoType = document.getElementById('info-type');
     const infoDesc = document.getElementById('info-desc');
+    const infoRels = document.getElementById('info-rels');
 
-    cy.on('tap', 'node', async function(evt) {
+    cy.on('tap', 'node', function (evt: any) {
       const node = evt.target;
       const name = node.data('fullName');
       const type = node.data('type');
+      const nodeId = `${name}::${type}`;
 
       if (infoPanel && infoName && infoType) {
         infoName.textContent = name;
         infoType.textContent = type;
-        infoType.className = `inline-block text-[10px] px-1.5 py-0.5 rounded mb-2`;
-        const colorClass = {
+        infoType.className = 'inline-block text-[10px] px-1.5 py-0.5 rounded mb-2';
+        const colorClass: Record<string, string> = {
           Protocol: 'bg-blue-500/20 text-blue-300',
           Project: 'bg-emerald-500/20 text-emerald-300',
           Organization: 'bg-green-500/20 text-green-300',
           Person: 'bg-orange-500/20 text-orange-300',
           Capability: 'bg-purple-500/20 text-purple-300',
           Group: 'bg-teal-500/20 text-teal-300',
-        }[type] || 'bg-gray-500/20 text-gray-400';
-        infoType.className += ` ${colorClass}`;
+        };
+        infoType.className += ` ${colorClass[type] || 'bg-gray-500/20 text-gray-400'}`;
         infoPanel.classList.remove('hidden');
       }
 
-      // Fetch description
-      const descResults = await query(`
-        MATCH (e:Entity) WHERE e.name = "${name.replace(/"/g, '\\"')}" AND e.type = "${type}"
-        RETURN e.description as description LIMIT 1
-      `);
-      if (infoDesc && descResults.length > 0 && descResults[0].description) {
-        infoDesc.textContent = descResults[0].description;
-      } else if (infoDesc) {
-        infoDesc.textContent = '';
+      if (infoDesc) {
+        infoDesc.textContent = ENTITY_DESCS[nodeId] || '';
       }
 
-      // Expand neighbors
-      const neighbors = await query(`
-        MATCH (n:Entity {name: "${name.replace(/"/g, '\\"')}", type: "${type}"})-[r]->(m:Entity)
-        RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
-        LIMIT 15
-      `);
-      const inbound = await query(`
-        MATCH (m:Entity)-[r]->(n:Entity {name: "${name.replace(/"/g, '\\"')}", type: "${type}"})
-        RETURN m.name as source, m.type as source_type, type(r) as rel, n.name as target, n.type as target_type
-        LIMIT 15
-      `);
+      const neighbors = NEIGHBOR_MAP[nodeId] || [];
+      const limited = neighbors.slice(0, 20);
 
-      const newElements = toElements([...neighbors, ...inbound]);
+      if (infoRels) {
+        infoRels.textContent = limited.length > 0
+          ? `${limited.length} relationships${neighbors.length > 20 ? ` (showing 20 of ${neighbors.length})` : ''}`
+          : 'No additional relationships';
+      }
+
+      const newElements = toElements(limited);
       if (newElements.length > 0) {
         cy.add(newElements);
         cy.layout({
@@ -239,13 +307,13 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
           fit: false,
           nodeOverlap: 20,
           idealEdgeLength: 80,
-          nodeRepulsion: function() { return 8000; },
+          nodeRepulsion: function () { return 8000; },
           gravity: 0.25,
         }).run();
       }
     });
 
-    cy.on('tap', function(evt) {
+    cy.on('tap', function (evt: any) {
       if (evt.target === cy && infoPanel) {
         infoPanel.classList.add('hidden');
       }
@@ -260,11 +328,9 @@ const AUTH = 'Bearer coordinator-agents-kg-2026';
       loadedEdges.clear();
       cy.elements().remove();
       infoPanel?.classList.add('hidden');
-      init();
+      start();
     });
-
-    return cy;
   }
 
-  init();
+  start();
 </script>
