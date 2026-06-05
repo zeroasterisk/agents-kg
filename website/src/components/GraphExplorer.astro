@@ -104,15 +104,15 @@ const dataUrl = `${base}/graph-data.json`;
     <p id="info-rels" class="text-[10px] text-muted"></p>
   </div>
   <div id="type-filters" class="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
-    <button data-type="Protocol" class="filter-btn text-[10px] px-2 py-1 rounded border transition-all bg-transparent border-blue-500/40 text-blue-300/60 hover:bg-blue-500/20 hover:text-blue-300">Protocol</button>
-    <button data-type="Project" class="filter-btn text-[10px] px-2 py-1 rounded border transition-all bg-transparent border-emerald-500/40 text-emerald-300/60 hover:bg-emerald-500/20 hover:text-emerald-300">Project</button>
-    <button data-type="Organization" class="filter-btn text-[10px] px-2 py-1 rounded border transition-all bg-transparent border-green-500/40 text-green-300/60 hover:bg-green-500/20 hover:text-green-300">Organization</button>
-    <button data-type="Person" class="filter-btn text-[10px] px-2 py-1 rounded border transition-all bg-transparent border-orange-500/40 text-orange-300/60 hover:bg-orange-500/20 hover:text-orange-300">Person</button>
-    <button data-type="Capability" class="filter-btn text-[10px] px-2 py-1 rounded border transition-all bg-transparent border-purple-500/40 text-purple-300/60 hover:bg-purple-500/20 hover:text-purple-300">Capability</button>
-    <button data-type="Group" class="filter-btn text-[10px] px-2 py-1 rounded border transition-all bg-transparent border-teal-500/40 text-teal-300/60 hover:bg-teal-500/20 hover:text-teal-300">Group</button>
+    <button data-type="Protocol" data-color="#3b82f6" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(59,130,246,0.4); color: rgba(147,197,253,0.6);">Protocol</button>
+    <button data-type="Project" data-color="#10b981" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(16,185,129,0.4); color: rgba(110,231,183,0.6);">Project</button>
+    <button data-type="Organization" data-color="#22c55e" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(34,197,94,0.4); color: rgba(134,239,172,0.6);">Organization</button>
+    <button data-type="Person" data-color="#f97316" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(249,115,22,0.4); color: rgba(253,186,116,0.6);">Person</button>
+    <button data-type="Capability" data-color="#a855f7" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(168,85,247,0.4); color: rgba(196,148,252,0.6);">Capability</button>
+    <button data-type="Group" data-color="#14b8a6" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(20,184,166,0.4); color: rgba(94,234,212,0.6);">Group</button>
   </div>
   <div class="absolute bottom-3 right-3 flex gap-1">
-    <button id="btn-reset" class="text-[10px] px-2 py-1 rounded bg-surface border border-border text-muted hover:text-white">Reset</button>
+    <button id="btn-reset" class="text-[10px] px-2 py-1 rounded bg-surface border border-border text-muted hover:text-white cursor-pointer">Reset</button>
   </div>
 </div>
 
@@ -130,27 +130,13 @@ const dataUrl = `${base}/graph-data.json`;
     Group: '#14b8a6',
   };
 
-  const FILTER_ACTIVE_CLASSES: Record<string, string> = {
-    Protocol: 'bg-blue-500/30 border-blue-400 text-blue-200',
-    Project: 'bg-emerald-500/30 border-emerald-400 text-emerald-200',
-    Organization: 'bg-green-500/30 border-green-400 text-green-200',
-    Person: 'bg-orange-500/30 border-orange-400 text-orange-200',
-    Capability: 'bg-purple-500/30 border-purple-400 text-purple-200',
-    Group: 'bg-teal-500/30 border-teal-400 text-teal-200',
-  };
-
-  const FILTER_INACTIVE_CLASSES: Record<string, string> = {
-    Protocol: 'bg-transparent border-blue-500/40 text-blue-300/60',
-    Project: 'bg-transparent border-emerald-500/40 text-emerald-300/60',
-    Organization: 'bg-transparent border-green-500/40 text-green-300/60',
-    Person: 'bg-transparent border-orange-500/40 text-orange-300/60',
-    Capability: 'bg-transparent border-purple-500/40 text-purple-300/60',
-    Group: 'bg-transparent border-teal-500/40 text-teal-300/60',
-  };
-
   const loadedNodes = new Set<string>();
   const loadedEdges = new Set<string>();
   const activeFilters = new Set<string>();
+  let cyInstance: any = null;
+  let allSeedEdges: any[] = [];
+  let entityDescs: Record<string, any> = {};
+  let neighborMap: Record<string, any[]> = {};
 
   function toElements(results: any[]) {
     const elements: any[] = [];
@@ -198,52 +184,55 @@ const dataUrl = `${base}/graph-data.json`;
     return elements;
   }
 
-  function applyFilters(cy: any) {
-    if (activeFilters.size === 0) {
-      // No filters active = show all
-      cy.elements().removeClass('filtered-out');
-      cy.elements().style({ opacity: 1 });
-      cy.edges().style({ opacity: 1 });
+  function setButtonActive(btn: HTMLElement, active: boolean) {
+    const color = btn.getAttribute('data-color') || '#6b7280';
+    if (active) {
+      btn.style.background = color + '40';
+      btn.style.borderColor = color;
+      btn.style.color = '#ffffff';
     } else {
-      // Show only nodes matching active filters + their edges
-      cy.nodes().forEach((node: any) => {
-        const type = node.data('type');
-        if (activeFilters.has(type)) {
-          node.removeClass('filtered-out');
-          node.style({ opacity: 1 });
-        } else {
-          node.addClass('filtered-out');
-          node.style({ opacity: 0.08 });
-        }
-      });
-      cy.edges().forEach((edge: any) => {
-        const src = edge.source();
-        const tgt = edge.target();
-        if (!src.hasClass('filtered-out') && !tgt.hasClass('filtered-out')) {
-          edge.style({ opacity: 1 });
-        } else {
-          edge.style({ opacity: 0.05 });
-        }
-      });
+      btn.style.background = 'transparent';
+      btn.style.borderColor = color + '66';
+      btn.style.color = color + '99';
     }
   }
 
+  function rebuildGraph() {
+    if (!cyInstance) return;
+
+    loadedNodes.clear();
+    loadedEdges.clear();
+
+    let filteredEdges: any[];
+    if (activeFilters.size === 0) {
+      filteredEdges = allSeedEdges;
+    } else {
+      filteredEdges = allSeedEdges.filter((e: any) =>
+        activeFilters.has(e.source_type) || activeFilters.has(e.target_type)
+      );
+    }
+
+    const elements = toElements(filteredEdges);
+    cyInstance.elements().remove();
+    cyInstance.add(elements);
+    cyInstance.layout({
+      name: 'cose',
+      animate: false,
+      nodeOverlap: 20,
+      idealEdgeLength: 80,
+      nodeRepulsion: function () { return 8000; },
+      gravity: 0.25,
+    }).run();
+    cyInstance.fit(undefined, 30);
+  }
+
   function focusOnNode(cy: any, node: any) {
-    // Get the connected component of this node
     const neighborhood = node.closedNeighborhood();
-
-    // Dim everything
     cy.elements().style({ opacity: 0.06 });
-
-    // Highlight the neighborhood
     neighborhood.style({ opacity: 1 });
     neighborhood.nodes().style({ opacity: 1 });
     neighborhood.edges().style({ opacity: 0.8 });
-
-    // Also highlight the selected node distinctly
     node.style({ opacity: 1, 'border-width': 3, 'border-color': '#818cf8', width: 26, height: 26 });
-
-    // Zoom to fit the subnetwork with padding
     cy.animate({
       fit: { eles: neighborhood, padding: 50 },
       duration: 400,
@@ -252,36 +241,22 @@ const dataUrl = `${base}/graph-data.json`;
   }
 
   function clearFocus(cy: any) {
-    // Restore all nodes to default style
+    cy.elements().style({ opacity: 1 });
     cy.nodes().style({ 'border-width': 1, 'border-color': '#2a2d3a', width: 18, height: 18 });
-    // Re-apply filters (which handles opacity)
-    applyFilters(cy);
-  }
-
-  function updateFilterButton(btn: HTMLElement, type: string, active: boolean) {
-    // Remove all styling classes
-    const allClasses = `${FILTER_ACTIVE_CLASSES[type]} ${FILTER_INACTIVE_CLASSES[type]}`.split(' ');
-    for (const c of allClasses) {
-      if (c) btn.classList.remove(c);
-    }
-    // Add the right set
-    const classes = active ? FILTER_ACTIVE_CLASSES[type] : FILTER_INACTIVE_CLASSES[type];
-    for (const c of classes.split(' ')) {
-      if (c) btn.classList.add(c);
-    }
+    cy.fit(undefined, 30);
   }
 
   async function start() {
     const dataUrl = document.getElementById('graph-data-url')!.getAttribute('data-url')!;
     const res = await fetch(dataUrl);
     const raw = await res.json();
-    const SEED_EDGES = raw.seedEdges;
-    const ENTITY_DESCS = raw.entityDescs;
-    const NEIGHBOR_MAP = raw.neighborMap;
+    allSeedEdges = raw.seedEdges;
+    entityDescs = raw.entityDescs;
+    neighborMap = raw.neighborMap;
 
-    const elements = toElements(SEED_EDGES);
+    const elements = toElements(allSeedEdges);
 
-    const cy = cytoscape({
+    cyInstance = cytoscape({
       container: document.getElementById('cy'),
       elements,
       style: [
@@ -325,6 +300,7 @@ const dataUrl = `${base}/graph-data.json`;
     });
 
     document.getElementById('graph-loading')?.remove();
+    const cy = cyInstance;
 
     const infoPanel = document.getElementById('node-info');
     const infoName = document.getElementById('info-name');
@@ -338,12 +314,12 @@ const dataUrl = `${base}/graph-data.json`;
         const type = (btn as HTMLElement).getAttribute('data-type')!;
         if (activeFilters.has(type)) {
           activeFilters.delete(type);
-          updateFilterButton(btn as HTMLElement, type, false);
+          setButtonActive(btn as HTMLElement, false);
         } else {
           activeFilters.add(type);
-          updateFilterButton(btn as HTMLElement, type, true);
+          setButtonActive(btn as HTMLElement, true);
         }
-        applyFilters(cy);
+        rebuildGraph();
       });
     });
 
@@ -359,25 +335,18 @@ const dataUrl = `${base}/graph-data.json`;
       if (infoPanel && infoName && infoType) {
         infoName.textContent = name;
         infoType.textContent = type;
-        infoType.className = 'inline-block text-[10px] px-1.5 py-0.5 rounded mb-2';
-        const colorClass: Record<string, string> = {
-          Protocol: 'bg-blue-500/20 text-blue-300',
-          Project: 'bg-emerald-500/20 text-emerald-300',
-          Organization: 'bg-green-500/20 text-green-300',
-          Person: 'bg-orange-500/20 text-orange-300',
-          Capability: 'bg-purple-500/20 text-purple-300',
-          Group: 'bg-teal-500/20 text-teal-300',
-        };
-        infoType.className += ` ${colorClass[type] || 'bg-gray-500/20 text-gray-400'}`;
+        const color = TYPE_COLORS[type] || '#6b7280';
+        infoType.style.background = color + '33';
+        infoType.style.color = color;
         infoPanel.classList.remove('hidden');
       }
 
       if (infoDesc) {
-        infoDesc.textContent = ENTITY_DESCS[nodeId] || '';
+        infoDesc.textContent = entityDescs[nodeId] || '';
       }
 
       // Expand neighbors from pre-fetched data
-      const neighbors = NEIGHBOR_MAP[nodeId] || [];
+      const neighbors = neighborMap[nodeId] || [];
       const limited = neighbors.slice(0, 20);
 
       if (infoRels) {
@@ -421,18 +390,26 @@ const dataUrl = `${base}/graph-data.json`;
 
     // --- Reset button ---
     document.getElementById('btn-reset')?.addEventListener('click', () => {
-      loadedNodes.clear();
-      loadedEdges.clear();
       activeFilters.clear();
       focusedNode = null;
-      cy.elements().remove();
       infoPanel?.classList.add('hidden');
-      // Reset filter buttons to inactive
       document.querySelectorAll('.filter-btn').forEach((btn) => {
-        const type = (btn as HTMLElement).getAttribute('data-type')!;
-        updateFilterButton(btn as HTMLElement, type, false);
+        setButtonActive(btn as HTMLElement, false);
       });
-      start();
+      loadedNodes.clear();
+      loadedEdges.clear();
+      cyInstance.elements().remove();
+      const els = toElements(allSeedEdges);
+      cyInstance.add(els);
+      cyInstance.layout({
+        name: 'cose',
+        animate: false,
+        nodeOverlap: 20,
+        idealEdgeLength: 80,
+        nodeRepulsion: function () { return 8000; },
+        gravity: 0.25,
+      }).run();
+      cyInstance.fit(undefined, 30);
     });
   }
 
