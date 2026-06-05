@@ -25,7 +25,7 @@ try {
   // Fetch edges across ALL entity types for a richer seed graph
   seedEdges = await query(`
     MATCH (n:Entity)-[r]->(m:Entity)
-    WHERE n.type IN ['Protocol', 'Project', 'Organization', 'Group', 'Person']
+    WHERE n.type IN ['Protocol', 'Project', 'Organization', 'Group', 'Person', 'Capability']
     AND m.type IN ['Protocol', 'Project', 'Organization', 'Group', 'Person', 'Capability']
     WITH n, r, m
     RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
@@ -102,7 +102,7 @@ const dataUrl = `${base}/graph-data.json`;
   <!-- Search box -->
   <div class="absolute top-3 left-3 w-56">
     <input id="graph-search" type="text" placeholder="Search nodes..."
-      class="w-full text-xs px-3 py-1.5 rounded bg-bg/90 border border-border text-white placeholder-muted focus:outline-none focus:border-accent-light backdrop-blur-sm" />
+      style="width:100%;font-size:11px;padding:5px 10px;border-radius:6px;background:rgba(15,17,23,0.95);border:1px solid #2a2d3a;color:#ffffff;outline:none;" />
     <div id="search-results" class="hidden mt-1 max-h-48 overflow-y-auto bg-bg/95 border border-border rounded backdrop-blur-sm"></div>
   </div>
 
@@ -119,6 +119,10 @@ const dataUrl = `${base}/graph-data.json`;
     <span id="info-type" class="inline-block text-[10px] px-1.5 py-0.5 rounded mb-2"></span>
     <p id="info-desc" class="text-xs text-muted mb-2"></p>
     <p id="info-rels" class="text-[10px] text-muted"></p>
+    <div id="edge-detail" class="hidden mt-2 pt-2 border-t border-border/50">
+      <p class="text-[10px] font-medium text-muted uppercase tracking-wider mb-1">Selected Edge</p>
+      <div id="edge-info" class="text-xs text-gray-300"></div>
+    </div>
   </div>
 
   <!-- Type filter toggles -->
@@ -272,8 +276,7 @@ const dataUrl = `${base}/graph-data.json`;
     const type = node.data('type');
     const nId = `${name}::${type}`;
     const neighbors = neighborMap[nId] || [];
-    const limited = neighbors.slice(0, 20);
-    const newElements = toElements(limited);
+    const newElements = toElements(neighbors);
     if (newElements.length > 0) {
       cy.add(newElements);
     }
@@ -304,10 +307,13 @@ const dataUrl = `${base}/graph-data.json`;
     });
 
     // Update info panel
-    showInfoPanel(name, type, nId, limited.length, neighbors.length);
+    showInfoPanel(name, type, nId, neighbors.length);
+    // Clear edge detail when focusing a new node
+    const edgeDetail = document.getElementById('edge-detail');
+    if (edgeDetail) edgeDetail.classList.add('hidden');
   }
 
-  function showInfoPanel(name: string, type: string, nodeId: string, shownRels: number, totalRels: number) {
+  function showInfoPanel(name: string, type: string, nodeId: string, totalRels: number) {
     const infoPanel = document.getElementById('node-info');
     const infoName = document.getElementById('info-name');
     const infoType = document.getElementById('info-type');
@@ -326,9 +332,9 @@ const dataUrl = `${base}/graph-data.json`;
       infoDesc.textContent = entityDescs[nodeId] || '';
     }
     if (infoRels) {
-      infoRels.textContent = shownRels > 0
-        ? `${shownRels} relationships${totalRels > 20 ? ` (showing 20 of ${totalRels})` : ''}`
-        : 'No additional relationships';
+      infoRels.textContent = totalRels > 0
+        ? `${totalRels} relationships`
+        : 'No relationships';
     }
   }
 
@@ -438,10 +444,46 @@ const dataUrl = `${base}/graph-data.json`;
       focusOnNode(cy, nodeId, true);
     });
 
+    // --- Edge tap: show relationship detail in info card ---
+    cy.on('tap', 'edge', function (evt: any) {
+      const edge = evt.target;
+      const edgeDetail = document.getElementById('edge-detail');
+      const edgeInfo = document.getElementById('edge-info');
+      if (!edgeDetail || !edgeInfo) return;
+
+      const relLabel = edge.data('label');
+      const srcNode = edge.source();
+      const tgtNode = edge.target();
+      const srcName = srcNode.data('fullName');
+      const srcType = srcNode.data('type');
+      const tgtName = tgtNode.data('fullName');
+      const tgtType = tgtNode.data('type');
+      const srcColor = TYPE_COLORS[srcType] || '#6b7280';
+      const tgtColor = TYPE_COLORS[tgtType] || '#6b7280';
+
+      edgeInfo.innerHTML =
+        `<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">` +
+        `<span style="width:8px;height:8px;border-radius:50%;background:${srcColor};flex-shrink:0;"></span>` +
+        `<span style="color:#e5e7eb;">${srcName}</span>` +
+        `</div>` +
+        `<div style="padding-left:12px;color:#818cf8;font-size:10px;margin-bottom:4px;">&#8595; ${relLabel}</div>` +
+        `<div style="display:flex;align-items:center;gap:4px;">` +
+        `<span style="width:8px;height:8px;border-radius:50%;background:${tgtColor};flex-shrink:0;"></span>` +
+        `<span style="color:#e5e7eb;">${tgtName}</span>` +
+        `</div>`;
+
+      edgeDetail.classList.remove('hidden');
+
+      // Highlight the edge
+      edge.style({ 'line-color': '#818cf8', 'target-arrow-color': '#818cf8', width: 2 });
+    });
+
     // --- Tap on background: clear focus ---
     cy.on('tap', function (evt: any) {
       if (evt.target === cy) {
         clearFocus();
+        const edgeDetail = document.getElementById('edge-detail');
+        if (edgeDetail) edgeDetail.classList.add('hidden');
       }
     });
 
@@ -529,7 +571,7 @@ const dataUrl = `${base}/graph-data.json`;
             const nKey = `${name}::${type}`;
             const neighbors = neighborMap[nKey] || [];
             if (neighbors.length > 0) {
-              const newEls = toElements(neighbors.slice(0, 15));
+              const newEls = toElements(neighbors);
               if (newEls.length > 0) {
                 cy.add(newEls);
                 cy.layout({ name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80, nodeRepulsion: function() { return 8000; }, gravity: 0.25 }).run();
