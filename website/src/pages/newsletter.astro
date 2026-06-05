@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const API = 'http://35.202.188.73:8000';
+const headers = {
+  'Authorization': 'Bearer coordinator-agents-kg-2026',
+  'Content-Type': 'application/json',
+};
+
+let entityCounts: any[] = [];
+let topProtocols: any[] = [];
+let topProjects: any[] = [];
+let topOrgs: any[] = [];
+let relTypes: any[] = [];
+try {
+  const [typesRes, protRes, projRes, orgRes, relRes] = await Promise.all([
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity) RETURN e.type as type, count(*) as count ORDER BY count DESC`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity {type: "Protocol"})-[r]->(t:Entity) WITH e, count(r) as rel_count RETURN e.name as name, e.description as desc, rel_count ORDER BY rel_count DESC LIMIT 15`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity {type: "Project"})-[r]->(t:Entity) WITH e, count(r) as rel_count RETURN e.name as name, e.description as desc, rel_count ORDER BY rel_count DESC LIMIT 10`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity {type: "Organization"})-[r]->(t:Entity) WITH e, count(r) as rel_count RETURN e.name as name, e.description as desc, rel_count ORDER BY rel_count DESC LIMIT 10`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH ()-[r]->() RETURN type(r) as rel, count(*) as count ORDER BY count DESC LIMIT 10`
+    })}),
+  ]);
+  entityCounts = (await typesRes.json()).results || [];
+  topProtocols = (await protRes.json()).results || [];
+  topProjects = (await projRes.json()).results || [];
+  topOrgs = (await orgRes.json()).results || [];
+  relTypes = (await relRes.json()).results || [];
+} catch (e) {}
+
+const totalEntities = entityCounts.reduce((s: number, t: any) => s + t.count, 0);
+const totalRels = relTypes.reduce((s: number, r: any) => s + r.count, 0);
+
+interface Development {
+  headline: string;
+  detail: string;
+}
+
+interface Newsletter {
+  month: string;
+  title: string;
+  intro: string;
+  developments: Development[];
+  watch: string[];
+}
+
+const newsletters: Newsletter[] = [
+  {
+    month: "2026-06",
+    title: "Agentic Commerce Blooms, Coherence Standards Mature",
+    intro: "June highlights the maturation of agentic AI into tangible commercial applications and increasingly complex network deployments. Protocols facilitating secure payments and defined merchant identities are seeing initial adoption, while advanced architectural principles and coherence extensions solidify the operational foundation for the future of autonomous systems.",
+    developments: [
+      { headline: "Agent Payments Protocol and AGTP Merchant Identity See Pilot Success", detail: "The Agent Payments Protocol and AGTP Merchant Identity and Agentic Commerce Binding are demonstrating early success in pilot programs. These protocols enable seamless agent-to-agent transactions and establish verified merchant identities, paving the way for a fully autonomous agentic economy." },
+      { headline: "Agent Event Behaviour Analysis Leveraged for Regulatory Compliance", detail: "As regulatory scrutiny on AI intensifies, the Agent Event Behaviour Analysis framework is being actively adopted by organizations to meet compliance mandates. Its capabilities for generating tamper-evident audit trails are proving invaluable for demonstrating agent accountability." },
+      { headline: "Agentic AI Architectural Principles Draft Nears IETF Consensus", detail: "The Agentic AI Architectural Principles for Autonomous Computer Networks draft saw substantial progress within IETF discussions. Broad consensus is emerging on key aspects like resilience, scalability, and distributed trust in network operations." },
+      { headline: "MVPS AI-Coherence Extension Receives Positive Industry Feedback", detail: "After broader review, the MVPS AI-Coherence Extension is receiving positive feedback from infrastructure providers. Its approach to ensuring semantic, Byzantine, and infrastructure-cognitive coherence is seen as a critical enabler for reliable agent deployments at scale." },
+      { headline: "TLS-Session-Bound Access Tokens Gain Agent Relevance", detail: "IETF work on TLS-Session-Bound Access Tokens for OAuth 2.0 is gaining increased relevance within the agentic space. This mechanism for binding access tokens to mutual TLS connections provides higher security for agents accessing sensitive resources." },
+    ],
+    watch: [
+      "Observe the first public commercial deployments leveraging the Agent Payments Protocol and AGTP Merchant Identity.",
+      "Monitor how regulatory bodies respond to and potentially mandate Agent Event Behaviour Analysis for AI compliance.",
+      "Anticipate further IETF progression for the Agentic AI Architectural Principles towards a formal standard.",
+    ],
+  },
+  {
+    month: "2026-05",
+    title: "Trust and Identity: Cornerstones of Agentic Interoperability",
+    intro: "May spotlights the growing imperative for secure, trusted interactions and robust identity management within agentic AI systems. As cross-domain operations become more common, frameworks for authentication, behavioral analysis, and decentralized identity are gaining critical traction to ensure scalable and reliable agent communication.",
+    developments: [
+      { headline: "Agent Trust and Authentication Framework Nears Public Release", detail: "The Agent Trust and Authentication Framework is reportedly in its final review stages, with major endorsement anticipated from AAIF. Its comprehensive approach to securing agent-to-agent communication is set to become a foundational element for cross-domain interactions." },
+      { headline: "APKI and SCIM DID/VC Binding Drive Decentralized Agent Identity", detail: "Advancements in Agent Public Key Infrastructure (APKI) combined with the SCIM DID/VC Binding Extension are creating a robust solution for decentralized agent identity. This synergy offers verifiable credentials and secure cryptographic identities." },
+      { headline: "AgentMesh Sees Significant Growth in Inter-Agent Trust Networks", detail: "AgentMesh, an inter-agent trust layer leveraging DID identity and trust scoring, reported substantial growth in its network footprint. This project is proving essential for creating reliable ecosystems where agents can dynamically assess and establish trust." },
+      { headline: "MVPS AI-Coherence Extension Gains Wider Review", detail: "The MVPS AI-Coherence Extension, designed for semantic and infrastructural coherence in AI-serving networks, entered a broader industry review phase. Organizations are evaluating its impact on large-scale agent system deployments." },
+      { headline: "Agent Event Behaviour Analysis Becomes Critical for Auditability", detail: "The Agent Event Behaviour Analysis framework is seeing increased urgency and adoption, particularly in regulated industries. Its ability to collect, sign, and analyze behavioral events is becoming indispensable for generating tamper-evident audit trails." },
+    ],
+    watch: [
+      "Monitor the official release and initial industry pilots of the Agent Trust and Authentication Framework.",
+      "Anticipate further integration patterns between APKI and decentralized identity solutions for agent ecosystems.",
+      "Look for formal working groups or consortiums forming around the MVPS AI-Coherence Extension's next phase.",
+    ],
+  },
+  {
+    month: "2026-04",
+    title: "Model Context Protocol Dominates, Governance Tools Evolve",
+    intro: "April saw the Model Context Protocol continue its strong growth, solidifying its role in agent discovery. As agent deployments expand, the focus shifts to robust governance and secure execution environments, with key projects delivering essential updates. The community grapples with scaling and securing these new autonomous systems.",
+    developments: [
+      { headline: "Model Context Protocol (MCP) Adoption Surges Across Industries", detail: "The Model Context Protocol has reached a new milestone in integrations this month, becoming the de-facto standard for tool discovery. Early adopters report significant efficiency gains, validating its 'simpler discovery' promise." },
+      { headline: "Agent Governance Toolkit Releases Critical Security Enhancements", detail: "The Agent Governance Toolkit announced a major release focusing on enhanced runtime security and compliance features. This update is crucial for organizations deploying agentic AI, providing finer-grained control over autonomous actions." },
+      { headline: "IETF Draft Advances for MCP Server Discovery via DNS TXT Records", detail: "The Discovery of Model Context Protocol Servers via DNS TXT Records draft has progressed through the IETF, moving closer to formal standardization. This simplifies distributed MCP server location and eases large-scale agent deployments." },
+      { headline: "OpenSandbox Enhances Agent Execution Safety", detail: "OpenSandbox received significant updates this month, offering improved isolation and threat detection capabilities. This development ensures that autonomous agents can operate securely within controlled environments, minimizing potential exploits." },
+    ],
+    watch: [
+      "Keep an eye on the finalization of the IETF's DNS TXT records draft for Model Context Protocol.",
+      "Observe initial large-scale deployments leveraging the latest Agent Governance Toolkit features.",
+      "Look for emerging challenges in interoperability as Model Context Protocol expands to more complex agent interactions.",
+    ],
+  },
+];
+
+const monthNames: Record<string, string> = {
+  '01': 'January', '02': 'February', '03': 'March', '04': 'April',
+  '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+  '09': 'September', '10': 'October', '11': 'November', '12': 'December',
+};
+
+function formatMonth(m: string) {
+  const [year, month] = m.split('-');
+  return `${monthNames[month]} ${year}`;
+}
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Newsletter" description="Monthly developments in agentic AI standards and protocols">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16">
+      <h1 class="text-3xl font-bold text-white">Newsletter</h1>
+      <p class="mt-4 text-muted max-w-2xl">
+        Monthly developments in the agentic AI standards landscape, drawn from the knowledge graph
+        tracking {totalEntities.toLocaleString()} entities and {totalRels.toLocaleString()} relationships.
+      </p>
+    </section>
+
+    {newsletters.map((nl, i) => (
+      <article class={`pb-16 ${i > 0 ? 'pt-12 border-t border-border' : ''}`}>
+        <div class="flex items-baseline gap-3 mb-4">
+          <span class="text-xs font-mono px-2 py-1 rounded bg-accent/20 text-accent-light">{formatMonth(nl.month)}</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-4">{nl.title}</h2>
+        <p class="text-muted leading-relaxed mb-8">{nl.intro}</p>
+
+        <div class="space-y-4 mb-8">
+          {nl.developments.map((d) => (
+            <div class="bg-surface border border-border rounded-lg p-5">
+              <h3 class="text-white font-semibold text-sm mb-2">{d.headline}</h3>
+              <p class="text-sm text-muted">{d.detail}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="bg-surface/50 border border-border rounded-lg p-5">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-accent-light mb-3">What to Watch</h3>
+          <ul class="space-y-2">
+            {nl.watch.map((w) => (
+              <li class="text-sm text-muted flex items-start gap-2">
+                <span class="text-accent-light mt-1 shrink-0">&rarr;</span>
+                <span>{w}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </article>
+    ))}
+  </div>
+</Layout>
