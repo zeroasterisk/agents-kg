@@ -9,20 +9,43 @@ const headers = {
 };
 
 async function query(cypher: string) {
-  const res = await fetch(`${API}/query`, {
-    method: 'POST', headers,
-    body: JSON.stringify({ cypher }),
-  });
-  const data = await res.json();
-  return data.results || [];
+  try {
+    const res = await fetch(`${API}/query`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ cypher }),
+    });
+    const data = await res.json();
+    return data.results || [];
+  } catch { return []; }
+}
+
+function escName(n: string) {
+  return n.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function buildNameList(names: string[]) {
+  return names.map(n => `"${escName(n)}"`).join(',');
+}
+
+const BATCH_SIZE = 150;
+
+async function batchQuery(names: string[], cypherTemplate: (nameList: string) => string) {
+  const all: any[] = [];
+  const nameArr = [...names];
+  for (let i = 0; i < nameArr.length; i += BATCH_SIZE) {
+    const batch = nameArr.slice(i, i + BATCH_SIZE);
+    const result = await query(cypherTemplate(buildNameList(batch)));
+    all.push(...result);
+  }
+  return all;
 }
 
 let seedEdges: any[] = [];
 let entityDescs: Record<string, string> = {};
 let neighborMap: Record<string, any[]> = {};
+let sourceUrls: Record<string, string> = {};
 
 try {
-  // Fetch edges across ALL entity types for a richer seed graph
   seedEdges = await query(`
     MATCH (n:Entity)-[r]->(m:Entity)
     WHERE n.type IN ['Protocol', 'Project', 'Organization', 'Group', 'Person', 'Capability']
@@ -38,24 +61,27 @@ try {
     entityNames.add(e.target);
   }
 
-  const descResults = await query(`
-    MATCH (e:Entity)
-    WHERE e.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
-    RETURN e.name as name, e.type as type, e.description as description
-  `);
+  // Batch fetch descriptions
+  const descResults = await batchQuery([...entityNames],
+    (nl) => `MATCH (e:Entity) WHERE e.name IN [${nl}] RETURN e.name as name, e.type as type, e.description as description, e.source_id as source_id`
+  );
+  const sourceIds = new Set<number>();
   for (const d of descResults) {
     entityDescs[`${d.name}::${d.type}`] = d.description || '';
+    if (d.source_id) sourceIds.add(d.source_id);
   }
 
-  const allEdges = await query(`
-    MATCH (n:Entity)-[r]->(m:Entity)
-    WHERE n.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
-    OR m.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
-    RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
-    LIMIT 5000
-  `);
+  // Batch fetch all edges for neighbor expansion
+  const allEdges = await batchQuery([...entityNames],
+    (nl) => `MATCH (n:Entity)-[r]->(m:Entity) WHERE n.name IN [${nl}] RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type LIMIT 2000`
+  );
+  // Also fetch inbound edges
+  const inboundEdges = await batchQuery([...entityNames],
+    (nl) => `MATCH (n:Entity)-[r]->(m:Entity) WHERE m.name IN [${nl}] RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type LIMIT 2000`
+  );
+  const combinedEdges = [...allEdges, ...inboundEdges];
 
-  for (const e of allEdges) {
+  for (const e of combinedEdges) {
     const srcKey = `${e.source}::${e.source_type}`;
     const tgtKey = `${e.target}::${e.target_type}`;
     if (!neighborMap[srcKey]) neighborMap[srcKey] = [];
@@ -64,29 +90,56 @@ try {
     neighborMap[tgtKey].push(e);
   }
 
+  // Fetch descriptions for expanded entities too
   const expandedNames = new Set<string>();
-  for (const e of allEdges) {
+  for (const e of combinedEdges) {
     expandedNames.add(e.source);
     expandedNames.add(e.target);
   }
   const newNames = [...expandedNames].filter(n => !entityNames.has(n));
   if (newNames.length > 0) {
-    const moreDescs = await query(`
-      MATCH (e:Entity)
-      WHERE e.name IN [${newNames.slice(0, 500).map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
-      RETURN e.name as name, e.type as type, e.description as description
-    `);
+    const moreDescs = await batchQuery(newNames.slice(0, 500),
+      (nl) => `MATCH (e:Entity) WHERE e.name IN [${nl}] RETURN e.name as name, e.type as type, e.description as description, e.source_id as source_id`
+    );
     for (const d of moreDescs) {
       entityDescs[`${d.name}::${d.type}`] = d.description || '';
+      if (d.source_id) sourceIds.add(d.source_id);
     }
   }
-} catch (e) {}
+
+  // Build source URL map from ingest history
+  try {
+    const histRes = await fetch(`${API}/ingest/history`, { headers });
+    const history = await histRes.json();
+    if (Array.isArray(history)) {
+      for (const h of history) {
+        if (h.status === 'ingested' && h.uri) {
+          // Map job_id to URL
+          sourceUrls[String(h.job_id)] = h.uri;
+        }
+      }
+    }
+  } catch {}
+
+  // Map entity source_ids to URLs
+  const entitySourceUrls: Record<string, string> = {};
+  for (const d of [...descResults, ...(newNames.length > 0 ? await batchQuery(newNames.slice(0, 500), (nl) => `MATCH (e:Entity) WHERE e.name IN [${nl}] RETURN e.name as name, e.type as type, e.source_id as source_id`) : [])]) {
+    if (d.source_id && sourceUrls[String(d.source_id)]) {
+      entitySourceUrls[`${d.name}::${d.type}`] = sourceUrls[String(d.source_id)];
+    }
+  }
+
+  // Merge into sourceUrls keyed by entity id
+  Object.assign(sourceUrls, entitySourceUrls);
+} catch (e) {
+  console.error('Graph data fetch error:', e);
+}
 
 const distDir = path.resolve('./dist');
 fs.mkdirSync(distDir, { recursive: true });
 fs.writeFileSync(
   path.join(distDir, 'graph-data.json'),
-  JSON.stringify({ seedEdges, entityDescs, neighborMap })
+  JSON.stringify({ seedEdges, entityDescs, neighborMap, sourceUrls })
 );
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -119,6 +172,7 @@ const dataUrl = `${base}/graph-data.json`;
     <span id="info-type" class="inline-block text-[10px] px-1.5 py-0.5 rounded mb-2"></span>
     <p id="info-desc" class="text-xs text-muted mb-2"></p>
     <p id="info-rels" class="text-[10px] text-muted"></p>
+    <a id="info-source" class="hidden text-[10px] text-accent-light hover:underline mt-1 block" target="_blank" rel="noopener noreferrer">Source &rarr;</a>
     <div id="edge-detail" class="hidden mt-2 pt-2 border-t border-border/50">
       <p class="text-[10px] font-medium text-muted uppercase tracking-wider mb-1">Selected Edge</p>
       <div id="edge-info" class="text-xs text-gray-300"></div>
@@ -163,8 +217,8 @@ const dataUrl = `${base}/graph-data.json`;
   let allSeedEdges: any[] = [];
   let entityDescs: Record<string, any> = {};
   let neighborMap: Record<string, any[]> = {};
+  let sourceUrls: Record<string, string> = {};
 
-  // Browse history
   const history: string[] = [];
   let historyIndex = -1;
 
@@ -230,29 +284,17 @@ const dataUrl = `${base}/graph-data.json`;
   function applyTypeFilters() {
     if (!cyInstance) return;
     const cy = cyInstance;
-
     if (activeFilters.size === 0) {
       cy.nodes().style({ opacity: 1 });
       cy.edges().style({ opacity: 1 });
     } else {
       cy.nodes().forEach((node: any) => {
-        const type = node.data('type');
-        if (activeFilters.has(type)) {
-          node.style({ opacity: 1 });
-        } else {
-          node.style({ opacity: DIM_OPACITY });
-        }
+        node.style({ opacity: activeFilters.has(node.data('type')) ? 1 : DIM_OPACITY });
       });
       cy.edges().forEach((edge: any) => {
-        const srcType = edge.source().data('type');
-        const tgtType = edge.target().data('type');
-        const srcActive = activeFilters.has(srcType);
-        const tgtActive = activeFilters.has(tgtType);
-        if (srcActive || tgtActive) {
-          edge.style({ opacity: srcActive && tgtActive ? 1 : 0.4 });
-        } else {
-          edge.style({ opacity: 0.04 });
-        }
+        const srcActive = activeFilters.has(edge.source().data('type'));
+        const tgtActive = activeFilters.has(edge.target().data('type'));
+        edge.style({ opacity: srcActive || tgtActive ? (srcActive && tgtActive ? 1 : 0.4) : 0.04 });
       });
     }
   }
@@ -262,53 +304,30 @@ const dataUrl = `${base}/graph-data.json`;
     if (!node || node.empty()) return;
 
     if (addToHistory) {
-      // Truncate forward history if we branched
-      if (historyIndex < history.length - 1) {
-        history.splice(historyIndex + 1);
-      }
+      if (historyIndex < history.length - 1) history.splice(historyIndex + 1);
       history.push(nodeId);
       historyIndex = history.length - 1;
     }
     updateHistoryButtons();
 
-    // Expand neighbors
     const name = node.data('fullName');
     const type = node.data('type');
     const nId = `${name}::${type}`;
     const neighbors = neighborMap[nId] || [];
     const newElements = toElements(neighbors);
-    if (newElements.length > 0) {
-      cy.add(newElements);
-    }
+    if (newElements.length > 0) cy.add(newElements);
 
-    // Get the neighborhood
     const neighborhood = node.closedNeighborhood();
-
-    // Dim everything first
     cy.elements().style({ opacity: 0.06 });
-
-    // Highlight the neighborhood
     neighborhood.nodes().forEach((n: any) => {
-      const ntype = n.data('type');
-      if (activeFilters.size === 0 || activeFilters.has(ntype)) {
-        n.style({ opacity: 1 });
-      } else {
-        n.style({ opacity: 0.35 });
-      }
+      n.style({ opacity: activeFilters.size === 0 || activeFilters.has(n.data('type')) ? 1 : 0.35 });
     });
     neighborhood.edges().style({ opacity: 0.8 });
     node.style({ opacity: 1, 'border-width': 3, 'border-color': '#818cf8', width: 26, height: 26 });
 
-    // Zoom to fit
-    cy.animate({
-      fit: { eles: neighborhood, padding: 50 },
-      duration: 400,
-      easing: 'ease-out',
-    });
+    cy.animate({ fit: { eles: neighborhood, padding: 50 }, duration: 400, easing: 'ease-out' });
 
-    // Update info panel
     showInfoPanel(name, type, nId, neighbors.length);
-    // Clear edge detail when focusing a new node
     const edgeDetail = document.getElementById('edge-detail');
     if (edgeDetail) edgeDetail.classList.add('hidden');
   }
@@ -319,6 +338,7 @@ const dataUrl = `${base}/graph-data.json`;
     const infoType = document.getElementById('info-type');
     const infoDesc = document.getElementById('info-desc');
     const infoRels = document.getElementById('info-rels');
+    const infoSource = document.getElementById('info-source') as HTMLAnchorElement;
 
     if (infoPanel && infoName && infoType) {
       infoName.textContent = name;
@@ -328,13 +348,18 @@ const dataUrl = `${base}/graph-data.json`;
       infoType.style.color = color;
       infoPanel.classList.remove('hidden');
     }
-    if (infoDesc) {
-      infoDesc.textContent = entityDescs[nodeId] || '';
-    }
-    if (infoRels) {
-      infoRels.textContent = totalRels > 0
-        ? `${totalRels} relationships`
-        : 'No relationships';
+    if (infoDesc) infoDesc.textContent = entityDescs[nodeId] || '';
+    if (infoRels) infoRels.textContent = totalRels > 0 ? `${totalRels} relationships` : 'No relationships';
+
+    if (infoSource) {
+      const url = sourceUrls[nodeId];
+      if (url) {
+        infoSource.href = url;
+        infoSource.textContent = `Source: ${new URL(url).hostname} →`;
+        infoSource.classList.remove('hidden');
+      } else {
+        infoSource.classList.add('hidden');
+      }
     }
   }
 
@@ -353,15 +378,15 @@ const dataUrl = `${base}/graph-data.json`;
     document.getElementById('node-info')?.classList.add('hidden');
   }
 
-  function fuzzyMatch(query: string, text: string): boolean {
-    query = query.toLowerCase();
+  function fuzzyMatch(q: string, text: string): boolean {
+    q = q.toLowerCase();
     text = text.toLowerCase();
-    if (text.includes(query)) return true;
+    if (text.includes(q)) return true;
     let qi = 0;
-    for (let ti = 0; ti < text.length && qi < query.length; ti++) {
-      if (text[ti] === query[qi]) qi++;
+    for (let ti = 0; ti < text.length && qi < q.length; ti++) {
+      if (text[ti] === q[qi]) qi++;
     }
-    return qi === query.length;
+    return qi === q.length;
   }
 
   async function start() {
@@ -369,8 +394,9 @@ const dataUrl = `${base}/graph-data.json`;
     const res = await fetch(dataUrl);
     const raw = await res.json();
     allSeedEdges = raw.seedEdges;
-    entityDescs = raw.entityDescs;
-    neighborMap = raw.neighborMap;
+    entityDescs = raw.entityDescs || {};
+    neighborMap = raw.neighborMap || {};
+    sourceUrls = raw.sourceUrls || {};
 
     loadedNodes.clear();
     loadedEdges.clear();
@@ -380,71 +406,40 @@ const dataUrl = `${base}/graph-data.json`;
       container: document.getElementById('cy'),
       elements,
       style: [
-        {
-          selector: 'node',
-          style: {
-            'background-color': 'data(color)',
-            label: 'data(label)',
-            color: '#e5e7eb',
-            'font-size': '9px',
-            'text-valign': 'bottom',
-            'text-margin-y': 4,
-            width: 18,
-            height: 18,
-            'border-width': 1,
-            'border-color': '#2a2d3a',
-            'text-max-width': '100px',
-            'text-wrap': 'ellipsis',
-          },
-        },
-        {
-          selector: 'edge',
-          style: {
-            width: 1,
-            'line-color': '#2a2d3a',
-            'target-arrow-color': '#2a2d3a',
-            'target-arrow-shape': 'triangle',
-            'arrow-scale': 0.6,
-            'curve-style': 'bezier',
-          },
-        },
+        { selector: 'node', style: {
+          'background-color': 'data(color)', label: 'data(label)', color: '#e5e7eb',
+          'font-size': '9px', 'text-valign': 'bottom', 'text-margin-y': 4,
+          width: 18, height: 18, 'border-width': 1, 'border-color': '#2a2d3a',
+          'text-max-width': '100px', 'text-wrap': 'ellipsis',
+        }},
+        { selector: 'edge', style: {
+          width: 1, 'line-color': '#2a2d3a', 'target-arrow-color': '#2a2d3a',
+          'target-arrow-shape': 'triangle', 'arrow-scale': 0.6, 'curve-style': 'bezier',
+        }},
       ],
-      layout: {
-        name: 'cose',
-        animate: false,
-        nodeOverlap: 20,
-        idealEdgeLength: 80,
-        nodeRepulsion: function () { return 8000; },
-        gravity: 0.25,
-      },
+      layout: { name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80,
+        nodeRepulsion: function () { return 8000; }, gravity: 0.25 },
     });
 
     document.getElementById('graph-loading')?.remove();
     const cy = cyInstance;
 
-    // --- Type filter toggle buttons ---
+    // Type filter toggles
     document.querySelectorAll('.filter-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const type = (btn as HTMLElement).getAttribute('data-type')!;
-        if (activeFilters.has(type)) {
-          activeFilters.delete(type);
-          setButtonActive(btn as HTMLElement, false);
-        } else {
-          activeFilters.add(type);
-          setButtonActive(btn as HTMLElement, true);
-        }
+        if (activeFilters.has(type)) { activeFilters.delete(type); setButtonActive(btn as HTMLElement, false); }
+        else { activeFilters.add(type); setButtonActive(btn as HTMLElement, true); }
         applyTypeFilters();
       });
     });
 
-    // --- Node tap ---
+    // Node tap
     cy.on('tap', 'node', function (evt: any) {
-      const node = evt.target;
-      const nodeId = node.id();
-      focusOnNode(cy, nodeId, true);
+      focusOnNode(cy, evt.target.id(), true);
     });
 
-    // --- Edge tap: show relationship detail in info card ---
+    // Edge tap
     cy.on('tap', 'edge', function (evt: any) {
       const edge = evt.target;
       const edgeDetail = document.getElementById('edge-detail');
@@ -452,133 +447,93 @@ const dataUrl = `${base}/graph-data.json`;
       if (!edgeDetail || !edgeInfo) return;
 
       const relLabel = edge.data('label');
-      const srcNode = edge.source();
-      const tgtNode = edge.target();
-      const srcName = srcNode.data('fullName');
-      const srcType = srcNode.data('type');
-      const tgtName = tgtNode.data('fullName');
-      const tgtType = tgtNode.data('type');
+      const srcName = edge.source().data('fullName');
+      const srcType = edge.source().data('type');
+      const tgtName = edge.target().data('fullName');
+      const tgtType = edge.target().data('type');
       const srcColor = TYPE_COLORS[srcType] || '#6b7280';
       const tgtColor = TYPE_COLORS[tgtType] || '#6b7280';
 
       edgeInfo.innerHTML =
         `<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">` +
         `<span style="width:8px;height:8px;border-radius:50%;background:${srcColor};flex-shrink:0;"></span>` +
-        `<span style="color:#e5e7eb;">${srcName}</span>` +
-        `</div>` +
+        `<span style="color:#e5e7eb;">${srcName}</span></div>` +
         `<div style="padding-left:12px;color:#818cf8;font-size:10px;margin-bottom:4px;">&#8595; ${relLabel}</div>` +
         `<div style="display:flex;align-items:center;gap:4px;">` +
         `<span style="width:8px;height:8px;border-radius:50%;background:${tgtColor};flex-shrink:0;"></span>` +
-        `<span style="color:#e5e7eb;">${tgtName}</span>` +
-        `</div>`;
+        `<span style="color:#e5e7eb;">${tgtName}</span></div>`;
 
       edgeDetail.classList.remove('hidden');
-
-      // Highlight the edge
       edge.style({ 'line-color': '#818cf8', 'target-arrow-color': '#818cf8', width: 2 });
     });
 
-    // --- Tap on background: clear focus ---
+    // Background tap
     cy.on('tap', function (evt: any) {
       if (evt.target === cy) {
         clearFocus();
-        const edgeDetail = document.getElementById('edge-detail');
-        if (edgeDetail) edgeDetail.classList.add('hidden');
+        document.getElementById('edge-detail')?.classList.add('hidden');
       }
     });
 
-    // --- Close button = reset view (keep filters) ---
+    // Close = reset view (keep filters)
     document.getElementById('close-info')?.addEventListener('click', () => {
-      history.length = 0;
-      historyIndex = -1;
-      updateHistoryButtons();
-      clearFocus();
+      history.length = 0; historyIndex = -1; updateHistoryButtons(); clearFocus();
     });
 
-    // --- History navigation ---
+    // History nav
     document.getElementById('btn-back')?.addEventListener('click', () => {
-      if (historyIndex > 0) {
-        historyIndex--;
-        updateHistoryButtons();
-        focusOnNode(cy, history[historyIndex], false);
-      }
+      if (historyIndex > 0) { historyIndex--; updateHistoryButtons(); focusOnNode(cy, history[historyIndex], false); }
     });
-
     document.getElementById('btn-forward')?.addEventListener('click', () => {
-      if (historyIndex < history.length - 1) {
-        historyIndex++;
-        updateHistoryButtons();
-        focusOnNode(cy, history[historyIndex], false);
-      }
+      if (historyIndex < history.length - 1) { historyIndex++; updateHistoryButtons(); focusOnNode(cy, history[historyIndex], false); }
     });
 
-    // --- Search ---
+    // Search
     const searchInput = document.getElementById('graph-search') as HTMLInputElement;
     const searchResults = document.getElementById('search-results')!;
 
     searchInput?.addEventListener('input', () => {
       const q = searchInput.value.trim();
-      if (q.length < 2) {
-        searchResults.classList.add('hidden');
-        searchResults.innerHTML = '';
-        return;
-      }
+      if (q.length < 2) { searchResults.classList.add('hidden'); searchResults.innerHTML = ''; return; }
 
-      // Get all node names from the graph
       const allNodes: { id: string; name: string; type: string }[] = [];
-      cy.nodes().forEach((n: any) => {
-        allNodes.push({ id: n.id(), name: n.data('fullName'), type: n.data('type') });
-      });
-      // Also search pre-fetched neighbor data for nodes not yet on graph
+      cy.nodes().forEach((n: any) => { allNodes.push({ id: n.id(), name: n.data('fullName'), type: n.data('type') }); });
       for (const key of Object.keys(entityDescs)) {
-        const [name, type] = key.split('::');
         if (!loadedNodes.has(key)) {
+          const [name, type] = key.split('::');
           allNodes.push({ id: key, name, type });
         }
       }
 
-      // Filter by search + active type filters
       let matches = allNodes.filter(n => fuzzyMatch(q, n.name));
-      if (activeFilters.size > 0) {
-        matches = matches.filter(n => activeFilters.has(n.type));
-      }
+      if (activeFilters.size > 0) matches = matches.filter(n => activeFilters.has(n.type));
       matches = matches.slice(0, 12);
 
       if (matches.length === 0) {
         searchResults.innerHTML = '<div style="padding:6px 10px;font-size:11px;color:#9ca3af;">No matches</div>';
-        searchResults.classList.remove('hidden');
-        return;
+        searchResults.classList.remove('hidden'); return;
       }
 
       searchResults.innerHTML = matches.map(m => {
         const color = TYPE_COLORS[m.type] || '#6b7280';
-        return `<div class="search-item" data-node-id="${m.id}" style="padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;border-bottom:1px solid #2a2d3a;">
-          <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-          <span style="font-size:11px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
-          <span style="font-size:9px;color:#9ca3af;flex-shrink:0;">${m.type}</span>
-        </div>`;
+        return `<div class="search-item" data-node-id="${m.id}" style="padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;border-bottom:1px solid #2a2d3a;">` +
+          `<span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>` +
+          `<span style="font-size:11px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>` +
+          `<span style="font-size:9px;color:#9ca3af;flex-shrink:0;">${m.type}</span></div>`;
       }).join('');
       searchResults.classList.remove('hidden');
 
-      // Click handlers on results
       searchResults.querySelectorAll('.search-item').forEach(item => {
         item.addEventListener('click', () => {
           const nodeId = (item as HTMLElement).getAttribute('data-node-id')!;
-
-          // If node not on graph yet, try to add it via neighbor data
           if (!cy.getElementById(nodeId).length) {
             const [name, type] = nodeId.split('::');
-            const nKey = `${name}::${type}`;
-            const neighbors = neighborMap[nKey] || [];
+            const neighbors = neighborMap[`${name}::${type}`] || [];
             if (neighbors.length > 0) {
-              const newEls = toElements(neighbors);
-              if (newEls.length > 0) {
-                cy.add(newEls);
-                cy.layout({ name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80, nodeRepulsion: function() { return 8000; }, gravity: 0.25 }).run();
-              }
+              cy.add(toElements(neighbors));
+              cy.layout({ name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80, nodeRepulsion: function() { return 8000; }, gravity: 0.25 }).run();
             }
           }
-
           focusOnNode(cy, nodeId, true);
           searchResults.classList.add('hidden');
           searchInput.value = '';
@@ -586,29 +541,16 @@ const dataUrl = `${base}/graph-data.json`;
       });
     });
 
-    // Hide search results on blur (with delay for click)
-    searchInput?.addEventListener('blur', () => {
-      setTimeout(() => searchResults.classList.add('hidden'), 200);
-    });
+    searchInput?.addEventListener('blur', () => { setTimeout(() => searchResults.classList.add('hidden'), 200); });
 
-    // --- Reset button ---
+    // Reset
     document.getElementById('btn-reset')?.addEventListener('click', () => {
-      activeFilters.clear();
-      history.length = 0;
-      historyIndex = -1;
-      updateHistoryButtons();
-      document.querySelectorAll('.filter-btn').forEach((btn) => {
-        setButtonActive(btn as HTMLElement, false);
-      });
-      loadedNodes.clear();
-      loadedEdges.clear();
+      activeFilters.clear(); history.length = 0; historyIndex = -1; updateHistoryButtons();
+      document.querySelectorAll('.filter-btn').forEach(b => setButtonActive(b as HTMLElement, false));
+      loadedNodes.clear(); loadedEdges.clear();
       cyInstance.elements().remove();
-      const els = toElements(allSeedEdges);
-      cyInstance.add(els);
-      cyInstance.layout({
-        name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80,
-        nodeRepulsion: function () { return 8000; }, gravity: 0.25,
-      }).run();
+      cyInstance.add(toElements(allSeedEdges));
+      cyInstance.layout({ name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80, nodeRepulsion: function () { return 8000; }, gravity: 0.25 }).run();
       cyInstance.fit(undefined, 30);
       document.getElementById('node-info')?.classList.add('hidden');
       if (searchInput) searchInput.value = '';
