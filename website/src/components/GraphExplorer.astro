@@ -22,12 +22,14 @@ let entityDescs: Record<string, string> = {};
 let neighborMap: Record<string, any[]> = {};
 
 try {
+  // Fetch edges across ALL entity types for a richer seed graph
   seedEdges = await query(`
     MATCH (n:Entity)-[r]->(m:Entity)
-    WHERE n.type IN ['Protocol', 'Project'] AND m.type IN ['Protocol', 'Project', 'Organization', 'Group']
+    WHERE n.type IN ['Protocol', 'Project', 'Organization', 'Group', 'Person']
+    AND m.type IN ['Protocol', 'Project', 'Organization', 'Group', 'Person', 'Capability']
     WITH n, r, m
     RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
-    LIMIT 300
+    LIMIT 500
   `);
 
   const entityNames = new Set<string>();
@@ -50,7 +52,7 @@ try {
     WHERE n.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
     OR m.name IN [${[...entityNames].map(n => `"${n.replace(/"/g, '\\"')}"`).join(',')}]
     RETURN n.name as source, n.type as source_type, type(r) as rel, m.name as target, m.type as target_type
-    LIMIT 3000
+    LIMIT 5000
   `);
 
   for (const e of allEdges) {
@@ -96,13 +98,30 @@ const dataUrl = `${base}/graph-data.json`;
   <div id="graph-loading" class="absolute inset-0 flex items-center justify-center bg-surface">
     <span class="text-muted text-sm">Loading graph...</span>
   </div>
+
+  <!-- Search box -->
+  <div class="absolute top-3 left-3 w-56">
+    <input id="graph-search" type="text" placeholder="Search nodes..."
+      class="w-full text-xs px-3 py-1.5 rounded bg-bg/90 border border-border text-white placeholder-muted focus:outline-none focus:border-accent-light backdrop-blur-sm" />
+    <div id="search-results" class="hidden mt-1 max-h-48 overflow-y-auto bg-bg/95 border border-border rounded backdrop-blur-sm"></div>
+  </div>
+
+  <!-- Info panel -->
   <div id="node-info" class="absolute top-3 right-3 w-72 bg-bg/95 border border-border rounded-lg p-4 hidden backdrop-blur-sm">
-    <button id="close-info" class="absolute top-2 right-2 text-muted hover:text-white text-xs">&times;</button>
+    <div class="flex items-center justify-between mb-2">
+      <div id="history-nav" class="flex items-center gap-1">
+        <button id="btn-back" class="text-muted hover:text-white disabled:opacity-20 disabled:cursor-default" disabled style="font-size:14px;">&#9664;</button>
+        <button id="btn-forward" class="text-muted hover:text-white disabled:opacity-20 disabled:cursor-default" disabled style="font-size:14px;">&#9654;</button>
+      </div>
+      <button id="close-info" class="text-muted hover:text-white text-sm leading-none">&times;</button>
+    </div>
     <h3 id="info-name" class="text-white font-semibold text-sm mb-1"></h3>
     <span id="info-type" class="inline-block text-[10px] px-1.5 py-0.5 rounded mb-2"></span>
     <p id="info-desc" class="text-xs text-muted mb-2"></p>
     <p id="info-rels" class="text-[10px] text-muted"></p>
   </div>
+
+  <!-- Type filter toggles -->
   <div id="type-filters" class="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
     <button data-type="Protocol" data-color="#3b82f6" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(59,130,246,0.4); color: rgba(147,197,253,0.6);">Protocol</button>
     <button data-type="Project" data-color="#10b981" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(16,185,129,0.4); color: rgba(110,231,183,0.6);">Project</button>
@@ -111,6 +130,7 @@ const dataUrl = `${base}/graph-data.json`;
     <button data-type="Capability" data-color="#a855f7" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(168,85,247,0.4); color: rgba(196,148,252,0.6);">Capability</button>
     <button data-type="Group" data-color="#14b8a6" class="filter-btn text-[10px] px-2.5 py-1 rounded border cursor-pointer" style="background: transparent; border-color: rgba(20,184,166,0.4); color: rgba(94,234,212,0.6);">Group</button>
   </div>
+
   <div class="absolute bottom-3 right-3 flex gap-1">
     <button id="btn-reset" class="text-[10px] px-2 py-1 rounded bg-surface border border-border text-muted hover:text-white cursor-pointer">Reset</button>
   </div>
@@ -130,6 +150,8 @@ const dataUrl = `${base}/graph-data.json`;
     Group: '#14b8a6',
   };
 
+  const DIM_OPACITY = 0.12;
+
   const loadedNodes = new Set<string>();
   const loadedEdges = new Set<string>();
   const activeFilters = new Set<string>();
@@ -137,6 +159,10 @@ const dataUrl = `${base}/graph-data.json`;
   let allSeedEdges: any[] = [];
   let entityDescs: Record<string, any> = {};
   let neighborMap: Record<string, any[]> = {};
+
+  // Browse history
+  const history: string[] = [];
+  let historyIndex = -1;
 
   function toElements(results: any[]) {
     const elements: any[] = [];
@@ -197,53 +223,139 @@ const dataUrl = `${base}/graph-data.json`;
     }
   }
 
-  function rebuildGraph() {
+  function applyTypeFilters() {
     if (!cyInstance) return;
+    const cy = cyInstance;
 
-    loadedNodes.clear();
-    loadedEdges.clear();
-
-    let filteredEdges: any[];
     if (activeFilters.size === 0) {
-      filteredEdges = allSeedEdges;
+      cy.nodes().style({ opacity: 1 });
+      cy.edges().style({ opacity: 1 });
     } else {
-      filteredEdges = allSeedEdges.filter((e: any) =>
-        activeFilters.has(e.source_type) || activeFilters.has(e.target_type)
-      );
+      cy.nodes().forEach((node: any) => {
+        const type = node.data('type');
+        if (activeFilters.has(type)) {
+          node.style({ opacity: 1 });
+        } else {
+          node.style({ opacity: DIM_OPACITY });
+        }
+      });
+      cy.edges().forEach((edge: any) => {
+        const srcType = edge.source().data('type');
+        const tgtType = edge.target().data('type');
+        const srcActive = activeFilters.has(srcType);
+        const tgtActive = activeFilters.has(tgtType);
+        if (srcActive || tgtActive) {
+          edge.style({ opacity: srcActive && tgtActive ? 1 : 0.4 });
+        } else {
+          edge.style({ opacity: 0.04 });
+        }
+      });
     }
-
-    const elements = toElements(filteredEdges);
-    cyInstance.elements().remove();
-    cyInstance.add(elements);
-    cyInstance.layout({
-      name: 'cose',
-      animate: false,
-      nodeOverlap: 20,
-      idealEdgeLength: 80,
-      nodeRepulsion: function () { return 8000; },
-      gravity: 0.25,
-    }).run();
-    cyInstance.fit(undefined, 30);
   }
 
-  function focusOnNode(cy: any, node: any) {
+  function focusOnNode(cy: any, nodeId: string, addToHistory: boolean) {
+    const node = cy.getElementById(nodeId);
+    if (!node || node.empty()) return;
+
+    if (addToHistory) {
+      // Truncate forward history if we branched
+      if (historyIndex < history.length - 1) {
+        history.splice(historyIndex + 1);
+      }
+      history.push(nodeId);
+      historyIndex = history.length - 1;
+    }
+    updateHistoryButtons();
+
+    // Expand neighbors
+    const name = node.data('fullName');
+    const type = node.data('type');
+    const nId = `${name}::${type}`;
+    const neighbors = neighborMap[nId] || [];
+    const limited = neighbors.slice(0, 20);
+    const newElements = toElements(limited);
+    if (newElements.length > 0) {
+      cy.add(newElements);
+    }
+
+    // Get the neighborhood
     const neighborhood = node.closedNeighborhood();
+
+    // Dim everything first
     cy.elements().style({ opacity: 0.06 });
-    neighborhood.style({ opacity: 1 });
-    neighborhood.nodes().style({ opacity: 1 });
+
+    // Highlight the neighborhood
+    neighborhood.nodes().forEach((n: any) => {
+      const ntype = n.data('type');
+      if (activeFilters.size === 0 || activeFilters.has(ntype)) {
+        n.style({ opacity: 1 });
+      } else {
+        n.style({ opacity: 0.35 });
+      }
+    });
     neighborhood.edges().style({ opacity: 0.8 });
     node.style({ opacity: 1, 'border-width': 3, 'border-color': '#818cf8', width: 26, height: 26 });
+
+    // Zoom to fit
     cy.animate({
       fit: { eles: neighborhood, padding: 50 },
       duration: 400,
       easing: 'ease-out',
     });
+
+    // Update info panel
+    showInfoPanel(name, type, nId, limited.length, neighbors.length);
   }
 
-  function clearFocus(cy: any) {
-    cy.elements().style({ opacity: 1 });
-    cy.nodes().style({ 'border-width': 1, 'border-color': '#2a2d3a', width: 18, height: 18 });
-    cy.fit(undefined, 30);
+  function showInfoPanel(name: string, type: string, nodeId: string, shownRels: number, totalRels: number) {
+    const infoPanel = document.getElementById('node-info');
+    const infoName = document.getElementById('info-name');
+    const infoType = document.getElementById('info-type');
+    const infoDesc = document.getElementById('info-desc');
+    const infoRels = document.getElementById('info-rels');
+
+    if (infoPanel && infoName && infoType) {
+      infoName.textContent = name;
+      infoType.textContent = type;
+      const color = TYPE_COLORS[type] || '#6b7280';
+      infoType.style.background = color + '33';
+      infoType.style.color = color;
+      infoPanel.classList.remove('hidden');
+    }
+    if (infoDesc) {
+      infoDesc.textContent = entityDescs[nodeId] || '';
+    }
+    if (infoRels) {
+      infoRels.textContent = shownRels > 0
+        ? `${shownRels} relationships${totalRels > 20 ? ` (showing 20 of ${totalRels})` : ''}`
+        : 'No additional relationships';
+    }
+  }
+
+  function updateHistoryButtons() {
+    const btnBack = document.getElementById('btn-back') as HTMLButtonElement;
+    const btnFwd = document.getElementById('btn-forward') as HTMLButtonElement;
+    if (btnBack) btnBack.disabled = historyIndex <= 0;
+    if (btnFwd) btnFwd.disabled = historyIndex >= history.length - 1;
+  }
+
+  function clearFocus() {
+    if (!cyInstance) return;
+    cyInstance.nodes().style({ 'border-width': 1, 'border-color': '#2a2d3a', width: 18, height: 18 });
+    applyTypeFilters();
+    cyInstance.animate({ fit: { eles: cyInstance.elements(), padding: 30 }, duration: 300 });
+    document.getElementById('node-info')?.classList.add('hidden');
+  }
+
+  function fuzzyMatch(query: string, text: string): boolean {
+    query = query.toLowerCase();
+    text = text.toLowerCase();
+    if (text.includes(query)) return true;
+    let qi = 0;
+    for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+      if (text[ti] === query[qi]) qi++;
+    }
+    return qi === query.length;
   }
 
   async function start() {
@@ -254,6 +366,8 @@ const dataUrl = `${base}/graph-data.json`;
     entityDescs = raw.entityDescs;
     neighborMap = raw.neighborMap;
 
+    loadedNodes.clear();
+    loadedEdges.clear();
     const elements = toElements(allSeedEdges);
 
     cyInstance = cytoscape({
@@ -302,12 +416,6 @@ const dataUrl = `${base}/graph-data.json`;
     document.getElementById('graph-loading')?.remove();
     const cy = cyInstance;
 
-    const infoPanel = document.getElementById('node-info');
-    const infoName = document.getElementById('info-name');
-    const infoType = document.getElementById('info-type');
-    const infoDesc = document.getElementById('info-desc');
-    const infoRels = document.getElementById('info-rels');
-
     // --- Type filter toggle buttons ---
     document.querySelectorAll('.filter-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -319,80 +427,134 @@ const dataUrl = `${base}/graph-data.json`;
           activeFilters.add(type);
           setButtonActive(btn as HTMLElement, true);
         }
-        rebuildGraph();
+        applyTypeFilters();
       });
     });
 
-    // --- Node tap: show info, expand neighbors, focus ---
-    let focusedNode: any = null;
-
+    // --- Node tap ---
     cy.on('tap', 'node', function (evt: any) {
       const node = evt.target;
-      const name = node.data('fullName');
-      const type = node.data('type');
-      const nodeId = `${name}::${type}`;
-
-      if (infoPanel && infoName && infoType) {
-        infoName.textContent = name;
-        infoType.textContent = type;
-        const color = TYPE_COLORS[type] || '#6b7280';
-        infoType.style.background = color + '33';
-        infoType.style.color = color;
-        infoPanel.classList.remove('hidden');
-      }
-
-      if (infoDesc) {
-        infoDesc.textContent = entityDescs[nodeId] || '';
-      }
-
-      // Expand neighbors from pre-fetched data
-      const neighbors = neighborMap[nodeId] || [];
-      const limited = neighbors.slice(0, 20);
-
-      if (infoRels) {
-        infoRels.textContent = limited.length > 0
-          ? `${limited.length} relationships${neighbors.length > 20 ? ` (showing 20 of ${neighbors.length})` : ''}`
-          : 'No additional relationships';
-      }
-
-      const newElements = toElements(limited);
-      if (newElements.length > 0) {
-        cy.add(newElements);
-        cy.layout({
-          name: 'cose',
-          animate: false,
-          nodeOverlap: 20,
-          idealEdgeLength: 80,
-          nodeRepulsion: function () { return 8000; },
-          gravity: 0.25,
-        }).run();
-      }
-
-      // Focus on this node's subnetwork
-      focusedNode = node;
-      focusOnNode(cy, node);
+      const nodeId = node.id();
+      focusOnNode(cy, nodeId, true);
     });
 
     // --- Tap on background: clear focus ---
     cy.on('tap', function (evt: any) {
       if (evt.target === cy) {
-        if (focusedNode) {
-          focusedNode = null;
-          clearFocus(cy);
-        }
-        infoPanel?.classList.add('hidden');
+        clearFocus();
       }
     });
 
+    // --- Close button = reset view (keep filters) ---
     document.getElementById('close-info')?.addEventListener('click', () => {
-      infoPanel?.classList.add('hidden');
+      history.length = 0;
+      historyIndex = -1;
+      updateHistoryButtons();
+      clearFocus();
+    });
+
+    // --- History navigation ---
+    document.getElementById('btn-back')?.addEventListener('click', () => {
+      if (historyIndex > 0) {
+        historyIndex--;
+        updateHistoryButtons();
+        focusOnNode(cy, history[historyIndex], false);
+      }
+    });
+
+    document.getElementById('btn-forward')?.addEventListener('click', () => {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        updateHistoryButtons();
+        focusOnNode(cy, history[historyIndex], false);
+      }
+    });
+
+    // --- Search ---
+    const searchInput = document.getElementById('graph-search') as HTMLInputElement;
+    const searchResults = document.getElementById('search-results')!;
+
+    searchInput?.addEventListener('input', () => {
+      const q = searchInput.value.trim();
+      if (q.length < 2) {
+        searchResults.classList.add('hidden');
+        searchResults.innerHTML = '';
+        return;
+      }
+
+      // Get all node names from the graph
+      const allNodes: { id: string; name: string; type: string }[] = [];
+      cy.nodes().forEach((n: any) => {
+        allNodes.push({ id: n.id(), name: n.data('fullName'), type: n.data('type') });
+      });
+      // Also search pre-fetched neighbor data for nodes not yet on graph
+      for (const key of Object.keys(entityDescs)) {
+        const [name, type] = key.split('::');
+        if (!loadedNodes.has(key)) {
+          allNodes.push({ id: key, name, type });
+        }
+      }
+
+      // Filter by search + active type filters
+      let matches = allNodes.filter(n => fuzzyMatch(q, n.name));
+      if (activeFilters.size > 0) {
+        matches = matches.filter(n => activeFilters.has(n.type));
+      }
+      matches = matches.slice(0, 12);
+
+      if (matches.length === 0) {
+        searchResults.innerHTML = '<div style="padding:6px 10px;font-size:11px;color:#9ca3af;">No matches</div>';
+        searchResults.classList.remove('hidden');
+        return;
+      }
+
+      searchResults.innerHTML = matches.map(m => {
+        const color = TYPE_COLORS[m.type] || '#6b7280';
+        return `<div class="search-item" data-node-id="${m.id}" style="padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;border-bottom:1px solid #2a2d3a;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+          <span style="font-size:11px;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
+          <span style="font-size:9px;color:#9ca3af;flex-shrink:0;">${m.type}</span>
+        </div>`;
+      }).join('');
+      searchResults.classList.remove('hidden');
+
+      // Click handlers on results
+      searchResults.querySelectorAll('.search-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const nodeId = (item as HTMLElement).getAttribute('data-node-id')!;
+
+          // If node not on graph yet, try to add it via neighbor data
+          if (!cy.getElementById(nodeId).length) {
+            const [name, type] = nodeId.split('::');
+            const nKey = `${name}::${type}`;
+            const neighbors = neighborMap[nKey] || [];
+            if (neighbors.length > 0) {
+              const newEls = toElements(neighbors.slice(0, 15));
+              if (newEls.length > 0) {
+                cy.add(newEls);
+                cy.layout({ name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80, nodeRepulsion: function() { return 8000; }, gravity: 0.25 }).run();
+              }
+            }
+          }
+
+          focusOnNode(cy, nodeId, true);
+          searchResults.classList.add('hidden');
+          searchInput.value = '';
+        });
+      });
+    });
+
+    // Hide search results on blur (with delay for click)
+    searchInput?.addEventListener('blur', () => {
+      setTimeout(() => searchResults.classList.add('hidden'), 200);
     });
 
     // --- Reset button ---
     document.getElementById('btn-reset')?.addEventListener('click', () => {
       activeFilters.clear();
-      focusedNode = null;
-      infoPanel?.classList.add('hidden');
+      history.length = 0;
+      historyIndex = -1;
+      updateHistoryButtons();
       document.querySelectorAll('.filter-btn').forEach((btn) => {
         setButtonActive(btn as HTMLElement, false);
       });
@@ -402,15 +564,16 @@ const dataUrl = `${base}/graph-data.json`;
       const els = toElements(allSeedEdges);
       cyInstance.add(els);
       cyInstance.layout({
-        name: 'cose',
-        animate: false,
-        nodeOverlap: 20,
-        idealEdgeLength: 80,
-        nodeRepulsion: function () { return 8000; },
-        gravity: 0.25,
+        name: 'cose', animate: false, nodeOverlap: 20, idealEdgeLength: 80,
+        nodeRepulsion: function () { return 8000; }, gravity: 0.25,
       }).run();
       cyInstance.fit(undefined, 30);
+      document.getElementById('node-info')?.classList.add('hidden');
+      if (searchInput) searchInput.value = '';
+      searchResults.classList.add('hidden');
     });
+
+    updateHistoryButtons();
   }
 
   start();
