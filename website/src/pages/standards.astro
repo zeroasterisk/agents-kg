@@ -9,20 +9,53 @@ const headers = {
 
 let orgs: any[] = [];
 let groups: any[] = [];
+let orgRels: any[] = [];
+let groupRels: any[] = [];
 try {
-  const [orgsRes, groupsRes] = await Promise.all([
+  const [orgsRes, groupsRes, orgRelRes, groupRelRes] = await Promise.all([
     fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
-      cypher: `MATCH (e:Entity) WHERE e.type = "Organization" RETURN e.name as name, e.description as description ORDER BY e.name`
+      cypher: `MATCH (e:Entity) WHERE e.type = "Organization" RETURN e.name as name, e.description as description, e.aliases as aliases ORDER BY e.name`
     })}),
     fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
-      cypher: `MATCH (e:Entity) WHERE e.type = "Group" RETURN e.name as name, e.description as description ORDER BY e.name`
+      cypher: `MATCH (e:Entity) WHERE e.type = "Group" RETURN e.name as name, e.description as description, e.aliases as aliases ORDER BY e.name`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity {type: "Organization"})-[r]->(t:Entity) RETURN e.name as source, type(r) as rel, t.name as target, t.type as target_type`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity {type: "Group"})-[r]->(t:Entity) RETURN e.name as source, type(r) as rel, t.name as target, t.type as target_type`
     })}),
   ]);
-  const orgsData = await orgsRes.json();
-  const groupsData = await groupsRes.json();
-  orgs = orgsData.results || [];
-  groups = groupsData.results || [];
+  orgs = (await orgsRes.json()).results || [];
+  groups = (await groupsRes.json()).results || [];
+  orgRels = (await orgRelRes.json()).results || [];
+  groupRels = (await groupRelRes.json()).results || [];
 } catch (e) {}
+
+function buildRelMap(rels: any[]) {
+  const map: Record<string, any[]> = {};
+  for (const r of rels) {
+    if (!map[r.source]) map[r.source] = [];
+    map[r.source].push({ rel: r.rel, target: r.target, target_type: r.target_type });
+  }
+  return map;
+}
+
+const orgRelMap = buildRelMap(orgRels);
+const groupRelMap = buildRelMap(groupRels);
+
+function formatRel(rel: string) {
+  return rel.replace(/_/g, ' ').toLowerCase();
+}
+
+const typeColors: Record<string, string> = {
+  Protocol: 'bg-blue-500/20 text-blue-300',
+  Project: 'bg-emerald-500/20 text-emerald-300',
+  Organization: 'bg-green-500/20 text-green-300',
+  Person: 'bg-orange-500/20 text-orange-300',
+  Group: 'bg-teal-500/20 text-teal-300',
+  Capability: 'bg-purple-500/20 text-purple-300',
+};
 
 const keyBodies = [
   { name: 'IETF', desc: 'Internet Engineering Task Force — 70+ agent-related drafts tracked covering OAuth, SCITT, HTTP signatures, and more.', url: 'https://www.ietf.org/' },
@@ -71,26 +104,84 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <section class="py-12 border-t border-border">
       <h2 class="text-xl font-semibold text-white mb-2">Working Groups & Community Groups ({groups.length})</h2>
       <p class="text-sm text-muted mb-6">Groups actively developing agent-related standards, discovered from W3C, IETF, AAIF, AGNTCY, and other bodies.</p>
-      <div class="space-y-3">
-        {groups.map((g: any) => (
-          <div class="bg-surface border border-border rounded-lg px-5 py-3">
-            <h3 class="text-white text-sm font-medium">{g.name}</h3>
-            {g.description && <p class="text-xs text-muted mt-1">{g.description}</p>}
-          </div>
-        ))}
+      <div class="space-y-1.5">
+        {groups.map((g: any) => {
+          const rels = (groupRelMap[g.name] || []).slice(0, 5);
+          const hasDetail = g.description || rels.length > 0;
+          return hasDetail ? (
+            <details class="group bg-surface border border-border rounded-lg">
+              <summary class="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+                <svg class="w-4 h-4 text-muted shrink-0 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{g.name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 shrink-0">Group</span>
+              </summary>
+              <div class="px-4 pb-4 pt-1 border-t border-border/50 ml-6">
+                {g.description && <p class="text-sm text-muted">{g.description}</p>}
+                {g.aliases && <p class="text-xs text-muted mt-1">Also known as: {g.aliases}</p>}
+                {rels.length > 0 && (
+                  <div class="mt-3 space-y-1">
+                    <p class="text-xs font-medium text-muted uppercase tracking-wider">Relationships</p>
+                    {rels.map((r: any) => (
+                      <div class="flex items-center gap-1.5 text-xs">
+                        <span class="text-muted">{formatRel(r.rel)}</span>
+                        <span class="text-gray-300">{r.target}</span>
+                        <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </details>
+          ) : (
+            <div class="bg-surface border border-border rounded-lg px-4 py-2.5 flex items-center gap-2">
+              <span class="w-4" />
+              <span class="text-sm text-gray-300">{g.name}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 shrink-0">Group</span>
+            </div>
+          );
+        })}
       </div>
     </section>
 
     <section class="py-12 border-t border-border">
       <h2 class="text-xl font-semibold text-white mb-2">All Organizations ({orgs.length})</h2>
       <p class="text-sm text-muted mb-6">Companies, foundations, and agencies referenced in the knowledge graph.</p>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {orgs.map((o: any) => (
-          <div class="bg-surface border border-border rounded-lg px-4 py-3">
-            <h3 class="text-white text-sm font-medium">{o.name}</h3>
-            {o.description && <p class="text-xs text-muted mt-1 line-clamp-2">{o.description}</p>}
-          </div>
-        ))}
+      <div class="space-y-1.5">
+        {orgs.map((o: any) => {
+          const rels = (orgRelMap[o.name] || []).slice(0, 5);
+          const hasDetail = o.description || rels.length > 0;
+          return hasDetail ? (
+            <details class="group bg-surface border border-border rounded-lg">
+              <summary class="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+                <svg class="w-4 h-4 text-muted shrink-0 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{o.name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-300 shrink-0">Organization</span>
+              </summary>
+              <div class="px-4 pb-4 pt-1 border-t border-border/50 ml-6">
+                {o.description && <p class="text-sm text-muted">{o.description}</p>}
+                {o.aliases && <p class="text-xs text-muted mt-1">Also known as: {o.aliases}</p>}
+                {rels.length > 0 && (
+                  <div class="mt-3 space-y-1">
+                    <p class="text-xs font-medium text-muted uppercase tracking-wider">Relationships</p>
+                    {rels.map((r: any) => (
+                      <div class="flex items-center gap-1.5 text-xs">
+                        <span class="text-muted">{formatRel(r.rel)}</span>
+                        <span class="text-gray-300">{r.target}</span>
+                        <span class={`px-1 py-0.5 rounded text-[10px] ${typeColors[r.target_type] || 'bg-gray-500/20 text-gray-400'}`}>{r.target_type}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </details>
+          ) : (
+            <div class="bg-surface border border-border rounded-lg px-4 py-2.5 flex items-center gap-2">
+              <span class="w-4" />
+              <span class="text-sm text-gray-300">{o.name}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-300 shrink-0">Organization</span>
+            </div>
+          );
+        })}
       </div>
     </section>
   </div>
