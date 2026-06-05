@@ -1,0 +1,97 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const API = 'http://35.202.188.73:8000';
+const headers = {
+  'Authorization': 'Bearer coordinator-agents-kg-2026',
+  'Content-Type': 'application/json',
+};
+
+let orgs: any[] = [];
+let groups: any[] = [];
+try {
+  const [orgsRes, groupsRes] = await Promise.all([
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity) WHERE e.type = "Organization" RETURN e.name as name, e.description as description ORDER BY e.name`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity) WHERE e.type = "Group" RETURN e.name as name, e.description as description ORDER BY e.name`
+    })}),
+  ]);
+  const orgsData = await orgsRes.json();
+  const groupsData = await groupsRes.json();
+  orgs = orgsData.results || [];
+  groups = groupsData.results || [];
+} catch (e) {}
+
+const keyBodies = [
+  { name: 'IETF', desc: 'Internet Engineering Task Force — 70+ agent-related drafts tracked covering OAuth, SCITT, HTTP signatures, and more.', url: 'https://www.ietf.org/' },
+  { name: 'W3C', desc: '16+ working and community groups tracked — DID, Verifiable Credentials, Autonomous Agents, AI Knowledge Representation, and more.', url: 'https://www.w3.org/' },
+  { name: 'AAIF', desc: 'Agent Attestation & Interoperability Forum — working groups on accuracy, agentic commerce, and agent trust.', url: null },
+  { name: 'OpenID Foundation', desc: 'Standards for digital identity — OAuth, OIDC, FedCM, and emerging agent identity specifications.', url: 'https://openid.net/' },
+  { name: 'OWASP', desc: 'Open Web Application Security Project — security guidelines relevant to agentic systems.', url: 'https://owasp.org/' },
+  { name: 'FIDO Alliance', desc: 'Fast Identity Online — hardware-backed authentication standards used in agent credential systems.', url: 'https://fidoalliance.org/' },
+  { name: 'NIST', desc: 'National Institute of Standards and Technology — AI risk frameworks and security guidelines.', url: 'https://www.nist.gov/' },
+  { name: 'CNCF', desc: 'Cloud Native Computing Foundation — container, service mesh, and security standards adopted by agent platforms.', url: 'https://www.cncf.io/' },
+  { name: 'CSA', desc: 'Cloud Security Alliance — Agentic Trust Framework working group.', url: 'https://cloudsecurityalliance.org/' },
+  { name: 'CoSAI', desc: 'Coalition for Secure AI — working groups on secure design for agentic systems.', url: null },
+];
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Standards Landscape" description="Standards bodies and working groups tracked by the agents-kg knowledge graph">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16">
+      <h1 class="text-3xl font-bold text-white">Standards Landscape</h1>
+      <p class="mt-4 text-muted max-w-2xl">
+        The KG tracks {orgs.length} organizations and {groups.length} working groups involved in shaping the agentic technology ecosystem.
+      </p>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-6">Key Standards Bodies</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        {keyBodies.map((body) => (
+          <div class="bg-surface border border-border rounded-lg p-5">
+            <div class="flex items-start justify-between">
+              <h3 class="text-white font-semibold">{body.name}</h3>
+              {body.url && (
+                <a href={body.url} target="_blank" rel="noopener noreferrer" class="text-accent-light text-xs hover:underline ml-2 shrink-0">
+                  website &rarr;
+                </a>
+              )}
+            </div>
+            <p class="text-sm text-muted mt-2">{body.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-2">Working Groups & Community Groups ({groups.length})</h2>
+      <p class="text-sm text-muted mb-6">Groups actively developing agent-related standards, discovered from W3C, IETF, AAIF, AGNTCY, and other bodies.</p>
+      <div class="space-y-3">
+        {groups.map((g: any) => (
+          <div class="bg-surface border border-border rounded-lg px-5 py-3">
+            <h3 class="text-white text-sm font-medium">{g.name}</h3>
+            {g.description && <p class="text-xs text-muted mt-1">{g.description}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-2">All Organizations ({orgs.length})</h2>
+      <p class="text-sm text-muted mb-6">Companies, foundations, and agencies referenced in the knowledge graph.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {orgs.map((o: any) => (
+          <div class="bg-surface border border-border rounded-lg px-4 py-3">
+            <h3 class="text-white text-sm font-medium">{o.name}</h3>
+            {o.description && <p class="text-xs text-muted mt-1 line-clamp-2">{o.description}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</Layout>

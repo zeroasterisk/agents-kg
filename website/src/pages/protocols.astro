@@ -1,0 +1,87 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const API = 'http://35.202.188.73:8000';
+const headers = {
+  'Authorization': 'Bearer coordinator-agents-kg-2026',
+  'Content-Type': 'application/json',
+};
+
+let protocols: any[] = [];
+let projects: any[] = [];
+try {
+  const [protRes, projRes] = await Promise.all([
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity) WHERE e.type = "Protocol" RETURN e.name as name, e.description as description ORDER BY e.name`
+    })}),
+    fetch(`${API}/query`, { method: 'POST', headers, body: JSON.stringify({
+      cypher: `MATCH (e:Entity) WHERE e.type = "Project" RETURN e.name as name, e.description as description ORDER BY e.name`
+    })}),
+  ]);
+  const protData = await protRes.json();
+  const projData = await projRes.json();
+  protocols = protData.results || [];
+  projects = projData.results || [];
+} catch (e) {}
+
+const featured = [
+  { name: 'Model Context Protocol (MCP)', desc: 'Anthropic\'s protocol for connecting AI models to external tools, data sources, and capabilities. Defines how agents discover and invoke tools.' },
+  { name: 'Agent-to-Agent Protocol (A2A)', desc: 'Google\'s protocol for inter-agent communication and task delegation. SDKs available in Python, JS, Java, Go, .NET.' },
+  { name: 'Agent Network Protocol (ANP)', desc: 'Open-source protocol for agent networking, discovery, and collaboration. Community-governed with steering committee.' },
+  { name: 'AGNTCY / ACP / SLIM', desc: 'Consortium focused on agentic workflows. Includes Agent Connect Protocol, SLIM runtime protocol, and Directory Service.' },
+  { name: 'OpenSandbox', desc: 'Alibaba\'s sandboxed execution environment for AI agents. Provides isolated containers with fine-grained resource control.' },
+  { name: 'Agent Governance Toolkit (AGT)', desc: 'Microsoft\'s toolkit for agent policy enforcement, audit compliance, and trust verification.' },
+  { name: 'AI Catalog', desc: 'Specification for machine-readable agent capability descriptions. Enables discovery and interoperability.' },
+  { name: 'AG UI', desc: 'Agent User Interface protocol for standardizing how agents present information to users.' },
+];
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Protocols & Projects" description="Protocols and projects indexed in the agents-kg knowledge graph">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16">
+      <h1 class="text-3xl font-bold text-white">Protocols & Projects</h1>
+      <p class="mt-4 text-muted max-w-2xl">
+        The KG indexes {protocols.length.toLocaleString()} protocols and {projects.length.toLocaleString()} projects
+        in the agentic technology ecosystem.
+      </p>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-6">Featured Protocols</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        {featured.map((f) => (
+          <div class="bg-surface border border-border rounded-lg p-5">
+            <h3 class="text-white font-semibold">{f.name}</h3>
+            <p class="text-sm text-muted mt-2">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-2">All Protocols ({protocols.length.toLocaleString()})</h2>
+      <p class="text-sm text-muted mb-6">Every protocol, specification, and standard tracked in the knowledge graph.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {protocols.map((p: any) => (
+          <div class="bg-surface border border-border rounded px-4 py-2.5 group">
+            <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{p.name}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-2">All Projects ({projects.length.toLocaleString()})</h2>
+      <p class="text-sm text-muted mb-6">Software projects, SDKs, implementations, and tools in the agentic ecosystem.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {projects.map((p: any) => (
+          <div class="bg-surface border border-border rounded px-4 py-2.5 group">
+            <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{p.name}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</Layout>

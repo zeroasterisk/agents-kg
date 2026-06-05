@@ -1,0 +1,154 @@
+---
+import Layout from '../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="About / Roadmap" description="Project history, status, and roadmap for agents-kg">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16">
+      <h1 class="text-3xl font-bold text-white">About / Roadmap</h1>
+      <p class="mt-4 text-muted">
+        agents-kg is a temporal knowledge graph that maps the agentic technology ecosystem.
+        It is maintained by Alan Blount and Preston Holmes.
+      </p>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-6">Project Timeline</h2>
+      <div class="space-y-0">
+        <div class="relative pl-8 pb-8 border-l border-border">
+          <div class="absolute left-0 top-0 w-3 h-3 bg-accent rounded-full -translate-x-[7px]"></div>
+          <div class="text-xs text-muted mb-1">May 2026 &mdash; Week 1</div>
+          <h3 class="text-white font-medium">Project Inception & Wikidata Integration</h3>
+          <p class="text-sm text-muted mt-1">Product definition drafted. Wikidata sizing analysis completed. Weekend prototype built: SPARQL-based ingestion loaded ~8K entities into Neo4j with schema hardening, cross-referencing, and temporal model.</p>
+        </div>
+        <div class="relative pl-8 pb-8 border-l border-border">
+          <div class="absolute left-0 top-0 w-3 h-3 bg-accent rounded-full -translate-x-[7px]"></div>
+          <div class="text-xs text-muted mb-1">May 2026 &mdash; Week 1</div>
+          <h3 class="text-white font-medium">Test Suite & Validation</h3>
+          <p class="text-sm text-muted mt-1">Automated 12-iteration overnight test run grew the suite from 50 to 744 tests (681 passed, 63 skipped). Fixed 5 code bugs. Covers integration, security (97 tests), performance, data quality, CLI, and regression.</p>
+        </div>
+        <div class="relative pl-8 pb-8 border-l border-border">
+          <div class="absolute left-0 top-0 w-3 h-3 bg-accent rounded-full -translate-x-[7px]"></div>
+          <div class="text-xs text-muted mb-1">May 2026 &mdash; Week 2</div>
+          <h3 class="text-white font-medium">REST API & Onboarding</h3>
+          <p class="text-sm text-muted mt-1">FastAPI REST API deployed with 5 core endpoints. Alan's onboarding plan and Google Sheet ingestion template designed (15-column schema, 11-state lifecycle, 3-tier review queue). OAuth, API key, and SA JWT auth.</p>
+        </div>
+        <div class="relative pl-8 pb-8 border-l border-border">
+          <div class="absolute left-0 top-0 w-3 h-3 bg-accent rounded-full -translate-x-[7px]"></div>
+          <div class="text-xs text-muted mb-1">May 2026 &mdash; Week 2&ndash;3</div>
+          <h3 class="text-white font-medium">Automated Crawling & Ingestion</h3>
+          <p class="text-sm text-muted mt-1">Hourly cron processes 40 URLs/hr from a 269-URL frontier. Weekly cron discovers new standards every Monday. Auto-approve review step. Sources: IETF (70+ drafts), W3C (16+ WGs), OWASP, OpenID, AGNTCY, ANP, MORA, and more.</p>
+        </div>
+        <div class="relative pl-8 pb-8 border-l border-border">
+          <div class="absolute left-0 top-0 w-3 h-3 bg-accent-light rounded-full -translate-x-[7px]"></div>
+          <div class="text-xs text-muted mb-1">June 2026</div>
+          <h3 class="text-white font-medium">12,000+ Entities</h3>
+          <p class="text-sm text-muted mt-1">The graph now contains 12,000+ entities across 6 types: Capabilities, Protocols, Projects, People, Organizations, and Groups. Growing daily through automated ingestion.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-6">Architecture</h2>
+      <div class="bg-surface border border-border rounded-lg p-6">
+        <div class="grid sm:grid-cols-2 gap-4 text-sm">
+          <div>
+            <div class="text-muted text-xs uppercase tracking-wider mb-2">Graph Store</div>
+            <p class="text-gray-300">Neo4j on GCE (us-central1-a)</p>
+          </div>
+          <div>
+            <div class="text-muted text-xs uppercase tracking-wider mb-2">API</div>
+            <p class="text-gray-300">FastAPI (Python) on the same VM</p>
+          </div>
+          <div>
+            <div class="text-muted text-xs uppercase tracking-wider mb-2">Seed Data</div>
+            <p class="text-gray-300">Wikidata (143.7 GB dumps in GCS)</p>
+          </div>
+          <div>
+            <div class="text-muted text-xs uppercase tracking-wider mb-2">Ingestion</div>
+            <p class="text-gray-300">Python pipeline with Gemini extraction</p>
+          </div>
+          <div>
+            <div class="text-muted text-xs uppercase tracking-wider mb-2">Cloud</div>
+            <p class="text-gray-300">GCP project: data-ingest-demo</p>
+          </div>
+          <div>
+            <div class="text-muted text-xs uppercase tracking-wider mb-2">Source Code</div>
+            <p class="text-gray-300"><a href="https://github.com/zeroasterisk/agents-kg" class="text-accent-light hover:underline">github.com/zeroasterisk/agents-kg</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-6">Roadmap</h2>
+      <div class="space-y-4">
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs rounded">Done</span>
+            <h3 class="text-white font-medium text-sm">Phase 1 &mdash; Seed from Wikidata</h3>
+          </div>
+          <p class="text-sm text-muted">Import foundational entities from Wikidata. Establish Neo4j schema, temporal model, and ingestion pipeline.</p>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs rounded">Done</span>
+            <h3 class="text-white font-medium text-sm">Phase 2 &mdash; Agentic Domain Ontologies</h3>
+          </div>
+          <p class="text-sm text-muted">Extended with protocols, standards, concepts, and projects. Defined agentic relationship types. Built curated ingestion from specs, registries, and GitHub.</p>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-blue-900/50 text-blue-400 text-xs rounded">In Progress</span>
+            <h3 class="text-white font-medium text-sm">Phase 3 &mdash; Multi-Source Ingestion & Temporal Tracking</h3>
+          </div>
+          <p class="text-sm text-muted">Automated recurring ingestion (hourly + weekly). Full temporal tracking: entity versioning, relationship validity windows, event timeline. REST API live and serving queries.</p>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-surface text-muted text-xs rounded border border-border">Planned</span>
+            <h3 class="text-white font-medium text-sm">Phase 4 &mdash; Agent-Native Consumption</h3>
+          </div>
+          <p class="text-sm text-muted">MCP server integration, structured tool descriptions, agent workflow integration, and graph-based reasoning capabilities.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-6">Success Metrics</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="text-2xl font-bold text-green-400">12,000+</div>
+          <div class="text-sm text-muted mt-1">Entities with cross-references (target: 1,000+)</div>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="text-2xl font-bold text-blue-400">744</div>
+          <div class="text-sm text-muted mt-1">Tests in the validation suite</div>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="text-2xl font-bold text-accent-light">5</div>
+          <div class="text-sm text-muted mt-1">REST API endpoints live</div>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="text-2xl font-bold text-accent-light">40/hr</div>
+          <div class="text-sm text-muted mt-1">URLs processed by hourly crawler</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-12 border-t border-border">
+      <h2 class="text-xl font-semibold text-white mb-4">Contributors</h2>
+      <div class="flex gap-6">
+        <div>
+          <div class="text-white font-medium">Alan Blount</div>
+          <div class="text-sm text-muted">Product owner, main contributor</div>
+        </div>
+        <div>
+          <div class="text-white font-medium">Preston Holmes</div>
+          <div class="text-sm text-muted">Project co-owner</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>

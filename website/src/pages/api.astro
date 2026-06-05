@@ -1,0 +1,141 @@
+---
+import Layout from '../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="API / How to Query" description="How to query the agents-kg REST API">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="py-16">
+      <h1 class="text-3xl font-bold text-white">API / How to Query</h1>
+      <p class="mt-4 text-muted">
+        The agents-kg REST API provides direct access to the knowledge graph via Cypher queries.
+        It runs as a FastAPI service backed by Neo4j.
+      </p>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-4">Base URL</h2>
+      <div class="bg-surface border border-border rounded-lg p-4">
+        <code class="text-accent-light text-sm">http://35.202.188.73:8000</code>
+      </div>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-4">Endpoints</h2>
+      <div class="space-y-4">
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs font-mono rounded">GET</span>
+            <code class="text-white text-sm">/health</code>
+          </div>
+          <p class="text-sm text-muted">Health check. Returns Neo4j connection status.</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-blue-900/50 text-blue-400 text-xs font-mono rounded">POST</span>
+            <code class="text-white text-sm">/query</code>
+          </div>
+          <p class="text-sm text-muted mb-3">Execute a read-only Cypher query against the knowledge graph.</p>
+          <div class="text-xs text-muted">Request body:</div>
+          <pre class="mt-1 bg-bg border border-border rounded p-3 text-sm text-gray-300 overflow-x-auto"><code>{`{
+  "cypher": "MATCH (e:Entity) RETURN e.type, count(*) as cnt ORDER BY cnt DESC"
+}`}</code></pre>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-blue-900/50 text-blue-400 text-xs font-mono rounded">POST</span>
+            <code class="text-white text-sm">/ingest</code>
+          </div>
+          <p class="text-sm text-muted">Submit a URL for ingestion into the knowledge graph.</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs font-mono rounded">GET</span>
+            <code class="text-white text-sm">/ingest/status/&#123;job_id&#125;</code>
+          </div>
+          <p class="text-sm text-muted">Check the status of an ingestion job.</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 bg-green-900/50 text-green-400 text-xs font-mono rounded">GET</span>
+            <code class="text-white text-sm">/ingest/history</code>
+          </div>
+          <p class="text-sm text-muted">View all past ingestion jobs.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-4">Authentication</h2>
+      <p class="text-sm text-muted mb-3">All endpoints require a Bearer token in the Authorization header.</p>
+      <div class="bg-surface border border-border rounded-lg p-5">
+        <div class="text-xs text-muted mb-1">Header:</div>
+        <code class="text-sm text-gray-300">Authorization: Bearer &lt;your-token&gt;</code>
+        <p class="text-xs text-muted mt-3">Three auth methods are supported: Google OAuth2 ID tokens (for humans), static API keys (for agents), and service account JWTs.</p>
+      </div>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-4">Example Queries</h2>
+      <div class="space-y-4">
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <h3 class="text-white text-sm font-medium mb-2">Count entities by type</h3>
+          <pre class="bg-bg border border-border rounded p-3 text-sm text-gray-300 overflow-x-auto"><code>{`curl -s -X POST http://35.202.188.73:8000/query \\
+  -H "Authorization: Bearer <token>" \\
+  -H "Content-Type: application/json" \\
+  -d '{"cypher": "MATCH (e:Entity) RETURN e.type, count(*) as cnt ORDER BY cnt DESC"}'`}</code></pre>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <h3 class="text-white text-sm font-medium mb-2">Find all protocols</h3>
+          <pre class="bg-bg border border-border rounded p-3 text-sm text-gray-300 overflow-x-auto"><code>{`curl -s -X POST http://35.202.188.73:8000/query \\
+  -H "Authorization: Bearer <token>" \\
+  -H "Content-Type: application/json" \\
+  -d '{"cypher": "MATCH (e:Entity {type: \\"Protocol\\"}) RETURN e.name ORDER BY e.name LIMIT 20"}'`}</code></pre>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <h3 class="text-white text-sm font-medium mb-2">Find organizations and their descriptions</h3>
+          <pre class="bg-bg border border-border rounded p-3 text-sm text-gray-300 overflow-x-auto"><code>{`curl -s -X POST http://35.202.188.73:8000/query \\
+  -H "Authorization: Bearer <token>" \\
+  -H "Content-Type: application/json" \\
+  -d '{"cypher": "MATCH (e:Entity {type: \\"Organization\\"}) RETURN e.name, e.description ORDER BY e.name LIMIT 20"}'`}</code></pre>
+        </div>
+
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <h3 class="text-white text-sm font-medium mb-2">Find relationships between entities</h3>
+          <pre class="bg-bg border border-border rounded p-3 text-sm text-gray-300 overflow-x-auto"><code>{`curl -s -X POST http://35.202.188.73:8000/query \\
+  -H "Authorization: Bearer <token>" \\
+  -H "Content-Type: application/json" \\
+  -d '{"cypher": "MATCH (a:Entity)-[r]->(b:Entity) RETURN type(r) as rel, count(*) as cnt ORDER BY cnt DESC LIMIT 10"}'`}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="pb-12">
+      <h2 class="text-xl font-semibold text-white mb-4">Graph Schema</h2>
+      <div class="bg-surface border border-border rounded-lg p-5">
+        <h3 class="text-white text-sm font-medium mb-3">Entity Types</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
+          <div class="text-sm"><span class="text-accent-light font-mono">Capability</span> <span class="text-muted">&mdash; what agents can do</span></div>
+          <div class="text-sm"><span class="text-accent-light font-mono">Protocol</span> <span class="text-muted">&mdash; specs & standards</span></div>
+          <div class="text-sm"><span class="text-accent-light font-mono">Project</span> <span class="text-muted">&mdash; implementations</span></div>
+          <div class="text-sm"><span class="text-accent-light font-mono">Person</span> <span class="text-muted">&mdash; contributors</span></div>
+          <div class="text-sm"><span class="text-accent-light font-mono">Organization</span> <span class="text-muted">&mdash; companies & bodies</span></div>
+          <div class="text-sm"><span class="text-accent-light font-mono">Group</span> <span class="text-muted">&mdash; working groups</span></div>
+        </div>
+        <h3 class="text-white text-sm font-medium mb-2">Common Properties</h3>
+        <p class="text-sm text-muted">
+          All entities have <code class="text-gray-300">name</code>, <code class="text-gray-300">type</code>,
+          <code class="text-gray-300">description</code>, and temporal properties
+          (<code class="text-gray-300">created_at</code>, <code class="text-gray-300">updated_at</code>).
+          Many include <code class="text-gray-300">source_url</code> and <code class="text-gray-300">wikidata_id</code>.
+        </p>
+      </div>
+    </section>
+  </div>
+</Layout>
