@@ -3,7 +3,7 @@ import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
   integrations: [tailwind()],
-  base: '/',
+  base: '/agents-kg-project-page',
   build: {
     format: 'file',
   },
