@@ -87,6 +87,7 @@ async def ingest(
     background_tasks: BackgroundTasks,
     request: Request,
     user: User = Depends(get_current_user),
+    force: bool = Query(False, description="Force re-ingest even if URL was already processed"),
 ):
     db = _get_db(request)
     neo4j_driver = getattr(request.app.state, "neo4j_driver", None)
@@ -97,6 +98,7 @@ async def ingest(
             uri=url,
             source_type="url",
             submitter_email=user.user_id,
+            force=force,
         )
         if source_id is None:
             existing = db.get_source_by_uri(url)

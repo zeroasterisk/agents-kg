@@ -123,13 +123,24 @@ class Database:
     # --- Sources ---
 
     def add_source(self, uri: str, title: Optional[str] = None, source_type: str = "url",
-                   submitter_email: Optional[str] = None) -> Optional[int]:
-        """Add a source. Returns id or None if duplicate."""
+                   submitter_email: Optional[str] = None, force: bool = False) -> Optional[int]:
+        """Add a source. Returns id or None if duplicate.
+
+        When force=True, bypasses URI dedup by appending a #reingest fragment.
+        Old source records are preserved; HTTP clients strip fragments per RFC.
+        """
+        # TODO: detect when a URL's content has changed (via MD5 of fetched
+        # content) and trigger a re-ingest automatically, instead of requiring
+        # manual force=true calls.
         now = _now()
+        store_uri = uri
+        if force:
+            ts = now.replace(":", "-")
+            store_uri = f"{uri}#reingest-{ts}"
         try:
             cur = self.conn.execute(
                 "INSERT INTO sources (uri, title, type, submitter_email, status, stage, created_at, updated_at) VALUES (?, ?, ?, ?, 'pending', 'fetch', ?, ?)",
-                (uri, title, source_type, submitter_email, now, now),
+                (store_uri, title, source_type, submitter_email, now, now),
             )
             self.conn.commit()
             return cur.lastrowid
