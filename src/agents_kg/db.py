@@ -208,6 +208,19 @@ class Database:
         ).fetchall()
         return {r["status"]: r["count"] for r in rows}
 
+
+    def reset_stalled_jobs(self, timeout_minutes: int = 30) -> int:
+        """Reset sources stuck in processing for longer than timeout_minutes."""
+        from datetime import timedelta
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=timeout_minutes)).isoformat()
+        cur = self.conn.execute(
+            "UPDATE sources SET status = 'pending', error = NULL, updated_at = ? "
+            "WHERE status = 'processing' AND updated_at < ?",
+            (_now(), cutoff),
+        )
+        self.conn.commit()
+        return cur.rowcount
+
     # --- Chunks ---
 
     def add_chunk(self, source_id: int, text: str, position: int,

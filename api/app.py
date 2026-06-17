@@ -40,6 +40,10 @@ async def lifespan(app: FastAPI):
     app.state.db = Database(db_path)
     log.info("SQLite database: %s", db_path)
 
+    recovered = app.state.db.reset_stalled_jobs()
+    if recovered:
+        log.info("Recovered %d stalled jobs (stuck in processing >30min)", recovered)
+
     neo4j_uri, neo4j_auth = _get_neo4j_config()
     app.state.neo4j_driver = None
     try:
