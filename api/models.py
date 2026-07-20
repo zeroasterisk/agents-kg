@@ -52,3 +52,19 @@ class QueryResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     neo4j: str
+
+
+class AskRequest(BaseModel):
+    question: str = Field(..., min_length=1)
+    force_refresh: bool = False
+
+
+class AskResponse(BaseModel):
+    answer: str
+    source: Literal["kg", "synthesis", "cached"]
+    entity_ids: list[str] = []
+    cypher_used: str | None = None
+    sources: list[str] = []
+    confidence: Literal["high", "medium", "low"] = "medium"
+    cached: bool = False
+    cache_age_hours: float | None = None

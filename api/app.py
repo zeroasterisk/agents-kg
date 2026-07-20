@@ -78,8 +78,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from .ask_routes import router as ask_router  # noqa: E402
 from .auth_routes import router as auth_router  # noqa: E402
 from .routes import router  # noqa: E402
 
+app.include_router(ask_router)
 app.include_router(auth_router)
 app.include_router(router)

@@ -207,6 +207,15 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
                     session.run(q, p)
                     
             _log().info("Loaded %d entities, %d edges, %d chunks to Neo4j", len(entities), len(edges), len(chunks))
+
+            # Invalidate synthesis cache for loaded/updated entities
+            try:
+                from ..query_router import invalidate_entity_cache
+
+                for ent in entities:
+                    invalidate_entity_cache(ent["entity_id"])
+            except ImportError:
+                pass
         except Exception as e:
             _log().error("Neo4j load failed (data saved in SQLite): %s", e)
     else:

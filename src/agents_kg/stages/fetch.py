@@ -200,6 +200,19 @@ def run(db: Database, source: dict) -> bool:
         db.deprecate_entities_for_source(source_id)
         _log().info("Content changed for %s, deprecated old entities", uri)
 
+        # Invalidate synthesis cache for deprecated entities
+        try:
+            from ..query_router import invalidate_entity_cache
+
+            deprecated = db.conn.execute(
+                "SELECT entity_id FROM entities WHERE source_id = ? AND status = 'deprecated'",
+                (source_id,),
+            ).fetchall()
+            for ent in deprecated:
+                invalidate_entity_cache(ent["entity_id"])
+        except ImportError:
+            pass
+
     db.update_source(
         source_id,
         raw_text=raw,
