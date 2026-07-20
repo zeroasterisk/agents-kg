@@ -12,13 +12,13 @@ _has_genai_creds = bool(os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get
 def test_genai_access():
     kwargs_gen = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs_gen["vertexai"] = True
+        kwargs_gen["enterprise"] = True
         kwargs_gen["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs_gen["location"] = "global"
     
     kwargs_embed = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs_embed["vertexai"] = True
+        kwargs_embed["enterprise"] = True
         kwargs_embed["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs_embed["location"] = "us-central1"
     
@@ -49,7 +49,7 @@ def test_genai_access():
         pytest.fail(f"Generation FAILED: {e}")
 
     # Test embedding
-    embed_model = "gemini-embedding-2-preview"
+    embed_model = "gemini-embedding-2"
     try:
         result = client_embed.models.embed_content(
             model=embed_model,

@@ -18,7 +18,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EMBEDDING_MODEL = "gemini-embedding-2-preview"
+EMBEDDING_MODEL = "gemini-embedding-2"
 BATCH_SIZE = 100
 
 
@@ -42,7 +42,7 @@ def run(db: Database, source: dict) -> bool:
     import os
     kwargs = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)

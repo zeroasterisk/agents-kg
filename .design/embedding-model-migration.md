@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-09
 **Author:** Scion Agent (on behalf of Alan Blount)
-**Status:** Draft
+**Status:** Superseded — gemini-embedding-2 (GA, Apr 2026) chosen instead of gemini-embedding-001. See commit on feature/rest-api.
 **Branch:** feature/wikidata-integration
 
 ---

@@ -19,7 +19,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EXTRACT_MODEL = "gemini-2.5-flash-lite"
+EXTRACT_MODEL = "gemini-3.5-flash"
 
 SYSTEM_PROMPT_TEMPLATE = """You are a knowledge graph extraction engine for the agentic web ecosystem.
 
@@ -154,7 +154,7 @@ def run(db: Database, source: dict) -> bool:
     import os
     kwargs = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)

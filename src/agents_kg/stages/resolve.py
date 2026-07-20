@@ -21,7 +21,7 @@ try:
 except ImportError:
     genai = None
 
-EMBEDDING_MODEL = "gemini-embedding-2-preview"
+EMBEDDING_MODEL = "gemini-embedding-2"
 
 def _floats_to_bytes(floats: list[float]) -> bytes:
     return struct.pack(f'{len(floats)}f', *floats)
@@ -91,7 +91,7 @@ def _compute_entity_embeddings(db: Database, entities: list[dict], log):
     import os
     kwargs = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)
