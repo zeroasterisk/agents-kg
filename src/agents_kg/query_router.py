@@ -95,9 +95,10 @@ def _get_genai_client():
 
     kwargs: dict = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
-        kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+        # Generation models (flash-lite, 3.6-flash) require global location
+        kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION_GEN", "global")
     _client = genai.Client(**kwargs)
     return _client
 
