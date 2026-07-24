@@ -1,0 +1,7 @@
+aliases: []
+description: A method used to profile and monitor applications, especially those built
+  using a microservices architecture.
+id: concept:distributed-tracing
+kind: property
+name: Distributed Tracing
+type: Concept

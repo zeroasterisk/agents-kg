@@ -1,0 +1,8 @@
+aliases:
+- HCL
+description: A declarative configuration language designed to be used with HashiCorp
+  tools, most notably Terraform.
+id: protocol:hcl
+kind: spec
+name: HashiCorp Configuration Language
+type: Protocol

@@ -1,8 +1,8 @@
 aliases:
+- A2A protocol
 - A2A
-- Agent2Agent
-description: An open standard designed for agent discovery and communication, acting
-  as a universal handshake for the agentic economy.
+description: Agent-to-Agent Protocol specification for communication between agent
+  peers.
 id: protocol:a2a
 kind: spec
 name: Agent-to-Agent Protocol

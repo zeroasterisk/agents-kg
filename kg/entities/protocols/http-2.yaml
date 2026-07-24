@@ -1,5 +1,6 @@
-aliases: []
-description: The second major version of the Hypertext Transfer Protocol.
+aliases:
+- HTTP/2
+description: HTTP/2 specification defined by the IETF.
 id: protocol:http-2
 kind: standard
 name: HTTP/2

@@ -1,0 +1,8 @@
+aliases:
+- agent orchestration
+description: The ability to coordinate, manage, and direct the execution flow of one
+  or more AI agents.
+id: capability:agent-orchestration
+kind: feature
+name: Agent Orchestration
+type: Capability

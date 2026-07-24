@@ -1,7 +1,7 @@
 aliases:
-- Apple Inc
-description: A multinational technology company.
+- Apple
+description: A technology company headquartered in Cupertino, California.
 id: organization:apple
 kind: company
-name: Apple
+name: Apple Inc.
 type: Organization

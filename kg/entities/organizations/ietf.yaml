@@ -1,7 +1,6 @@
 aliases:
 - Internet Engineering Task Force
-description: The Internet Engineering Task Force, a standards organization for the
-  Internet.
+description: Internet Engineering Task Force, which defines HTTP/2.
 id: organization:ietf
 kind: standards_body
 name: IETF

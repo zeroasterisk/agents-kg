@@ -29,7 +29,7 @@ def test_genai_access():
     client_embed = genai.Client(**kwargs_embed)
     
     # Test generation
-    model_name = "gemini-3.1-flash-lite-preview"
+    model_name = "gemini-3.5-flash-lite"
     print(f"Testing generation with model: {model_name} at location: global")
     
     config = types.GenerateContentConfig(

@@ -1,6 +1,6 @@
 aliases: []
 description: A programming language developed by Apple.
 id: project:swift
-kind: programming_language
+kind: language
 name: Swift
 type: Project

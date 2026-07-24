@@ -1,0 +1,6 @@
+aliases: []
+description: A model that defines how WASI modules compose.
+id: concept:component-model
+kind: pattern
+name: Component Model
+type: Concept

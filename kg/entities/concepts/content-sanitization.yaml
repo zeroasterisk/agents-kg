@@ -1,0 +1,7 @@
+aliases: []
+description: The practice of cleaning and filtering input data to prevent injection
+  attacks and other exploits.
+id: concept:content-sanitization
+kind: methodology
+name: Content Sanitization
+type: Concept

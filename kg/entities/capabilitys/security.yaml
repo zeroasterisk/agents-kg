@@ -1,7 +1,7 @@
 aliases:
-- agent security
-- safety
-description: Measures and practices to protect agentic systems from threats and vulnerabilities.
+- resource permission model
+description: Agent security and resource protection capabilities.
 id: capability:security
+kind: feature
 name: Security
 type: Capability

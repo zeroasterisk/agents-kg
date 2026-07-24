@@ -1,6 +1,5 @@
-aliases:
-- MCP TS SDK
-description: An SDK for interacting with the Model Context Protocol in TypeScript.
+aliases: []
+description: Official TypeScript reference implementation for MCP.
 id: project:mcp-sdk-typescript
 kind: sdk
 name: MCP TypeScript SDK

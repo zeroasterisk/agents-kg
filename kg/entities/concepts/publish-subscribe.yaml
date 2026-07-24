@@ -1,0 +1,9 @@
+aliases:
+- publish-subscribe model
+- pub-sub
+description: A messaging pattern where senders (producers) do not program the messages
+  to be sent directly to specific receivers (consumers).
+id: concept:publish-subscribe
+kind: pattern
+name: Publish-Subscribe Pattern
+type: Concept

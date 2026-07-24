@@ -1,5 +1,6 @@
-aliases: []
-description: Microsoft's AI assistant platform that has adopted MCP.
+aliases:
+- Microsoft Copilot
+description: Microsoft's AI assistant platform.
 id: project:copilot
 kind: platform
 name: Copilot

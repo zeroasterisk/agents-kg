@@ -1,0 +1,7 @@
+aliases:
+- vector database
+description: Databases that excel at similarity search.
+id: concept:vector-databases
+kind: paradigm
+name: Vector Databases
+type: Concept

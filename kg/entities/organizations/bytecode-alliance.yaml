@@ -1,5 +1,6 @@
 aliases: []
-description: A consortium developing WASI.
+description: An open source organization that develops standards and runtime technologies
+  for WebAssembly.
 id: organization:bytecode-alliance
 kind: consortium
 name: Bytecode Alliance

@@ -1,0 +1,8 @@
+aliases:
+- Cplusplus
+description: A general-purpose programming language created as an extension of the
+  C programming language.
+id: project:cpp
+kind: library
+name: C++
+type: Project

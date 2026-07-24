@@ -1,8 +1,6 @@
 aliases:
 - OAuth
-- OAuth 2.0
-description: An authorization framework that enables applications to obtain limited
-  access to user accounts on an HTTP service.
+description: An authorization framework for token-based authentication and authorization.
 id: protocol:oauth-2.1
 kind: standard
 name: OAuth 2.1

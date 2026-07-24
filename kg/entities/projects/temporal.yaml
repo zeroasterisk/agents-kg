@@ -1,6 +1,5 @@
 aliases: []
-description: A distributed, scalable, durable, and highly available workflow orchestration
-  platform.
+description: A workflow engine forked from the Cadence project.
 id: project:temporal
 kind: framework
 name: Temporal

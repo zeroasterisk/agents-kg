@@ -3,6 +3,7 @@
 import logging
 import struct
 from ..db import Database
+from ..model_config import MODEL_EMBEDDING
 
 try:
     from prefect.logging import get_run_logger as _get_logger
@@ -18,7 +19,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EMBEDDING_MODEL = "gemini-embedding-2"
+EMBEDDING_MODEL = MODEL_EMBEDDING
 BATCH_SIZE = 100
 
 

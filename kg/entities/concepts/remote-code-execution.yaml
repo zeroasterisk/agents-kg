@@ -1,0 +1,8 @@
+aliases:
+- RCE
+description: A security vulnerability that allows an attacker to execute arbitrary
+  code on a target machine.
+id: concept:remote-code-execution
+kind: property
+name: Remote Code Execution
+type: Concept

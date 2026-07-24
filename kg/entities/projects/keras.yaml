@@ -1,6 +1,6 @@
 aliases: []
-description: A high-level API for building neural networks.
+description: High-level model building APIs integrated with TensorFlow.
 id: project:keras
-kind: framework
+kind: library
 name: Keras
 type: Project

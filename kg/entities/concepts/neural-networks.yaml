@@ -1,0 +1,7 @@
+aliases: []
+description: Computing systems inspired by the biological neural networks that constitute
+  animal brains.
+id: concept:neural-networks
+kind: pattern
+name: Neural Networks
+type: Concept

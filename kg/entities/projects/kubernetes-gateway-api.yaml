@@ -1,0 +1,7 @@
+aliases:
+- Gateway API
+description: The next-generation ingress specification and routing mechanism for Kubernetes.
+id: project:kubernetes-gateway-api
+kind: framework
+name: Kubernetes Gateway API
+type: Project

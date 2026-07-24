@@ -1,7 +1,8 @@
 aliases:
 - Envoy
-description: A high-performance edge and service proxy for microservice architectures.
+description: Envoy is a high-performance edge and service proxy designed for microservice
+  architectures.
 id: project:envoy
-kind: proxy
+kind: platform
 name: Envoy Proxy
 type: Project

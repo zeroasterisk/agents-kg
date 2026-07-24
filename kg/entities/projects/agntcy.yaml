@@ -1,5 +1,7 @@
-aliases: []
-description: An open-source initiative for building interoperable AI agent ecosystems.
+aliases:
+- AGNTCY project
+description: AGNTCY is an open-source initiative and project for building interoperable
+  AI agent ecosystems with standardized APIs.
 id: project:agntcy
 kind: framework
 name: AGNTCY

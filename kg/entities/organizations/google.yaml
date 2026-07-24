@@ -1,11 +1,4 @@
-aliases:
-- Google LLC
-- Google Cloud
-- Google DeepMind
-- Google AI
-description: A multinational technology company specializing in Internet-related services
-  and products.
-id: organization:google
-kind: company
+aliases: []
+id: org:google
 name: Google
 type: Organization

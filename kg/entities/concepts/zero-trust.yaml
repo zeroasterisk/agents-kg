@@ -1,0 +1,8 @@
+aliases:
+- zero-trust security
+description: Security model where every agent must prove its identity before accessing
+  resources.
+id: concept:zero-trust
+kind: pattern
+name: Zero Trust
+type: Concept

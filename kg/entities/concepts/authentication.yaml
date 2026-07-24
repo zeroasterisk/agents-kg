@@ -1,0 +1,7 @@
+aliases:
+- auth
+description: Verification of identity.
+id: concept:authentication
+kind: property
+name: Authentication
+type: Concept

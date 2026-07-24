@@ -1,6 +1,6 @@
 aliases:
-- LangSmith
-description: A framework for developing applications powered by language models.
+- LangChain framework
+description: A modular framework for building applications powered by language models.
 id: project:langchain
 kind: framework
 name: LangChain

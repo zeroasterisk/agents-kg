@@ -1,5 +1,7 @@
-aliases: []
-description: A company that develops infrastructure as code tools.
+aliases:
+- HashiCorp
+description: Creator of Terraform and various infrastructure and security automation
+  tools.
 id: organization:hashicorp
 kind: company
 name: HashiCorp

@@ -15,13 +15,16 @@ import time
 from pathlib import Path
 from typing import Optional
 
+from .model_config import MODEL_EXTRACT, MODEL_SYNTHESIS
+
 log = logging.getLogger("agents_kg.query_router")
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-QUERY_MODEL = "gemini-3.5-flash"
+CYPHER_MODEL = MODEL_EXTRACT      # text-to-Cypher generation
+SYNTHESIS_MODEL = MODEL_SYNTHESIS  # answer synthesis from KG + sources
 
 CACHE_DIR = Path(
     os.environ.get(
@@ -108,7 +111,7 @@ def generate_cypher(question: str) -> str:
     """Translate a natural-language question into a Cypher READ query."""
     client = _get_genai_client()
     response = client.models.generate_content(
-        model=QUERY_MODEL,
+        model=CYPHER_MODEL,
         contents=question,
         config={
             "system_instruction": CYPHER_SYSTEM_PROMPT,
@@ -254,7 +257,7 @@ def synthesize(
     chunk_text = "\n---\n".join(chunks) if chunks else "(no source text available)"
 
     response = client.models.generate_content(
-        model=QUERY_MODEL,
+        model=SYNTHESIS_MODEL,
         contents=(
             f"Question: {question}\n\n"
             f"Knowledge Graph Results:\n{context}\n\n"

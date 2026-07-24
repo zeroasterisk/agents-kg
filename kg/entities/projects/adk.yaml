@@ -1,6 +1,7 @@
 aliases:
 - ADK
-description: A framework for developing AI agents.
+- google/adk-python
+description: An open-source framework for building AI agents.
 id: project:adk
 kind: framework
 name: Agent Development Kit

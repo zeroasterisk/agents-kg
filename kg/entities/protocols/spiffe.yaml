@@ -1,6 +1,6 @@
 aliases: []
-description: Secure Production Identity Framework for Everyone, a standard for verifiable
-  agent identity.
+description: Secure Production Identity Framework for Everyone, used for workload
+  attestation.
 id: protocol:spiffe
 kind: standard
 name: SPIFFE

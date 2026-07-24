@@ -1,0 +1,6 @@
+aliases: []
+description: The internal security team at Google responsible for identifying vulnerabilities.
+id: group:google-security-team
+kind: team
+name: Google Security Team
+type: Group

@@ -1,0 +1,7 @@
+aliases: []
+description: A major revision of the HTTP network protocol used by the World Wide
+  Web.
+id: protocol:http2
+kind: standard
+name: HTTP/2
+type: Protocol

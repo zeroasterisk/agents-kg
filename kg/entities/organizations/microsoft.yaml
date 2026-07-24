@@ -1,7 +1,6 @@
 aliases:
 - Microsoft Corp
-- MSFT
-description: A multinational technology corporation.
+description: Technology company that developed C#.
 id: organization:microsoft
 kind: company
 name: Microsoft

@@ -1,6 +1,6 @@
 aliases: []
-description: A distributed key-value store that provides a reliable way to store data
-  for distributed systems.
+description: A distributed, consistent key-value store used as Kubernetes' backing
+  store.
 id: project:etcd
 kind: tool
 name: etcd

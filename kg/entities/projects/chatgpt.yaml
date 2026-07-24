@@ -1,7 +1,5 @@
-aliases:
-- GPT-4
-- GPT-4o
-description: A large language model developed by OpenAI.
+aliases: []
+description: Conversational AI platform developed by OpenAI.
 id: project:chatgpt
 kind: platform
 name: ChatGPT

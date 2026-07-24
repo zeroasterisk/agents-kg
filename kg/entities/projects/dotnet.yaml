@@ -1,6 +1,8 @@
-aliases: []
-description: An initiative by Microsoft that includes the development of C#.
+aliases:
+- .NET Framework
+- .NET Core
+description: An open-source developer platform created by Microsoft.
 id: project:dotnet
-kind: initiative
+kind: framework
 name: .NET
 type: Project

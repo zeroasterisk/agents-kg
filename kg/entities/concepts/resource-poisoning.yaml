@@ -1,0 +1,7 @@
+aliases: []
+description: An attack vector where MCP server resources are poisoned with adversarial
+  prompts to trigger unintended tool execution.
+id: concept:resource-poisoning
+kind: methodology
+name: MCP Resource Poisoning
+type: Concept

@@ -1,6 +1,5 @@
 aliases: []
-description: The Hypertext Transfer Protocol is the foundation of data communication
-  for the World Wide Web.
+description: Hypertext Transfer Protocol
 id: protocol:http
 kind: standard
 name: HTTP

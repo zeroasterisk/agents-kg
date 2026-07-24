@@ -1,5 +1,6 @@
-aliases: []
-description: The SIG-Network community within the Kubernetes project.
+aliases:
+- SIG-Network community
+description: The Special Interest Group for networking within the Kubernetes project.
 id: group:sig-network
 kind: sig
 name: SIG-Network

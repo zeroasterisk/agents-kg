@@ -1,0 +1,7 @@
+aliases:
+- sandboxed applications
+description: A security mechanism for separating running programs to restrict access.
+id: concept:sandboxing
+kind: property
+name: Sandboxing
+type: Concept

@@ -1,8 +1,7 @@
 aliases:
-- context memory
-- long-term memory
-- short-term memory
-description: The ability of an agent to store and retrieve information over time.
+- persistent memory layer
+description: Persistent memory layer that enables agents to store and retrieve information.
 id: capability:memory
+kind: function
 name: Memory
 type: Capability

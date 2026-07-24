@@ -1,6 +1,6 @@
-aliases: []
-description: An open-source in-memory data structure store used as a database and
-  cache.
+aliases:
+- Redis open-source
+description: Open-source in-memory data structure store used as a database and cache.
 id: project:redis
 kind: database
 name: Redis

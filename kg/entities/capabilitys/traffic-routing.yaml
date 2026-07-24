@@ -1,0 +1,8 @@
+aliases:
+- routing
+description: The ability to direct network traffic to specific destinations based
+  on rules.
+id: capability:traffic-routing
+kind: feature
+name: Traffic Routing
+type: Capability

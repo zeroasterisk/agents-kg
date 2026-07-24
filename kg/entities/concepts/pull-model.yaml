@@ -1,0 +1,7 @@
+aliases: []
+description: A data collection style where the monitoring system actively pulls metrics
+  from the targets.
+id: concept:pull-model
+kind: pattern
+name: Pull Model
+type: Concept

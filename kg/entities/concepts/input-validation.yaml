@@ -1,0 +1,8 @@
+aliases:
+- input validation
+description: The practice of sanitizing and validating input data to prevent injection
+  attacks.
+id: concept:input-validation
+kind: pattern
+name: Input Validation
+type: Concept

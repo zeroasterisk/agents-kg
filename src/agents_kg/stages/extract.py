@@ -4,6 +4,7 @@ import json
 import logging
 import hashlib
 from ..db import Database
+from ..model_config import MODEL_EXTRACT
 
 try:
     from prefect.logging import get_run_logger as _get_logger
@@ -19,7 +20,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EXTRACT_MODEL = "gemini-3.5-flash"
+EXTRACT_MODEL = MODEL_EXTRACT
 
 SYSTEM_PROMPT_TEMPLATE = """You are a knowledge graph extraction engine for the agentic web ecosystem.
 

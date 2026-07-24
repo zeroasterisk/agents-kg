@@ -1,0 +1,7 @@
+aliases:
+- inference
+description: The process of deriving logical conclusions from known facts and relationships.
+id: concept:logical-inference
+kind: methodology
+name: Logical Inference
+type: Concept

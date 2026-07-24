@@ -1,5 +1,5 @@
 aliases: []
-description: PyTorch is an open-source machine learning framework.
+description: An open-source machine learning framework.
 id: project:pytorch
 kind: framework
 name: PyTorch

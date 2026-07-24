@@ -1,6 +1,7 @@
-aliases: []
+aliases:
+- Node
 description: A cross-platform JavaScript runtime built on Chrome's V8 engine.
 id: project:nodejs
-kind: runtime
+kind: platform
 name: Node.js
 type: Project

@@ -1,5 +1,6 @@
 aliases: []
-description: The ability to use predefined templates for generating prompts.
+description: The ability to structure and reuse prompt templates within agent workflows.
 id: capability:prompt-templating
+kind: feature
 name: Prompt Templating
 type: Capability

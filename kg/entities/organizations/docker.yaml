@@ -1,0 +1,7 @@
+aliases:
+- Docker
+description: The company that developed the Docker containerization platform.
+id: organization:docker
+kind: company
+name: Docker Inc.
+type: Organization

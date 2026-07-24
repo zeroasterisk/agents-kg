@@ -1,5 +1,7 @@
 aliases: []
-description: The ability to manage the lifecycle of tasks.
+description: The ability of an agent or system to manage the lifecycle of tasks from
+  creation to completion.
 id: capability:task-lifecycle-management
+kind: feature
 name: Task Lifecycle Management
 type: Capability

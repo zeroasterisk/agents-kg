@@ -2,7 +2,8 @@ aliases:
 - HITL
 - human oversight
 - human review
-description: Involving human oversight or interaction in an agent's process.
+description: Involving human oversight and review in automated operations.
 id: capability:human-in-the-loop
+kind: feature
 name: Human-in-the-Loop
 type: Capability

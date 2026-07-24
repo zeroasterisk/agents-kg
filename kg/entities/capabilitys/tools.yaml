@@ -1,5 +1,5 @@
 aliases: []
-description: A capability for defining tools within a model context.
-id: capability:tools
-name: Tools
+id: cap:tools
+kind: feature
+name: MCP Tools
 type: Capability

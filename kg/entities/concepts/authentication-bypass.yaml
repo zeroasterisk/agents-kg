@@ -1,0 +1,7 @@
+aliases:
+- authentication bypass
+description: Vulnerability pattern where an attacker bypasses authentication controls.
+id: concept:authentication-bypass
+kind: property
+name: Authentication Bypass
+type: Concept

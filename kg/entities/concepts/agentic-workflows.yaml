@@ -1,0 +1,7 @@
+aliases:
+- agentic workflow
+description: Workflows where AI agents execute multi-step tasks and decision making.
+id: concept:agentic-workflows
+kind: paradigm
+name: Agentic Workflows
+type: Concept

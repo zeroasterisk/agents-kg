@@ -1,0 +1,8 @@
+aliases:
+- microservices architecture
+description: An architectural pattern structuring an application as a collection of
+  loosely coupled services.
+id: concept:microservices
+kind: pattern
+name: Microservices Architecture
+type: Concept

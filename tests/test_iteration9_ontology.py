@@ -298,8 +298,8 @@ class TestOntologyPromptAlignment:
         assert len(extract_stage.VALID_EDGE_TYPES) == 15
 
     def test_prompt_entity_count_matches_code(self):
-        """The prompt defines exactly 6 entity types."""
-        assert len(extract_stage.VALID_ENTITY_TYPES) == 6
+        """The prompt defines exactly 7 entity types (including Concept)."""
+        assert len(extract_stage.VALID_ENTITY_TYPES) == 7
 
     def test_edge_types_are_all_documented(self):
         """Every edge type in the code set appears in the edge direction rules."""

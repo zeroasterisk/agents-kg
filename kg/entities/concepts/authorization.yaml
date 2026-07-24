@@ -1,0 +1,7 @@
+aliases:
+- access control
+description: Access control and permissions.
+id: concept:authorization
+kind: property
+name: Authorization
+type: Concept

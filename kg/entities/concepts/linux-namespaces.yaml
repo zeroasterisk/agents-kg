@@ -1,0 +1,7 @@
+aliases: []
+description: A Linux kernel feature that isolates and virtualizes system resources
+  for processes.
+id: concept:linux-namespaces
+kind: property
+name: Linux Namespaces
+type: Concept

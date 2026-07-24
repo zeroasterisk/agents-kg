@@ -1,0 +1,8 @@
+aliases:
+- CNCF
+description: The Cloud Native Computing Foundation is an open source software foundation
+  dedicated to making cloud native computing ubiquitous.
+id: organization:cloud-native-computing-foundation
+kind: foundation
+name: Cloud Native Computing Foundation
+type: Organization

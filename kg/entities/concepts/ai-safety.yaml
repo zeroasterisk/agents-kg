@@ -1,0 +1,8 @@
+aliases:
+- AI safety research
+description: Research and principles focused on ensuring artificial intelligence systems
+  are safe and aligned.
+id: concept:ai-safety
+kind: property
+name: AI Safety
+type: Concept

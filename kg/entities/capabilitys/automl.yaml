@@ -1,5 +1,8 @@
-aliases: []
-description: Automated machine learning capabilities.
+aliases:
+- Automated Machine Learning
+description: Automated Machine Learning, enabling automated training and optimization
+  of machine learning models.
 id: capability:automl
+kind: feature
 name: AutoML
 type: Capability

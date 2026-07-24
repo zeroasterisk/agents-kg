@@ -1,0 +1,8 @@
+aliases:
+- GCP
+- Google Cloud
+description: A suite of cloud computing services provided by Google.
+id: project:google-cloud-platform
+kind: platform
+name: Google Cloud Platform
+type: Project

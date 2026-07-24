@@ -14,6 +14,7 @@ import struct
 from collections import defaultdict
 from difflib import SequenceMatcher
 from ..db import Database
+from ..model_config import MODEL_EMBEDDING
 from ..seed import get_seed_entities
 
 try:
@@ -21,7 +22,7 @@ try:
 except ImportError:
     genai = None
 
-EMBEDDING_MODEL = "gemini-embedding-2"
+EMBEDDING_MODEL = MODEL_EMBEDDING
 
 def _floats_to_bytes(floats: list[float]) -> bytes:
     return struct.pack(f'{len(floats)}f', *floats)

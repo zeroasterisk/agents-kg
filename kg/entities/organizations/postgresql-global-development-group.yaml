@@ -1,0 +1,6 @@
+aliases: []
+description: The organization that maintains PostgreSQL.
+id: organization:postgresql-global-development-group
+kind: consortium
+name: PostgreSQL Global Development Group
+type: Organization

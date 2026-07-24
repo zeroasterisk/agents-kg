@@ -1,5 +1,6 @@
-aliases: []
-description: A high-performance RPC framework.
+aliases:
+- gRPC
+description: A high-performance RPC framework developed by Google.
 id: project:grpc
 kind: framework
 name: gRPC

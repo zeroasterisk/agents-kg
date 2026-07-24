@@ -1,6 +1,7 @@
 aliases:
 - IBM ACP
-description: A communication protocol for agents developed by IBM.
+- ACP
+description: IBM Agent Communication Protocol (IBM ACP).
 id: protocol:ibm-acp
 kind: spec
 name: IBM Agent Communication Protocol

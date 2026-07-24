@@ -1,0 +1,6 @@
+aliases: []
+description: Automated machine learning capabilities.
+id: capability:auto-ml
+kind: feature
+name: AutoML
+type: Capability

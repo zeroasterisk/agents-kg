@@ -1,0 +1,7 @@
+aliases: []
+description: Structured representation of knowledge acting as a persistent memory
+  layer for agents.
+id: concept:knowledge-graph
+kind: pattern
+name: Knowledge Graph
+type: Concept

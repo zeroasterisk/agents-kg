@@ -1,8 +1,8 @@
 aliases:
-- LF
-- Linux Foundation AI
-description: A non-profit technology consortium.
+- CNCF
+description: Cloud Native Computing Foundation (CNCF) is a vendor-neutral home for
+  cloud-native projects.
 id: organization:linux-foundation
 kind: foundation
-name: Linux Foundation
+name: Cloud Native Computing Foundation
 type: Organization

@@ -1,0 +1,8 @@
+aliases:
+- AI safety
+description: Principles and practices for the ethical, safe, and trustworthy development
+  of AI systems.
+id: concept:responsible-ai
+kind: principle
+name: Responsible AI
+type: Concept

@@ -2,6 +2,6 @@ aliases: []
 description: A comprehensive, community-maintained knowledge base with over 100 million
   items.
 id: project:wikidata
-kind: knowledge_base
+kind: platform
 name: Wikidata
 type: Project

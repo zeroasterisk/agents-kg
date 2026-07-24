@@ -1,6 +1,7 @@
-aliases: []
-description: An open-source system for automating deployment, scaling, and management
-  of containerized applications.
+aliases:
+- K8s
+description: Container orchestration platform for automating deployment and scaling
+  of containers.
 id: project:kubernetes
 kind: platform
 name: Kubernetes

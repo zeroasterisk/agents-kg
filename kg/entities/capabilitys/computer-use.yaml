@@ -1,0 +1,7 @@
+aliases: []
+description: The ability of an AI system to interact with graphical user interfaces
+  by taking screenshots and performing mouse and keyboard actions.
+id: capability:computer-use
+kind: feature
+name: Computer Use
+type: Capability

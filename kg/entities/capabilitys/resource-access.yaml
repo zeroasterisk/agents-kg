@@ -1,7 +1,6 @@
-aliases:
-- Resources
-description: A capability offered by the Server to the Client, related to accessing
-  resources.
+aliases: []
+description: The ability of an agent to securely read and access external data sources.
 id: capability:resource-access
+kind: feature
 name: Resource Access
 type: Capability
