@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to delegate a capability to another party.
+id: capability:capability-delegation
+name: Capability Delegation
+type: Capability

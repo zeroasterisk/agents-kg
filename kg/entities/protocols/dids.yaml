@@ -1,0 +1,8 @@
+aliases:
+- DID
+description: A globally unique persistent identifier that does not require a centralized
+  registration authority.
+id: protocol:dids
+kind: spec
+name: Decentralized Identifier
+type: Protocol

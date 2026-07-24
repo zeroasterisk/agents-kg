@@ -1,0 +1,7 @@
+aliases:
+- VC-DATA-MODEL
+description: A specification for Verifiable Credentials data model.
+id: protocol:vc-data-model
+kind: spec
+name: Verifiable Credentials Data Model
+type: Protocol

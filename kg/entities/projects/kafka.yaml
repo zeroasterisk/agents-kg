@@ -1,0 +1,6 @@
+aliases: []
+description: A distributed event streaming platform.
+id: project:kafka
+kind: framework
+name: Kafka
+type: Project

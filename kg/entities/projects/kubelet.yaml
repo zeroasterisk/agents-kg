@@ -1,0 +1,7 @@
+aliases: []
+description: The primary node agent that runs on each worker node in a Kubernetes
+  cluster.
+id: project:kubelet
+kind: tool
+name: Kubelet
+type: Project

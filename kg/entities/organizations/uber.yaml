@@ -1,0 +1,8 @@
+aliases:
+- Uber Engineering
+description: Uber is a technology company that developed distributed workflow engines
+  and contributes to open-source observability software.
+id: organization:uber
+kind: company
+name: Uber
+type: Organization

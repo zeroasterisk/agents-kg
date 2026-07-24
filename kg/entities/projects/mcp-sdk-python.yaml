@@ -1,6 +1,5 @@
-aliases:
-- mcp Python SDK
-description: A language-specific SDK for implementing MCP servers and clients in Python.
+aliases: []
+description: Official Python reference implementation for MCP.
 id: project:mcp-sdk-python
 kind: sdk
 name: MCP Python SDK

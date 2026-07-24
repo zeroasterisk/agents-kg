@@ -1,0 +1,7 @@
+aliases:
+- generate text
+description: The ability to generate text and code.
+id: capability:code-generation
+kind: function
+name: Code Generation
+type: Capability

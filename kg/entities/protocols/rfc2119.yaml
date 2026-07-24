@@ -1,0 +1,7 @@
+aliases:
+- RFC2119
+description: Key words for use in RFCs to indicate level of requirement.
+id: protocol:rfc2119
+kind: rfc
+name: RFC 2119
+type: Protocol

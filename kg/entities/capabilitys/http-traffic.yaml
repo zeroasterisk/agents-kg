@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to handle HTTP traffic.
+id: capability:http-traffic
+name: HTTP Traffic
+type: Capability

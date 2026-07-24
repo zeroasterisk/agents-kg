@@ -1,0 +1,6 @@
+aliases: []
+description: A directory service standard.
+id: protocol:x500
+kind: spec
+name: X.500 directory services
+type: Protocol

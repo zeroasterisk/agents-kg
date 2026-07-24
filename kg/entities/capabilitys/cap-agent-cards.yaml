@@ -1,0 +1,6 @@
+aliases: []
+description: JSON capability announcements
+id: us:cap-agent-cards
+kind: feature
+name: Agent Cards
+type: Capability

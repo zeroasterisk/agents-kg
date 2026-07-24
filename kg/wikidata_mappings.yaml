@@ -1,0 +1,80 @@
+# Confirmed Wikidata ID mappings for seed entities
+# Format: entity_id: Q-ID (or null if no Wikidata match)
+
+mappings:
+  # Organizations
+  organization:google: Q95
+  organization:anthropic: Q113575029
+  organization:openai: Q21064130
+  organization:microsoft: Q2283
+  organization:meta: Q380
+  organization:linux-foundation: Q858851
+  organization:ietf: Q217082
+  organization:w3c: Q37033
+  organization:ibm: Q37156
+  organization:amazon: Q3884
+  organization:apple: Q312
+  organization:nvidia: Q182477
+  organization:langchain: Q116781045
+  organization:aaif: null
+  organization:agntcy: null
+  organization:modelcontextprotocol: null
+  organization:kaggle: Q1143055
+
+  # Protocols
+  protocol:openapi: Q15057770
+  protocol:json-rpc-2.0: Q1164498
+  protocol:oauth-2.1: Q220450
+  protocol:openid-connect: Q1451273
+  protocol:spiffe: null
+  protocol:http-402: null
+  protocol:mcp: null
+  protocol:a2a: null
+  protocol:a2ui: null
+  protocol:ag-ui: null
+  protocol:ibm-acp: null
+  protocol:openai-acp: null
+  protocol:zed-acp: null
+  protocol:agent-payments: null
+
+  # Projects
+  project:gemini: Q115060924
+  project:chatgpt: Q115647700
+  project:langchain: Q116781045
+  project:opentelemetry: Q85765484
+  project:claude: Q117012744
+  project:adk: null
+  project:adk-elixir: null
+  project:gemini-2.5-pro: null
+  project:gemini-2.5-flash: null
+  project:vertex-ai: null
+  project:langgraph: null
+  project:mcp-sdk-typescript: null
+  project:mcp-sdk-python: null
+  project:mcp-inspector: null
+  project:beeai: null
+  project:cloud-run: Q55638231
+  project:react: null
+  project:chain-of-thought: null
+  project:rag: null
+  project:model-armor: null
+  project:gemma: Q124513638
+
+  # Capabilities
+  capability:tool-use: null
+  capability:reasoning: null
+  capability:planning: null
+  capability:memory: null
+  capability:multi-agent: null
+  capability:observability: null
+  capability:security: null
+  capability:authentication: null
+  capability:authorization: null
+  capability:human-in-the-loop: null
+
+  # People
+  person:alan-blount: null
+  person:julia-wiesinger: null
+  person:patrick-marlow: null
+  person:antonio-gulli: null
+  person:shubham-saboo: null

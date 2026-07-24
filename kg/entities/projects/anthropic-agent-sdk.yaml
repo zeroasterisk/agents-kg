@@ -1,0 +1,7 @@
+aliases: []
+description: A software development kit released by Anthropic for building custom
+  agents.
+id: project:anthropic-agent-sdk
+kind: sdk
+name: Anthropic Agent SDK
+type: Project

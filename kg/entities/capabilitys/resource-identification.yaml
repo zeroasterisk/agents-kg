@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to identify a resource at a service endpoint using a relative
+  URI reference.
+id: capability:resource-identification
+name: Resource Identification
+type: Capability

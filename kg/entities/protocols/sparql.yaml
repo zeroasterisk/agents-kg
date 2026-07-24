@@ -1,0 +1,6 @@
+aliases: []
+description: An RDF query language and protocol for querying databases.
+id: protocol:sparql
+kind: standard
+name: SPARQL
+type: Protocol

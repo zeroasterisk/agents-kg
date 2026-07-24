@@ -1,0 +1,7 @@
+aliases:
+- RFC7517
+description: A standard for JSON Web Keys (JWK).
+id: protocol:rfc7517
+kind: rfc
+name: RFC 7517
+type: Protocol

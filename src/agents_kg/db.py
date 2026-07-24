@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS sources (
     uri TEXT NOT NULL UNIQUE,
     title TEXT,
     type TEXT DEFAULT 'url',
+    submitter_email TEXT,
     content_hash TEXT,
     raw_text TEXT,
     parsed_text TEXT,
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS entities (
     merged_into TEXT,
     source_id INTEGER REFERENCES sources(id),
     chunk_id INTEGER REFERENCES chunks(id),
+    deprecated_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -105,19 +107,40 @@ class Database:
     def _init_schema(self):
         self.conn.executescript(SCHEMA)
         self.conn.commit()
+        self._migrate()
+
+    def _migrate(self):
+        for col, table in [("submitter_email", "sources"), ("deprecated_at", "entities")]:
+            try:
+                self.conn.execute(f"SELECT {col} FROM {table} LIMIT 0")
+            except sqlite3.OperationalError:
+                self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} TEXT")
+                self.conn.commit()
 
     def close(self):
         self.conn.close()
 
     # --- Sources ---
 
-    def add_source(self, uri: str, title: Optional[str] = None, source_type: str = "url") -> Optional[int]:
-        """Add a source. Returns id or None if duplicate."""
+    def add_source(self, uri: str, title: Optional[str] = None, source_type: str = "url",
+                   submitter_email: Optional[str] = None, force: bool = False) -> Optional[int]:
+        """Add a source. Returns id or None if duplicate.
+
+        When force=True, bypasses URI dedup by appending a #reingest fragment.
+        Old source records are preserved; HTTP clients strip fragments per RFC.
+        """
+        # TODO: detect when a URL's content has changed (via MD5 of fetched
+        # content) and trigger a re-ingest automatically, instead of requiring
+        # manual force=true calls.
         now = _now()
+        store_uri = uri
+        if force:
+            ts = now.replace(":", "-")
+            store_uri = f"{uri}#reingest-{ts}"
         try:
             cur = self.conn.execute(
-                "INSERT INTO sources (uri, title, type, status, stage, created_at, updated_at) VALUES (?, ?, ?, 'pending', 'fetch', ?, ?)",
-                (uri, title, source_type, now, now),
+                "INSERT INTO sources (uri, title, type, submitter_email, status, stage, created_at, updated_at) VALUES (?, ?, ?, ?, 'pending', 'fetch', ?, ?)",
+                (store_uri, title, source_type, submitter_email, now, now),
             )
             self.conn.commit()
             return cur.lastrowid
@@ -185,6 +208,19 @@ class Database:
         ).fetchall()
         return {r["status"]: r["count"] for r in rows}
 
+
+    def reset_stalled_jobs(self, timeout_minutes: int = 30) -> int:
+        """Reset sources stuck in processing for longer than timeout_minutes."""
+        from datetime import timedelta
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=timeout_minutes)).isoformat()
+        cur = self.conn.execute(
+            "UPDATE sources SET status = 'pending', error = NULL, updated_at = ? "
+            "WHERE status = 'processing' AND updated_at < ?",
+            (_now(), cutoff),
+        )
+        self.conn.commit()
+        return cur.rowcount
+
     # --- Chunks ---
 
     def add_chunk(self, source_id: int, text: str, position: int,
@@ -251,6 +287,33 @@ class Database:
         vals = list(kwargs.values()) + [entity_id]
         self.conn.execute(f"UPDATE entities SET {sets} WHERE id = ?", vals)
         self.conn.commit()
+
+    def deprecate_entities_for_source(self, source_id: int):
+        """Mark all non-merged entities from a source as deprecated and clear chunk refs."""
+        now = _now()
+        self.conn.execute(
+            "UPDATE entities SET deprecated_at = ?, chunk_id = NULL, updated_at = ? "
+            "WHERE source_id = ? AND merged_into IS NULL AND deprecated_at IS NULL",
+            (now, now, source_id),
+        )
+        self.conn.execute(
+            "UPDATE entities SET chunk_id = NULL, updated_at = ? "
+            "WHERE source_id = ? AND chunk_id IS NOT NULL AND (merged_into IS NOT NULL OR deprecated_at IS NOT NULL)",
+            (now, source_id),
+        )
+        self.conn.execute(
+            "UPDATE edges SET chunk_id = NULL, updated_at = ? "
+            "WHERE source_id = ?",
+            (now, source_id),
+        )
+        self.conn.commit()
+
+    def get_deprecated_entities(self) -> list[dict]:
+        """Return entities that have been deprecated."""
+        rows = self.conn.execute(
+            "SELECT * FROM entities WHERE deprecated_at IS NOT NULL ORDER BY deprecated_at"
+        ).fetchall()
+        return [dict(r) for r in rows]
 
     # --- Edges ---
 

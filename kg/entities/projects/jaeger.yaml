@@ -1,0 +1,6 @@
+aliases: []
+description: An open-source distributed tracing project.
+id: project:jaeger
+kind: tool
+name: Jaeger
+type: Project

@@ -1,0 +1,8 @@
+aliases:
+- distributed ledger
+- DLT
+description: A non-centralized system for recording events.
+id: protocol:distributed-ledger
+kind: spec
+name: Distributed Ledger
+type: Protocol

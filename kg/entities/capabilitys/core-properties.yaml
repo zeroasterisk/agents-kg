@@ -1,0 +1,6 @@
+aliases: []
+description: Core properties of a DID document, including id, alsoKnownAs, controller,
+  authentication, verificationMethod, service, and serviceEndpoint.
+id: capability:core-properties
+name: Core Properties
+type: Capability

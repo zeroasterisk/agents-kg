@@ -1,6 +1,6 @@
 aliases:
 - Anthropic PBC
-description: The company that develops Claude.
+description: Anthropic PBC, creators of Claude and the Model Context Protocol.
 id: organization:anthropic
 kind: company
 name: Anthropic

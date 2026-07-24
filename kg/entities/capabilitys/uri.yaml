@@ -1,0 +1,6 @@
+aliases:
+- URI
+description: Uniform Resource Identifier.
+id: capability:uri
+name: URI
+type: Capability

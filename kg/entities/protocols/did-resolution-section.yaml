@@ -1,0 +1,7 @@
+aliases:
+- 7.1 DID Resolution
+description: Defines the inputs and outputs of the DID resolution process.
+id: protocol:did-resolution-section
+kind: standard
+name: DID Resolution Section
+type: Protocol

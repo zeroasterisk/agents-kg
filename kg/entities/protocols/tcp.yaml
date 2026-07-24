@@ -1,0 +1,6 @@
+aliases: []
+description: Transmission Control Protocol
+id: protocol:tcp
+kind: standard
+name: TCP
+type: Protocol

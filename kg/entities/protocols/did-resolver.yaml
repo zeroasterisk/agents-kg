@@ -1,0 +1,8 @@
+aliases:
+- DID resolver
+description: A software and/or hardware component that performs the DID resolution
+  function.
+id: protocol:did-resolver
+kind: standard
+name: DID Resolver
+type: Protocol

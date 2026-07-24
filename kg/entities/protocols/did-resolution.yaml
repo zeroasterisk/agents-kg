@@ -1,0 +1,8 @@
+aliases:
+- DID resolution
+description: The process that takes as its input a DID and a set of resolution options
+  and returns a DID document.
+id: protocol:did-resolution
+kind: standard
+name: DID Resolution
+type: Protocol

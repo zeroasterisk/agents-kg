@@ -1,0 +1,15 @@
+event_id: cisco-proposes-badge-alignment-2026-03-08
+title: Cisco proposes Agent Identity Badge alignment with AAIF Passport
+event_type: discussion
+date: "2026-03-08"
+description: >
+  Cisco representative posted in AAIF working group, noting that their
+  "Agent Identity Badge" concept may align with the proposed "Passport"
+  concept within AGNTCY (Linux Foundation project). Suggested building
+  on existing work to accelerate progress.
+source_url: AAIF working group post
+participants:
+  - entity_id: organization:agntcy
+    role: proposer
+  - entity_id: organization:aaif
+    role: forum

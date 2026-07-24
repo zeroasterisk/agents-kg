@@ -1,0 +1,5 @@
+aliases: []
+description: A value that is used to indicate the lack of a value.
+id: capability:null
+name: 'null'
+type: Capability

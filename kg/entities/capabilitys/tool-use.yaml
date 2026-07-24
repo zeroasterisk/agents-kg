@@ -1,6 +1,8 @@
 aliases:
+- tool calling
 - tools
-description: Enables servers to provide core functionality for AI actions.
+description: The ability of an agent to execute external tools and functions.
 id: capability:tool-use
+kind: function
 name: Tool Use
 type: Capability

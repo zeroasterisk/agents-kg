@@ -1,0 +1,7 @@
+aliases:
+- Protobuf
+description: A serialization format used by gRPC.
+id: protocol:protocol-buffers
+kind: spec
+name: Protocol Buffers
+type: Protocol

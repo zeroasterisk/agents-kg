@@ -1,21 +1,24 @@
 import os
-import sys
+import pytest
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 
+_has_genai_creds = bool(os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+
+@pytest.mark.skipif(not _has_genai_creds, reason="No Gemini/Vertex AI credentials configured")
 def test_genai_access():
     kwargs_gen = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs_gen["vertexai"] = True
+        kwargs_gen["enterprise"] = True
         kwargs_gen["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs_gen["location"] = "global"
     
     kwargs_embed = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs_embed["vertexai"] = True
+        kwargs_embed["enterprise"] = True
         kwargs_embed["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs_embed["location"] = "us-central1"
     
@@ -26,7 +29,7 @@ def test_genai_access():
     client_embed = genai.Client(**kwargs_embed)
     
     # Test generation
-    model_name = "gemini-3.1-flash-lite-preview"
+    model_name = "gemini-3.5-flash-lite"
     print(f"Testing generation with model: {model_name} at location: global")
     
     config = types.GenerateContentConfig(
@@ -41,29 +44,17 @@ def test_genai_access():
             contents="Hello, are you working?",
             config=config
         )
-        print(f"Generation response: {response.text}")
-        print("Generation SUCCESS")
+        assert response.text, "Generation returned empty text"
     except Exception as e:
-        print(f"Generation FAILED: {e}")
-        return False
+        pytest.fail(f"Generation FAILED: {e}")
 
     # Test embedding
-    embed_model = "gemini-embedding-2-preview"
-    print(f"Testing embedding with model: {embed_model} at location: us-central1")
-    
+    embed_model = "gemini-embedding-2"
     try:
         result = client_embed.models.embed_content(
             model=embed_model,
             contents="Hello world",
         )
-        print(f"Embedding successful, got {len(result.embeddings)} embeddings")
-        print("Embedding SUCCESS")
+        assert len(result.embeddings) > 0, "Embedding returned no results"
     except Exception as e:
-        print(f"Embedding FAILED: {e}")
-        return False
-
-    return True
-
-if __name__ == "__main__":
-    success = test_genai_access()
-    sys.exit(0 if success else 1)
+        pytest.fail(f"Embedding FAILED: {e}")

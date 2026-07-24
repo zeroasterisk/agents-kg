@@ -1,0 +1,7 @@
+aliases: []
+description: A resolution layer where entity descriptions are embedded into vector
+  space and compared using cosine similarity.
+id: concept:embedding-based-resolution
+kind: methodology
+name: Embedding-based Resolution
+type: Concept

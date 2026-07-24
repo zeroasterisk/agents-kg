@@ -1,7 +1,6 @@
-aliases:
-- resources
-description: The ability for an AI application to read and list resources provided
-  by a server.
+aliases: []
+description: The ability of an agent to securely read and access external data sources.
 id: capability:resource-access
+kind: feature
 name: Resource Access
 type: Capability

@@ -1,0 +1,7 @@
+aliases:
+- services
+description: An endpoint for interacting with a DID subject, often specified in a
+  DID document.
+id: capability:service-endpoint
+name: Service Endpoint
+type: Capability

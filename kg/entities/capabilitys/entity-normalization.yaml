@@ -1,0 +1,7 @@
+aliases:
+- extraction-time normalization
+description: The process of standardizing entity references to a canonical form during
+  data extraction.
+id: capability:entity-normalization
+name: Entity Normalization
+type: Capability

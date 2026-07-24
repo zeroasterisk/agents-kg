@@ -1,0 +1,8 @@
+aliases:
+- embedding-based resolution
+- cosine similarity
+description: Comparing entity descriptions by embedding them into a vector space and
+  measuring similarity (e.g., cosine similarity).
+id: capability:embedding-comparison
+name: Embedding Comparison
+type: Capability

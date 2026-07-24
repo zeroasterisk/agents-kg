@@ -1,0 +1,7 @@
+aliases:
+- HASHLINK
+description: A specification for resource hashing to ensure integrity.
+id: protocol:hashlink
+kind: spec
+name: Hashlink
+type: Protocol

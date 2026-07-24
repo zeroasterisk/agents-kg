@@ -1,0 +1,7 @@
+aliases:
+- Apache
+description: A non-profit corporation supporting Apache software projects.
+id: organization:apache-software-foundation
+kind: foundation
+name: Apache Software Foundation
+type: Organization

@@ -1,0 +1,8 @@
+aliases:
+- DID URL dereferencer
+description: A software and/or hardware system that performs the DID URL dereferencing
+  function for a given DID URL or DID document.
+id: project:did-url-dereferencer
+kind: tool
+name: DID URL Dereferencer
+type: Project

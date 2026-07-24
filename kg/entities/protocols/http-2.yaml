@@ -1,0 +1,7 @@
+aliases:
+- HTTP/2
+description: HTTP/2 specification defined by the IETF.
+id: protocol:http-2
+kind: standard
+name: HTTP/2
+type: Protocol

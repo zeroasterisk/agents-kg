@@ -1,0 +1,7 @@
+aliases:
+- DID WG
+description: The W3C working group responsible for the Decentralized Identifiers specification.
+id: group:decentralized-identifier-working-group
+kind: wg
+name: Decentralized Identifier Working Group
+type: Group

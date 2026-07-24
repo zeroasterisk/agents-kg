@@ -1,0 +1,6 @@
+aliases: []
+description: A system for controlling UI via MCP tools.
+id: project:mcp-ui
+kind: tool
+name: MCP UI
+type: Project

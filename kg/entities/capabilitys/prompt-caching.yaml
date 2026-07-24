@@ -1,0 +1,7 @@
+aliases: []
+description: A capability that optimizes performance and cost by caching frequently
+  used prompt prefixes.
+id: capability:prompt-caching
+kind: feature
+name: Prompt Caching
+type: Capability

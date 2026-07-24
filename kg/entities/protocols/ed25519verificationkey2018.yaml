@@ -1,0 +1,7 @@
+aliases:
+- Ed25519VerificationKey2018
+description: A key type for Ed25519 verification keys.
+id: protocol:ed25519verificationkey2018
+kind: spec
+name: Ed25519VerificationKey2018
+type: Protocol

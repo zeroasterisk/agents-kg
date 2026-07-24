@@ -1,0 +1,5 @@
+aliases: []
+description: A sequence of code units often used to represent human readable language.
+id: capability:string
+name: string
+type: Capability

@@ -1,0 +1,8 @@
+aliases:
+- multi-modal processing
+description: The ability to process and understand multiple types of input modalities,
+  such as text and images.
+id: capability:multi-modal-understanding
+kind: feature
+name: Multi-modal Understanding
+type: Capability

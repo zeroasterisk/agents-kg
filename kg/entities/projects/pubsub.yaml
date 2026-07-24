@@ -1,0 +1,6 @@
+aliases: []
+description: Google Cloud's messaging service.
+id: project:pubsub
+kind: platform
+name: Pub/Sub
+type: Project

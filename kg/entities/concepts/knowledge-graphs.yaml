@@ -1,0 +1,7 @@
+aliases:
+- knowledge graph
+description: Structured representations of real-world entities and their relationships.
+id: concept:knowledge-graphs
+kind: paradigm
+name: Knowledge Graphs
+type: Concept

@@ -1,0 +1,7 @@
+aliases:
+- Wasm
+description: A binary instruction format for a stack-based virtual machine.
+id: protocol:webassembly
+kind: standard
+name: WebAssembly
+type: Protocol

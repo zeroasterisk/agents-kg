@@ -1,0 +1,6 @@
+aliases: []
+description: Google's toolkit supporting MCP and A2A
+id: rw:project-adk
+kind: framework
+name: Agent Development Kit
+type: Project

@@ -1,0 +1,7 @@
+aliases: []
+description: A training paradigm where workload is split and shared among multiple
+  mini-batches or processors.
+id: concept:distributed-training
+kind: methodology
+name: Distributed Training
+type: Concept

@@ -1,0 +1,7 @@
+aliases:
+- disambiguation
+description: The process of resolving entities to a unique identifier to remove ambiguity.
+id: capability:entity-disambiguation
+kind: feature
+name: Entity Disambiguation
+type: Capability

@@ -1,7 +1,6 @@
 aliases:
-- Claude Code
 - Claude Desktop
-description: An AI application that acts as an MCP host.
+description: AI assistant and host application platform developed by Anthropic.
 id: project:claude
 kind: platform
 name: Claude

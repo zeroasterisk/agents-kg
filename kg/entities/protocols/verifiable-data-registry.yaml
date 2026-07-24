@@ -1,0 +1,7 @@
+aliases:
+- Verifiable Data Registry
+description: A decentralized system for recording and verifying DIDs and DID documents.
+id: protocol:verifiable-data-registry
+kind: spec
+name: Verifiable Data Registry
+type: Protocol

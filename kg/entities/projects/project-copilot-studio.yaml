@@ -1,0 +1,6 @@
+aliases: []
+description: Microsoft's agent building platform
+id: us:project-copilot-studio
+kind: platform
+name: Copilot Studio
+type: Project

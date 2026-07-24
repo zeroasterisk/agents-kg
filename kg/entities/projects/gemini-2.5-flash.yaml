@@ -1,0 +1,8 @@
+aliases:
+- Gemini Flash-Lite
+description: A fast, inexpensive model that can be used for screening user inputs
+  and agent outputs.
+id: project:gemini-2.5-flash
+kind: platform
+name: Gemini 2.5 Flash
+type: Project

@@ -1,0 +1,9 @@
+aliases:
+- Redis Labs
+- Redis Inc
+description: The company that provides commercial support and development for Redis,
+  formerly known as Redis Labs.
+id: organization:redis
+kind: company
+name: Redis Inc.
+type: Organization

@@ -1,0 +1,7 @@
+aliases:
+- deduplication
+description: Determining when two references refer to the same real-world entity.
+id: concept:entity-resolution
+kind: methodology
+name: Entity Resolution
+type: Concept

@@ -1,0 +1,7 @@
+aliases:
+- application/did+cbor
+description: The CBOR representation of a DID document.
+id: protocol:did-cbor
+kind: spec
+name: DID CBOR
+type: Protocol

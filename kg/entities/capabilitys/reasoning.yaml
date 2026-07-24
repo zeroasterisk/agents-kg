@@ -1,7 +1,8 @@
 aliases:
-- Prompts
-description: The ability to structure interactions with language models using reusable
-  templates.
+- enhanced reasoning
+- extended thinking
+description: The ability of an AI system to perform chain-of-thought and logical reasoning.
 id: capability:reasoning
+kind: skill
 name: Reasoning
 type: Capability

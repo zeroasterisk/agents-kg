@@ -1,0 +1,8 @@
+aliases:
+- task planning
+- multi-step planning
+description: The ability of AI agents to make decisions and plan actions autonomously.
+id: capability:planning
+kind: skill
+name: Planning
+type: Capability

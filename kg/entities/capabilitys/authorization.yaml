@@ -1,5 +1,8 @@
-aliases: []
-description: Access control and permissions within the transport layer.
+aliases:
+- access control
+- permissions
+description: Determining whether a user or system has permission to perform an action.
 id: capability:authorization
+kind: function
 name: Authorization
 type: Capability

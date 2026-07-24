@@ -1,0 +1,6 @@
+aliases: []
+description: A governance framework for agents.
+id: protocol:agn-tcy
+kind: spec
+name: AGNTCY
+type: Protocol

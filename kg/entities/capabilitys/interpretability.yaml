@@ -1,0 +1,7 @@
+aliases:
+- interpretable AI systems
+description: Developing AI systems whose decision-making processes can be understood
+  by humans.
+id: capability:interpretability
+name: Interpretability
+type: Capability

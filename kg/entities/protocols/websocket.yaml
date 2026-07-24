@@ -1,0 +1,7 @@
+aliases: []
+description: A computer communications protocol providing full-duplex communication
+  channels, supported by AGNTCY.
+id: protocol:websocket
+kind: standard
+name: WebSocket
+type: Protocol

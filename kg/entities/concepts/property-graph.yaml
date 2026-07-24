@@ -1,0 +1,7 @@
+aliases:
+- Property graphs
+description: Graphs that support both entity attributes and relationship properties.
+id: concept:property-graph
+kind: pattern
+name: Property Graph
+type: Concept

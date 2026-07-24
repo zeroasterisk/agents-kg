@@ -1,0 +1,5 @@
+aliases: []
+description: A value that is either true or false.
+id: capability:boolean
+name: boolean
+type: Capability

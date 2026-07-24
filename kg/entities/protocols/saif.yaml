@@ -1,0 +1,7 @@
+aliases:
+- SAIF
+description: A protocol related to safety and security on Google.
+id: protocol:saif
+kind: spec
+name: SAIF
+type: Protocol

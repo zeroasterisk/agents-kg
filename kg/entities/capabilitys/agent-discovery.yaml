@@ -1,7 +1,8 @@
 aliases:
-- discovery
-description: Mechanism for agents to identify capabilities and connection info via
-  Agent Cards.
+- discoverability
+description: The ability to discover other agents, often facilitated by metadata formats
+  like Agent Cards.
 id: capability:agent-discovery
+kind: feature
 name: Agent Discovery
 type: Capability

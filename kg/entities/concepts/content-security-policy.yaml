@@ -1,0 +1,8 @@
+aliases:
+- CSP
+description: A security standard used to prevent various attacks such as cross-site
+  scripting and data injection.
+id: concept:content-security-policy
+kind: property
+name: Content Security Policy
+type: Concept

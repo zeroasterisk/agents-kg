@@ -1,0 +1,6 @@
+aliases: []
+description: Read-only data exposure capability of MCP
+id: rw:cap-resources
+kind: feature
+name: MCP Resources
+type: Capability

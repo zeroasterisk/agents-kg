@@ -1,0 +1,6 @@
+aliases: []
+description: A tool that enables multi-container applications.
+id: project:docker-compose
+kind: tool
+name: Docker Compose
+type: Project

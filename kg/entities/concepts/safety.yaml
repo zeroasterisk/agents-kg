@@ -1,0 +1,9 @@
+aliases:
+- responsible AI practices
+- safety research
+description: Practices and research aimed at ensuring artificial intelligence is safe
+  and responsible.
+id: concept:safety
+kind: principle
+name: AI Safety
+type: Concept

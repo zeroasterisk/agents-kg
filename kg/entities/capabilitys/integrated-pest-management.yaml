@@ -1,0 +1,6 @@
+aliases:
+- IPM
+description: A sustainable approach to managing pests in agriculture.
+id: capability:integrated-pest-management
+name: Integrated Pest Management
+type: Capability

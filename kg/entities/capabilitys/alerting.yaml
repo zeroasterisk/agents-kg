@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to generate alerts based on observed data.
+id: capability:alerting
+name: Alerting
+type: Capability

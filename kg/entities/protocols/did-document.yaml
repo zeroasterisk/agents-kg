@@ -1,0 +1,8 @@
+aliases:
+- DID document
+description: A data structure that contains metadata about a DID, including information
+  about how to authenticate and communicate with the DID subject.
+id: protocol:did-document
+kind: spec
+name: DID Document
+type: Protocol

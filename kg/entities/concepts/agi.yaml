@@ -1,0 +1,8 @@
+aliases:
+- AGI
+description: Highly autonomous systems that outperform humans at most economically
+  valuable work.
+id: concept:agi
+kind: principle
+name: Artificial General Intelligence
+type: Concept

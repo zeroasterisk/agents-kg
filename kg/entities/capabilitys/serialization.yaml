@@ -1,0 +1,6 @@
+aliases: []
+description: The process of converting data structures into a format that can be stored
+  or transmitted.
+id: capability:serialization
+name: Serialization
+type: Capability

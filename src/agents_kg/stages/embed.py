@@ -3,6 +3,7 @@
 import logging
 import struct
 from ..db import Database
+from ..model_config import MODEL_EMBEDDING
 
 try:
     from prefect.logging import get_run_logger as _get_logger
@@ -18,7 +19,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EMBEDDING_MODEL = "gemini-embedding-2-preview"
+EMBEDDING_MODEL = MODEL_EMBEDDING
 BATCH_SIZE = 100
 
 
@@ -42,24 +43,19 @@ def run(db: Database, source: dict) -> bool:
     import os
     kwargs = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)
 
-    for i in range(0, len(chunks), BATCH_SIZE):
-        batch = chunks[i:i + BATCH_SIZE]
-        texts = [c["text"] for c in batch]
-
-        _log().info("Embedding batch %d-%d of %d chunks", i, i + len(batch), len(chunks))
+    for idx, chunk in enumerate(chunks):
+        _log().info("Embedding chunk %d/%d (source %d)", idx + 1, len(chunks), source_id)
         result = client.models.embed_content(
             model=EMBEDDING_MODEL,
-            contents=texts,
+            contents=chunk["text"],
         )
-
-        for chunk, embedding in zip(batch, result.embeddings):
-            emb_bytes = _floats_to_bytes(embedding.values)
-            db.update_chunk_embedding(chunk["id"], emb_bytes, EMBEDDING_MODEL)
+        emb_bytes = _floats_to_bytes(result.embeddings[0].values)
+        db.update_chunk_embedding(chunk["id"], emb_bytes, EMBEDDING_MODEL)
 
     db.update_source(source_id, stage="extract", status="processing")
     return True

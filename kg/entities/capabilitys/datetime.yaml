@@ -1,0 +1,5 @@
+aliases: []
+description: A date and time value.
+id: capability:datetime
+name: datetime
+type: Capability

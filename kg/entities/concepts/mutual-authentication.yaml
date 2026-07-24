@@ -1,0 +1,8 @@
+aliases:
+- mutual authentication
+description: Security property ensuring that both parties in a communication channel
+  verify each other's identity.
+id: concept:mutual-authentication
+kind: property
+name: Mutual Authentication
+type: Concept

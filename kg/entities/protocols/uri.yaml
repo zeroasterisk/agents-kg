@@ -1,0 +1,7 @@
+aliases:
+- URI
+description: Uniform Resource Identifier.
+id: protocol:uri
+kind: standard
+name: URI
+type: Protocol

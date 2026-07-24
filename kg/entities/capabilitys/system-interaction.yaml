@@ -1,0 +1,6 @@
+aliases: []
+description: The ability for sandboxed applications to interact with the operating
+  system.
+id: capability:system-interaction
+name: System Interaction
+type: Capability

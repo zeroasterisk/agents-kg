@@ -1,0 +1,6 @@
+aliases: []
+description: Open-source libraries for orchestrating AI agents.
+id: project:agent-orchestration-libraries
+kind: framework
+name: Agent Orchestration Libraries
+type: Project

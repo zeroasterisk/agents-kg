@@ -1,0 +1,6 @@
+aliases: []
+description: A standard for Universally Unique Identifiers (UUIDs).
+id: protocol:rfc4122
+kind: RFC
+name: RFC 4122
+type: Protocol

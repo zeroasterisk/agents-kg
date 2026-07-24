@@ -1,0 +1,6 @@
+aliases: []
+description: A workflow engine forked from the Cadence project.
+id: project:temporal
+kind: framework
+name: Temporal
+type: Project

@@ -1,6 +1,7 @@
 aliases:
-- context memory
-description: The ability to share and persist context between servers and clients.
+- persistent memory layer
+description: Persistent memory layer that enables agents to store and retrieve information.
 id: capability:memory
+kind: function
 name: Memory
 type: Capability

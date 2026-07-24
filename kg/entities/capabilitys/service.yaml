@@ -1,0 +1,7 @@
+aliases:
+- services
+description: Means of communicating or interacting with the DID subject or associated
+  entities via one or more service endpoints.
+id: capability:service
+name: Service
+type: Capability

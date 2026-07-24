@@ -1,0 +1,5 @@
+aliases: []
+description: Managing user sessions on a server.
+id: capability:session-management
+name: Session Management
+type: Capability

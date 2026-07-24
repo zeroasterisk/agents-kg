@@ -1,0 +1,8 @@
+aliases:
+- Co-Scientist
+description: An advanced AI agent designed to function as a virtual research collaborator,
+  accelerating scientific discovery by systematically exploring complex problem spaces.
+id: project:google-co-scientist
+kind: framework
+name: Google Co-Scientist
+type: Project

@@ -1,0 +1,7 @@
+aliases: []
+description: Services relevant to interactions with the DID subject, expressed in
+  DID documents.
+id: protocol:did-services
+kind: spec
+name: DID Services
+type: Protocol

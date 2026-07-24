@@ -1,0 +1,6 @@
+aliases: []
+description: A distributed search and analytics engine built on Apache Lucene.
+id: project:elasticsearch
+kind: platform
+name: Elasticsearch
+type: Project

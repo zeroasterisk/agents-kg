@@ -1,0 +1,8 @@
+aliases:
+- decentralized file systems
+description: A file system that is distributed across a network, often used as a verifiable
+  data registry.
+id: project:decentralized-file-system
+kind: platform
+name: Decentralized File System
+type: Project

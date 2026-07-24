@@ -1,0 +1,6 @@
+aliases: []
+description: Ensures that only trusted container images are deployed on Google Cloud.
+id: project:binary-authorization
+kind: platform
+name: Binary Authorization
+type: Project

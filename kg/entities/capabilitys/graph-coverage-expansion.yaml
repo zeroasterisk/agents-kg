@@ -1,0 +1,6 @@
+aliases: []
+description: The process of increasing the scope and breadth of information within
+  a knowledge graph by incorporating new entities and relationships.
+id: capability:graph-coverage-expansion
+name: Graph Coverage Expansion
+type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: Open protocol for standardizing LLM context provision
+id: rw:protocol-mcp
+kind: spec
+name: Model Context Protocol
+type: Protocol

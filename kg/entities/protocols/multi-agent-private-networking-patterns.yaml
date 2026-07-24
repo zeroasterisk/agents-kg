@@ -1,0 +1,7 @@
+aliases:
+- Multi-Agent Private Networking Patterns
+description: Patterns for private networking in multi-agent systems.
+id: protocol:multi-agent-private-networking-patterns
+kind: spec
+name: Multi-Agent Private Networking Patterns
+type: Protocol

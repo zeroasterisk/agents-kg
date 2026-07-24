@@ -1,0 +1,9 @@
+aliases:
+- ReAct prompting
+- Reasoning + Acting
+description: A prompting and execution framework combining reasoning and acting for
+  language model agents.
+id: project:react
+kind: framework
+name: ReAct
+type: Project

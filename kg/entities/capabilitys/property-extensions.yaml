@@ -1,0 +1,5 @@
+aliases: []
+description: Extensions to DID document properties, such as ethereumAddress.
+id: capability:property-extensions
+name: Property Extensions
+type: Capability

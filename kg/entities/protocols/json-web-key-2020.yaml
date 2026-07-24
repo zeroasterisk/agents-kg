@@ -1,0 +1,7 @@
+aliases:
+- JsonWebKey2020
+description: A verification method type for JSON Web Keys.
+id: protocol:json-web-key-2020
+kind: standard
+name: JsonWebKey2020
+type: Protocol

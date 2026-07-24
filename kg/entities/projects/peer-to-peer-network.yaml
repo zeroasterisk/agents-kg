@@ -1,0 +1,8 @@
+aliases:
+- peer-to-peer networks
+description: A network where participants share resources directly, which can be used
+  as a verifiable data registry.
+id: project:peer-to-peer-network
+kind: platform
+name: Peer-to-Peer Network
+type: Project

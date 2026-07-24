@@ -1,0 +1,6 @@
+aliases: []
+description: The reference implementation of the Agent-to-Agent (A2A) protocol.
+id: project:a2a-reference-implementation
+kind: library
+name: A2A Reference Implementation
+type: Project

@@ -1,0 +1,7 @@
+aliases:
+- OTel
+description: An observability framework for telemetry data.
+id: protocol:opentelemetry
+kind: framework
+name: OpenTelemetry
+type: Protocol

@@ -1,0 +1,8 @@
+aliases:
+- SSE
+description: A server push technology enabling a client to receive automatic updates
+  from a server via HTTP connection.
+id: protocol:sse
+kind: standard
+name: Server-Sent Events
+type: Protocol

@@ -1,0 +1,6 @@
+aliases: []
+description: Major update with streaming and multi-server support
+id: us:protocol-mcp-2.0
+kind: spec
+name: MCP 2.0
+type: Protocol

@@ -1,0 +1,7 @@
+aliases:
+- DID document
+description: A document associated with a Decentralized Identifier (DID) that contains
+  information about the DID.
+id: capability:did-document
+name: DID Document
+type: Capability

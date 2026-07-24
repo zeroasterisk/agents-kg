@@ -1,0 +1,7 @@
+aliases:
+- ordered set
+description: A finite ordered sequence of items that does not contain the same item
+  twice.
+id: capability:set
+name: set
+type: Capability

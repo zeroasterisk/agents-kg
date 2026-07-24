@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to operate without centralized authorities or single points
+  of failure.
+id: capability:decentralization
+name: Decentralization
+type: Capability

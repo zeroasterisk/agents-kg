@@ -1,0 +1,6 @@
+aliases: []
+description: A framework and benchmark for advancing AI research agents.
+id: project:mlgym
+kind: framework
+name: MLGym
+type: Project

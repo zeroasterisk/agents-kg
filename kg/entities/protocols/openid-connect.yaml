@@ -1,6 +1,8 @@
 aliases:
 - OIDC
-description: An identity layer on top of the OAuth 2.0 protocol.
+description: An identity layer built on top of the OAuth 2.0 protocol, allowing clients
+  to verify the identity of the end-user based on the authentication performed by
+  an authorization server.
 id: protocol:openid-connect
 kind: standard
 name: OpenID Connect

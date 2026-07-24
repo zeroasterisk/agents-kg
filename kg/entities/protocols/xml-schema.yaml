@@ -1,0 +1,7 @@
+aliases:
+- XML Schema dateTime
+description: A schema language for XML documents.
+id: protocol:xml-schema
+kind: standard
+name: XML Schema
+type: Protocol

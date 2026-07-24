@@ -1,0 +1,5 @@
+aliases: []
+description: Identity management based on the use of decentralized identifiers.
+id: capability:decentralized-identity-management
+name: decentralized identity management
+type: Capability

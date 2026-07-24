@@ -1,0 +1,6 @@
+aliases: []
+description: Text Generation Inference by Hugging Face
+id: us:project-tgi
+kind: engine
+name: TGI
+type: Project

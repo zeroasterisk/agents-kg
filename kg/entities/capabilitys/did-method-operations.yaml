@@ -1,0 +1,6 @@
+aliases: []
+description: Operations for creating, resolving, updating, and deactivating DIDs and
+  their associated DID documents.
+id: capability:did-method-operations
+name: DID Method Operations
+type: Capability

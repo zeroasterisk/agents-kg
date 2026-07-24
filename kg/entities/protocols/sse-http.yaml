@@ -1,0 +1,6 @@
+aliases: []
+description: An HTTP transport protocol based on Server-Sent Events.
+id: protocol:sse-http
+kind: spec
+name: SSE-based HTTP transport
+type: Protocol

@@ -1,0 +1,7 @@
+aliases:
+- verifiable data registry
+description: A system that facilitates the creation, verification, updating, and/or
+  deactivation of decentralized identifiers and DID documents.
+id: capability:verifiable-data-registry
+name: Verifiable Data Registry
+type: Capability

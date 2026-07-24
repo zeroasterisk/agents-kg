@@ -1,0 +1,6 @@
+aliases: []
+description: Google Cloud's service for securing open-source software.
+id: project:assured-open-source-software
+kind: platform
+name: Assured Open Source Software
+type: Project

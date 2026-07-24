@@ -1,6 +1,7 @@
 aliases:
-- MAS
-description: Systems where multiple agents collaborate to perform tasks.
+- multi-agent architectures
+description: The ability for multiple AI agents to collaborate and operate together.
 id: capability:multi-agent
+kind: feature
 name: Multi-Agent Systems
 type: Capability

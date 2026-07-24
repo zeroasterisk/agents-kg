@@ -1,0 +1,7 @@
+aliases:
+- representation
+description: As defined for HTTP.
+id: protocol:representation
+kind: spec
+name: Representation
+type: Protocol

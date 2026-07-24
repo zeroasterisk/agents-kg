@@ -1,0 +1,8 @@
+aliases:
+- RESTful API
+description: APIs providing programmatic access for full-text search, logging, and
+  monitoring.
+id: protocol:restful-apis
+kind: spec
+name: RESTful APIs
+type: Protocol

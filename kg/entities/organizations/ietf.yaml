@@ -1,0 +1,7 @@
+aliases:
+- Internet Engineering Task Force
+description: Internet Engineering Task Force, which defines HTTP/2.
+id: organization:ietf
+kind: standards_body
+name: IETF
+type: Organization

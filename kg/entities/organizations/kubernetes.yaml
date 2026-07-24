@@ -1,0 +1,8 @@
+aliases:
+- Kubernetes
+- Kubernetes project
+description: The Kubernetes open-source container orchestration project.
+id: organization:kubernetes
+kind: foundation
+name: Kubernetes Project
+type: Organization

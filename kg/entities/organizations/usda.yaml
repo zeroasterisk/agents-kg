@@ -1,0 +1,9 @@
+aliases:
+- USDA
+- U.S. Department of Agriculture
+description: The federal executive department responsible for developing and executing
+  federal government policy on farming, forestry, and food.
+id: organization:usda
+kind: standards_body
+name: United States Department of Agriculture
+type: Organization

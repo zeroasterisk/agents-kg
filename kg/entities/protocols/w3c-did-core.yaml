@@ -1,0 +1,7 @@
+aliases:
+- did/v1
+description: The W3C standard for Decentralized Identifiers (DIDs).
+id: protocol:w3c-did-core
+kind: standard
+name: W3C DID Core
+type: Protocol

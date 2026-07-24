@@ -1,0 +1,7 @@
+aliases:
+- Core Properties
+description: The section detailing the generic properties supported in a DID document.
+id: protocol:core-properties
+kind: spec
+name: Core Properties
+type: Protocol

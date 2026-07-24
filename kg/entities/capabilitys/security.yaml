@@ -1,7 +1,7 @@
 aliases:
-- agent security
-description: The ability to protect systems, data, and communications from unauthorized
-  access or attacks.
+- resource permission model
+description: Agent security and resource protection capabilities.
 id: capability:security
+kind: feature
 name: Security
 type: Capability

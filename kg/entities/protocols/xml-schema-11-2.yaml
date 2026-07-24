@@ -1,0 +1,7 @@
+aliases:
+- XMLSCHEMA11-2
+description: Defines datatypes for XML Schema, including datetime.
+id: protocol:xml-schema-11-2
+kind: standard
+name: 'W3C XML Schema Definition Language (XSD) 1.1 Part 2: Datatypes'
+type: Protocol

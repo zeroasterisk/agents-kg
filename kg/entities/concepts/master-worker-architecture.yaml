@@ -1,0 +1,6 @@
+aliases: []
+description: An architectural pattern where a control plane manages worker nodes.
+id: concept:master-worker-architecture
+kind: pattern
+name: Master-Worker Architecture
+type: Concept

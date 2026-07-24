@@ -1,0 +1,7 @@
+aliases:
+- MULTIBASE
+description: A specification for encoding public keys.
+id: protocol:multibase
+kind: spec
+name: Multibase
+type: Protocol

@@ -1,0 +1,7 @@
+aliases:
+- JWS
+description: A specification for signing data using JSON.
+id: protocol:json-web-signature
+kind: spec
+name: JSON Web Signature
+type: Protocol

@@ -1,0 +1,8 @@
+aliases:
+- Docker platform
+description: A containerization platform that uses Linux namespaces and cgroups to
+  isolate processes.
+id: project:docker
+kind: platform
+name: Docker
+type: Project

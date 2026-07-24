@@ -1,0 +1,8 @@
+aliases:
+- MATRIX-URIS
+description: Specification for URIs that may use semicolons as sub-delimiters for
+  parameters.
+id: protocol:matrix-uris
+kind: spec
+name: MATRIX-URIS
+type: Protocol

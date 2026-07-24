@@ -1,0 +1,5 @@
+aliases: []
+description: The automated processes for deploying and scaling applications.
+id: capability:deployment-and-scaling
+name: Deployment and Scaling
+type: Capability

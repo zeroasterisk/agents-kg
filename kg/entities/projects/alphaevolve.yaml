@@ -1,0 +1,7 @@
+aliases: []
+description: An AI agent that discovers and optimizes algorithms for complex problems
+  in mathematics and computer science.
+id: project:alphaevolve
+kind: framework
+name: AlphaEvolve
+type: Project

@@ -87,6 +87,8 @@ def run(db, source: dict) -> bool:
 
         for h, chunk_text in sub_chunks:
             full_text = f"{h}\n\n{chunk_text}".strip() if h else chunk_text
+            if not full_text.strip():
+                continue
             tokens = _estimate_tokens(full_text)
             db.add_chunk(source_id, full_text, position, section_heading=h or None, token_count=tokens)
             position += 1

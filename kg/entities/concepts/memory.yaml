@@ -1,0 +1,8 @@
+aliases:
+- persistent memory layer
+description: A persistent memory layer that enables agents to reason about complex
+  domains.
+id: concept:memory
+kind: property
+name: Persistent Memory
+type: Concept

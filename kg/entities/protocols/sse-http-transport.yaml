@@ -1,0 +1,7 @@
+aliases:
+- SSE-based HTTP
+description: The Server-Sent Events based HTTP transport protocol used in MCP v1.0.
+id: protocol:sse-http-transport
+kind: spec
+name: SSE-based HTTP Transport
+type: Protocol

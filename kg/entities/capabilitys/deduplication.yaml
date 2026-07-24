@@ -1,0 +1,7 @@
+aliases:
+- deduplication
+description: The process of identifying and merging duplicate records or entities
+  within a dataset.
+id: capability:deduplication
+name: Deduplication
+type: Capability

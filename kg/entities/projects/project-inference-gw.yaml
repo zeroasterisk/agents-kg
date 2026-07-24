@@ -1,0 +1,6 @@
+aliases: []
+description: Routes requests to model backends
+id: us:project-inference-gw
+kind: service
+name: Inference Gateway
+type: Project

@@ -1,0 +1,7 @@
+aliases:
+- SLS
+description: The law school of Stanford University.
+id: organization:stanford-law-school
+kind: company
+name: Stanford Law School
+type: Organization

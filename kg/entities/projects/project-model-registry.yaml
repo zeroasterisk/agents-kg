@@ -1,0 +1,6 @@
+aliases: []
+description: Tracks model versions and artifacts
+id: us:project-model-registry
+kind: service
+name: Model Registry
+type: Project

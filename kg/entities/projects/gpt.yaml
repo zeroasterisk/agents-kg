@@ -1,0 +1,7 @@
+aliases:
+- GPT models
+description: Generative Pre-trained Transformer models developed by OpenAI.
+id: project:gpt
+kind: framework
+name: GPT
+type: Project

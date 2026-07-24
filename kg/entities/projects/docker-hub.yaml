@@ -1,0 +1,6 @@
+aliases: []
+description: A service that provides container image hosting.
+id: project:docker-hub
+kind: platform
+name: Docker Hub
+type: Project

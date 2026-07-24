@@ -1,0 +1,5 @@
+aliases: []
+description: The ability to make a statement or claim.
+id: capability:assertion
+name: Assertion
+type: Capability

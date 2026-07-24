@@ -1,0 +1,6 @@
+aliases: []
+description: Real-time data pipelines for high-throughput and fault-tolerant data
+  streaming.
+id: capability:data-pipelines
+name: Data Pipelines
+type: Capability

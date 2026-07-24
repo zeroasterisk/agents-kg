@@ -1,0 +1,6 @@
+aliases: []
+description: Internal agent platform
+id: us:project-our-platform
+kind: platform
+name: Our Agent Platform
+type: Project

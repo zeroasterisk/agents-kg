@@ -1,0 +1,6 @@
+aliases: []
+description: An app marketplace platform developed and maintained by Apple Inc.
+id: project:app-store
+kind: platform
+name: App Store
+type: Project

@@ -1,0 +1,6 @@
+aliases: []
+description: Translation layer between A2A and MCP protocols
+id: us:project-a2a-bridge
+kind: service
+name: A2A-MCP Bridge
+type: Project

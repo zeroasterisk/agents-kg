@@ -1,0 +1,8 @@
+aliases:
+- knowledge ecosystem
+description: A structured repository of information and semantic data used to store
+  and query facts.
+id: concept:knowledge-base
+kind: paradigm
+name: Knowledge Base
+type: Concept

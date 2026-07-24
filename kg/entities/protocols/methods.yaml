@@ -1,0 +1,7 @@
+aliases:
+- Methods
+description: The section detailing methods for DIDs.
+id: protocol:methods
+kind: spec
+name: Methods
+type: Protocol

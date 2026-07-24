@@ -25,7 +25,7 @@ def get_db():
 
 def get_neo4j_config() -> tuple[str | None, tuple[str, str] | None]:
     """Return (uri, auth) from env vars or defaults. Returns (None, None) if not configured."""
-    uri = os.environ.get("NEO4J_URI", "bolt://agents-kg-neo4j:7687")
+    uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
     user = os.environ.get("NEO4J_USER", "neo4j")
     password = os.environ.get("NEO4J_PASSWORD", "agents-kg-2026")
     return uri, (user, password)
@@ -41,7 +41,8 @@ def cli():
 @click.argument("url", required=False)
 @click.option("--from", "from_file", type=click.Path(exists=True), help="File with one URL per line")
 @click.option("--file", "local_file", type=click.Path(exists=True), help="Local file (PDF, markdown, text)")
-def ingest(url, from_file, local_file):
+@click.option("--submitter-email", default=None, help="Email of the person submitting this source")
+def ingest(url, from_file, local_file, submitter_email):
     """Add source(s) to the ingestion queue."""
     db = get_db()
     urls = []
@@ -62,7 +63,7 @@ def ingest(url, from_file, local_file):
     added = 0
     skipped = 0
     for u in urls:
-        result = db.add_source(u)
+        result = db.add_source(u, submitter_email=submitter_email)
         if result:
             click.echo(f"  + {u} (id={result})")
             added += 1
@@ -215,6 +216,245 @@ def reset(source_id):
     db.reset_source(source_id)
     click.echo(f"Reset source {source_id}: {source['uri']}")
     db.close()
+
+
+@cli.command("seed")
+def seed_cmd():
+    """Load canonical seed entities into Neo4j."""
+    from .seed import get_seed_entities
+    from .wikidata import load_wikidata_entities
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Cannot connect to Neo4j at {neo4j_uri}: {e}", err=True)
+        sys.exit(1)
+
+    click.echo(f"Loading seed entities to {neo4j_uri}...")
+    try:
+        entities = get_seed_entities()
+        load_wikidata_entities(driver, entities)
+        click.echo(f"Loaded {len(entities)} seed entities")
+    finally:
+        driver.close()
+
+
+@cli.command("load-yaml")
+@click.option("--entities-dir", default="kg/entities", help="Directory with entity YAML files")
+@click.option("--relations", default="kg/relations.yaml", help="Relations YAML file")
+def load_yaml_cmd(entities_dir, relations):
+    """Load YAML entity files and relations into Neo4j."""
+    from pathlib import Path
+    import yaml as _yaml
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Cannot connect to Neo4j at {neo4j_uri}: {e}", err=True)
+        sys.exit(1)
+
+    entities_path = Path(entities_dir)
+    if not entities_path.exists():
+        click.echo(f"Entities directory not found: {entities_dir}", err=True)
+        sys.exit(1)
+
+    entities = []
+    valid_labels = {"Protocol", "Organization", "Project", "Capability", "Group", "Person"}
+    for yf in sorted(entities_path.rglob("*.yaml")):
+        with open(yf) as f:
+            data = _yaml.safe_load(f)
+        if not data or "id" not in data:
+            continue
+        eid = data["id"]
+        etype = data.get("type", "")
+        etype_title = etype.capitalize() if etype == etype.lower() else etype
+        if ":" not in eid:
+            eid = f"{etype.lower()}:{eid}"
+        entities.append({
+            "entity_id": eid,
+            "name": data.get("name", ""),
+            "type": etype_title,
+            "kind": data.get("kind"),
+            "description": data.get("description"),
+            "aliases": data.get("aliases", []),
+            "source_type": "pipeline",
+        })
+
+    click.echo(f"Loading {len(entities)} YAML entities...")
+    with driver.session() as session:
+        for ent in entities:
+            label = ent["type"] if ent["type"] in valid_labels else "Entity"
+            session.run(
+                f"""
+                MERGE (n:Entity {{entity_id: $entity_id}})
+                SET n:{label}, n.name = $name, n.type = $type, n.kind = $kind,
+                    n.description = $description, n.aliases = $aliases,
+                    n.source_type = COALESCE(n.source_type, $source_type)
+                """,
+                ent,
+            )
+    click.echo(f"Loaded {len(entities)} entities")
+
+    rel_path = Path(relations)
+    if rel_path.exists():
+        with open(rel_path) as f:
+            rel_data = _yaml.safe_load(f)
+        rels = rel_data.get("relations", [])
+        loaded = 0
+        with driver.session() as session:
+            for rel in rels:
+                subj = rel["subject"]
+                obj = rel["object"]
+                edge_type = rel["predicate"].upper()
+                result = session.run(
+                    f"""
+                    MATCH (a:Entity) WHERE a.entity_id ENDS WITH $subj
+                    MATCH (b:Entity) WHERE b.entity_id ENDS WITH $obj
+                    MERGE (a)-[r:{edge_type}]->(b)
+                    SET r.source_type = 'yaml', r.confidence = 1.0
+                    RETURN count(r) as cnt
+                    """,
+                    {"subj": subj, "obj": obj},
+                )
+                cnt = result.single()["cnt"]
+                if cnt > 0:
+                    loaded += 1
+        click.echo(f"Loaded {loaded}/{len(rels)} relations")
+    else:
+        click.echo(f"Relations file not found: {relations}, skipping")
+
+    driver.close()
+
+
+@cli.command("schema")
+def schema_cmd():
+    """Apply Neo4j schema constraints and indexes."""
+    from .schema import apply_schema
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+    except Exception as e:
+        click.echo(f"Cannot connect to Neo4j at {neo4j_uri}: {e}", err=True)
+        sys.exit(1)
+
+    click.echo(f"Applying schema to {neo4j_uri}...")
+    try:
+        results = apply_schema(driver)
+        click.echo(f"Applied {results['constraints']} constraints, {results['indexes']} indexes")
+        if results["errors"]:
+            for err in results["errors"]:
+                click.echo(f"  ERROR: {err}", err=True)
+    finally:
+        driver.close()
+
+
+@cli.group()
+def wikidata():
+    """Wikidata SPARQL integration commands."""
+    pass
+
+
+@wikidata.command("pull")
+@click.option("--type", "entity_type", type=click.Choice(["languages", "protocols", "orgs", "software"]),
+              help="Pull specific entity type (default: all)")
+@click.option("--dry-run", is_flag=True, help="Pull from SPARQL but don't load to Neo4j")
+def wikidata_pull(entity_type, dry_run):
+    """Pull entities from Wikidata SPARQL endpoint."""
+    from .wikidata import pull_and_load
+
+    neo4j_driver = None
+    if not dry_run:
+        neo4j_uri, neo4j_auth = get_neo4j_config()
+        try:
+            from neo4j import GraphDatabase
+            neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+            neo4j_driver.verify_connectivity()
+            click.echo(f"Connected to Neo4j at {neo4j_uri}")
+        except Exception as e:
+            click.echo(f"Neo4j not available ({e}), pulling without loading")
+
+    try:
+        scope = entity_type or "all types"
+        click.echo(f"Pulling {scope} from Wikidata...")
+        results = pull_and_load(neo4j_driver, entity_type)
+        click.echo(f"Done: {results['entities']} entities, {results['edges']} edges")
+    finally:
+        if neo4j_driver:
+            neo4j_driver.close()
+
+
+@wikidata.command("crossref")
+def wikidata_crossref():
+    """Cross-reference existing entities with Wikidata IDs."""
+    from .wikidata_crossref import apply_crossref
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+    neo4j_driver = None
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+        neo4j_driver = driver
+    except Exception as e:
+        click.echo(f"Neo4j not available ({e}), applying mappings without graph update")
+
+    try:
+        results = apply_crossref(neo4j_driver)
+        click.echo(f"Cross-referenced {results['applied']} entities ({results['skipped']} skipped, no Wikidata match)")
+    finally:
+        if neo4j_driver:
+            neo4j_driver.close()
+
+
+@cli.group()
+def events():
+    """Event timeline management commands."""
+    pass
+
+
+@events.command("load")
+@click.option("--dir", "events_dir", default="kg/events", help="Directory with event YAML files")
+def events_load(events_dir):
+    """Load event YAML files into Neo4j."""
+    from .temporal import load_events_from_yaml
+
+    neo4j_uri, neo4j_auth = get_neo4j_config()
+    neo4j_driver = None
+    try:
+        from neo4j import GraphDatabase
+        driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth)
+        driver.verify_connectivity()
+        neo4j_driver = driver
+    except Exception as e:
+        click.echo(f"Neo4j not available ({e}), validating YAML only")
+
+    try:
+        results = load_events_from_yaml(neo4j_driver, events_dir)
+        click.echo(f"Loaded {results['events']} events with {results['participations']} participations")
+    finally:
+        if neo4j_driver:
+            neo4j_driver.close()
+
+
+@events.command("migrate")
+@click.option("--timeline", default="kg/timeline.yaml", help="Path to timeline.yaml")
+@click.option("--dir", "events_dir", default="kg/events", help="Output directory")
+def events_migrate(timeline, events_dir):
+    """Migrate timeline.yaml entries to individual event YAML files."""
+    from .temporal import migrate_timeline_yaml
+
+    created = migrate_timeline_yaml(timeline, events_dir)
+    click.echo(f"Created {created} event file(s)")
 
 
 if __name__ == "__main__":

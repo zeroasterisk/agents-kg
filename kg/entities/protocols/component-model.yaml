@@ -1,0 +1,6 @@
+aliases: []
+description: Defines how WASI modules compose.
+id: protocol:component-model
+kind: spec
+name: Component Model
+type: Protocol

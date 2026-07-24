@@ -1,6 +1,7 @@
 aliases: []
-description: Allows servers to request language model completions from the client’s
-  AI application.
+description: The ability for an MCP server to request LLM completions or generation
+  from the client.
 id: capability:sampling
+kind: feature
 name: Sampling
 type: Capability

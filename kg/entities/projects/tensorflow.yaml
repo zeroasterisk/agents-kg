@@ -1,0 +1,6 @@
+aliases: []
+description: A widely-used open-source machine learning framework maintained by Google.
+id: project:tensorflow
+kind: framework
+name: TensorFlow
+type: Project

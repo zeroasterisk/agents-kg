@@ -1,0 +1,5 @@
+aliases: []
+description: Analyzing data as it is generated.
+id: capability:real-time-analytics
+name: Real-time Analytics
+type: Capability

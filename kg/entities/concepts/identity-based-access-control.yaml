@@ -1,0 +1,8 @@
+aliases:
+- access control lists
+- ACL
+description: An access control model based on the identity of the requester.
+id: concept:identity-based-access-control
+kind: pattern
+name: Identity-Based Access Control
+type: Concept

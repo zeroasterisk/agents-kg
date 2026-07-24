@@ -1,0 +1,8 @@
+aliases:
+- HashiCorp
+description: Creator of Terraform and various infrastructure and security automation
+  tools.
+id: organization:hashicorp
+kind: company
+name: HashiCorp
+type: Organization

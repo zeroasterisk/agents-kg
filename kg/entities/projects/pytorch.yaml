@@ -1,0 +1,6 @@
+aliases: []
+description: An open-source machine learning framework.
+id: project:pytorch
+kind: framework
+name: PyTorch
+type: Project

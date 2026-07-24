@@ -1,0 +1,7 @@
+aliases: []
+description: The management of connections between clients and servers to ensure stability
+  and efficiency.
+id: concept:connection-management
+kind: property
+name: Connection Management
+type: Concept

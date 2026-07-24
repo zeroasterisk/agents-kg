@@ -14,6 +14,7 @@ import struct
 from collections import defaultdict
 from difflib import SequenceMatcher
 from ..db import Database
+from ..model_config import MODEL_EMBEDDING
 from ..seed import get_seed_entities
 
 try:
@@ -21,7 +22,7 @@ try:
 except ImportError:
     genai = None
 
-EMBEDDING_MODEL = "gemini-embedding-2-preview"
+EMBEDDING_MODEL = MODEL_EMBEDDING
 
 def _floats_to_bytes(floats: list[float]) -> bytes:
     return struct.pack(f'{len(floats)}f', *floats)
@@ -91,7 +92,7 @@ def _compute_entity_embeddings(db: Database, entities: list[dict], log):
     import os
     kwargs = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)
@@ -101,16 +102,14 @@ def _compute_entity_embeddings(db: Database, entities: list[dict], log):
         return
 
     log.info("Computing embeddings for %d entities", len(to_embed))
-    texts = [e["description"] or e["name"] for e in to_embed]
-    
     try:
-        result = client.models.embed_content(
-            model=EMBEDDING_MODEL,
-            contents=texts,
-        )
-        
-        for ent, embedding in zip(to_embed, result.embeddings):
-            emb_bytes = _floats_to_bytes(embedding.values)
+        for ent in to_embed:
+            text = ent["description"] or ent["name"]
+            result = client.models.embed_content(
+                model=EMBEDDING_MODEL,
+                contents=text,
+            )
+            emb_bytes = _floats_to_bytes(result.embeddings[0].values)
             db.conn.execute(
                 "UPDATE entities SET embedding = ? WHERE id = ?",
                 (emb_bytes, ent["id"])

@@ -1,0 +1,7 @@
+aliases:
+- https://www.w3.org/ns/did/v1
+description: Version 1 of the DID specification.
+id: protocol:did-v1
+kind: spec
+name: DID v1
+type: Protocol

@@ -1,0 +1,6 @@
+aliases:
+- DID Controller
+description: The entity that has the authority to control a DID.
+id: capability:did-controller
+name: DID Controller
+type: Capability

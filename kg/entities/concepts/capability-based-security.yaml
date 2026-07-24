@@ -1,0 +1,7 @@
+aliases: []
+description: A security model that restricts access to resources based on explicitly
+  granted capabilities rather than identity-based access control lists.
+id: concept:capability-based-security
+kind: property
+name: Capability-Based Security
+type: Concept

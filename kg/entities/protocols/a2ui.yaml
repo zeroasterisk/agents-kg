@@ -1,0 +1,7 @@
+aliases:
+- A2UI
+description: A protocol for generating UI via structured output and A2A message passing.
+id: protocol:a2ui
+kind: spec
+name: A2UI
+type: Protocol

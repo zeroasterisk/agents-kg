@@ -1,0 +1,8 @@
+aliases:
+- Gemma 2
+description: A model that can be fine-tuned for specific tasks, such as screening
+  user inputs and agent outputs.
+id: project:gemma
+kind: library
+name: Gemma
+type: Project

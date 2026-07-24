@@ -1,0 +1,7 @@
+aliases:
+- did:example
+description: An example DID method for demonstration purposes.
+id: protocol:did-example
+kind: spec
+name: DID Example
+type: Protocol

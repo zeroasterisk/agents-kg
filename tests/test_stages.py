@@ -3,7 +3,7 @@
 import json
 import struct
 import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 from agents_kg.db import Database, content_hash
 
 
@@ -237,31 +237,6 @@ class TestEmbedStage:
         mock_client = MagicMock()
         mock_client.models.embed_content.return_value = mock_result
 
-        with patch("agents_kg.stages.embed.genai", create=True) as mock_genai:
-            # Patch the import inside the function
-            with patch.dict("sys.modules", {"google": MagicMock(), "google.genai": MagicMock()}):
-                with patch("agents_kg.stages.embed.run", wraps=None):
-                    # Directly test by mocking at module level
-                    pass
-
-        # Simpler approach: mock the whole run and test DB transitions
-        # Actually let's mock google.genai properly
-        mock_genai_module = MagicMock()
-        mock_genai_module.Client.return_value = mock_client
-
-        import sys
-        with patch.dict(sys.modules, {"google": MagicMock(), "google.genai": mock_genai_module}):
-            # Need to reimport
-            import importlib
-            from agents_kg.stages import embed as embed_mod
-            importlib.reload(embed_mod)
-            # But the import is inside the function, so just patch it
-            pass
-
-        # Simplest: patch inside run
-        from agents_kg.stages import embed as embed_mod
-        original_run = embed_mod.run
-
         def mock_run(db, source):
             # Simulate what embed.run does with mocked API
             source_id = source["id"]
@@ -436,7 +411,7 @@ class TestLoadStage:
 
         result = run(db, source, neo4j_driver=mock_driver)
         assert result is True
-        assert mock_session.run.call_count == 2  # 1 entity + 1 edge
+        assert mock_session.run.call_count == 4  # 1 Source node + 1 entity + 1 FROM_SOURCE + 1 edge
 
         updated = db.get_source(sid)
         assert updated["status"] == "complete"
@@ -571,6 +546,3 @@ class TestLoadStage:
         # No approved entities/edges
         result = run(db, source)
         assert result is True
-
-
-import json

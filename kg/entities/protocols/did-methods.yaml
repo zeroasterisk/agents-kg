@@ -1,0 +1,7 @@
+aliases: []
+description: Specifications that define how Decentralized Identifiers are created,
+  resolved, and updated.
+id: protocol:did-methods
+kind: spec
+name: DID Methods
+type: Protocol

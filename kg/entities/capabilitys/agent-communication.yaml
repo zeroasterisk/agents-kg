@@ -1,0 +1,7 @@
+aliases: []
+description: The ability of agents to communicate and exchange information with other
+  agents or systems.
+id: capability:agent-communication
+kind: feature
+name: Agent Communication
+type: Capability

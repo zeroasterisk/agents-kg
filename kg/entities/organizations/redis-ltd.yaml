@@ -1,0 +1,7 @@
+aliases:
+- Redis
+description: Company that develops Redis.
+id: organization:redis-ltd
+kind: company
+name: Redis Ltd.
+type: Organization

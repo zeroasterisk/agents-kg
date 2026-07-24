@@ -1,0 +1,6 @@
+aliases: []
+description: The process of taking a DID URL as input and producing a resource as
+  output.
+id: capability:did-url-dereferencing
+name: DID URL Dereferencing
+type: Capability

@@ -1,8 +1,9 @@
 aliases:
+- A2A protocol
 - A2A
-description: An open protocol enabling communication and interoperability between
-  opaque agentic applications.
+description: Agent-to-Agent Protocol specification for communication between agent
+  peers.
 id: protocol:a2a
 kind: spec
-name: Agent2Agent Protocol
+name: Agent-to-Agent Protocol
 type: Protocol

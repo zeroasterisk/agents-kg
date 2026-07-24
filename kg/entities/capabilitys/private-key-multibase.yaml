@@ -1,0 +1,6 @@
+aliases:
+- privateKeyMultibase
+description: A Multibase encoded private key.
+id: capability:private-key-multibase
+name: Private Key Multibase
+type: Capability

@@ -1,0 +1,6 @@
+aliases: []
+description: Entity for YAML export test
+id: yaml:test-entity
+kind: company
+name: YAML Test Entity
+type: Organization

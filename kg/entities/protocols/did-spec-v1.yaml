@@ -1,0 +1,7 @@
+aliases:
+- https://www.w3.org/ns/did/v1
+description: Version 1 of the Decentralized Identifiers (DIDs) specification.
+id: protocol:did-spec-v1
+kind: spec
+name: DID Spec v1
+type: Protocol

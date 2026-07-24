@@ -1,0 +1,6 @@
+aliases: []
+description: The ability for an agent to have a distinct identity, often used for
+  authentication and authorization.
+id: capability:agent-identity
+name: Agent Identity
+type: Capability

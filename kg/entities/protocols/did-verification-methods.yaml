@@ -1,0 +1,7 @@
+aliases: []
+description: Verification methods, such as cryptographic public keys, expressed in
+  DID documents.
+id: protocol:did-verification-methods
+kind: spec
+name: DID Verification Methods
+type: Protocol

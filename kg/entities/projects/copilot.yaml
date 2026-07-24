@@ -1,0 +1,7 @@
+aliases:
+- Microsoft Copilot
+description: Microsoft's AI assistant platform.
+id: project:copilot
+kind: platform
+name: Copilot
+type: Project

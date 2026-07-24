@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to resume a connection or process after an interruption.
+id: concept:resumability
+kind: property
+name: Resumability
+type: Concept

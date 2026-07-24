@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to manage and orchestrate multiple containers as a single
+  application.
+id: capability:multi-container-applications
+name: Multi-Container Applications
+type: Capability

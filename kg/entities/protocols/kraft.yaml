@@ -1,0 +1,7 @@
+aliases: []
+description: Kafka Raft metadata mode, an alternative to ZooKeeper for managing Kafka
+  cluster metadata.
+id: protocol:kraft
+kind: standard
+name: KRaft
+type: Protocol

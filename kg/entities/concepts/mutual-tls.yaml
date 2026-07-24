@@ -1,0 +1,9 @@
+aliases:
+- mTLS
+- mutual TLS
+description: A process where both client and server verify each other's symmetric
+  cryptographic keys before establishing a connection.
+id: concept:mutual-tls
+kind: pattern
+name: Mutual TLS
+type: Concept

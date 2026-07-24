@@ -1,0 +1,6 @@
+aliases: []
+description: A managed hosting service for the Temporal server.
+id: project:temporal-cloud
+kind: platform
+name: Temporal Cloud
+type: Project

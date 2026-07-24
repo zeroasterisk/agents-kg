@@ -1,0 +1,5 @@
+aliases: []
+description: Pulling in related entities to expand the coverage of a knowledge graph.
+id: capability:graph-expansion
+name: Graph Expansion
+type: Capability

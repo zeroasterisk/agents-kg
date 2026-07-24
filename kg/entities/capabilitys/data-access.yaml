@@ -1,0 +1,6 @@
+aliases:
+- data sources
+description: The ability for an AI model to access external data sources.
+id: capability:data-access
+name: Data Access
+type: Capability

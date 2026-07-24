@@ -1,0 +1,6 @@
+aliases: []
+description: The ability to establish, maintain, and terminate network connections
+  efficiently.
+id: capability:connection-management
+name: Connection Management
+type: Capability

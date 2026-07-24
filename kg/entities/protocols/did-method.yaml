@@ -1,0 +1,8 @@
+aliases:
+- DID method
+description: A specification that defines how to implement Decentralized Identifiers
+  (DIDs) for a particular system or network.
+id: protocol:did-method
+kind: spec
+name: DID Method
+type: Protocol

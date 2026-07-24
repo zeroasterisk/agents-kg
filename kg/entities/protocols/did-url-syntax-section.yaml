@@ -1,0 +1,7 @@
+aliases:
+- 3.2 DID URL Syntax
+description: Defines the syntax for DID URLs.
+id: protocol:did-url-syntax-section
+kind: standard
+name: DID URL Syntax Section
+type: Protocol

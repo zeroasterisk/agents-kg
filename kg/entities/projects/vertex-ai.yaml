@@ -1,0 +1,6 @@
+aliases: []
+description: Google's machine learning and AI platform.
+id: project:vertex-ai
+kind: platform
+name: Vertex AI
+type: Project

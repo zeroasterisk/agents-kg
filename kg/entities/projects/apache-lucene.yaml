@@ -1,0 +1,6 @@
+aliases: []
+description: Search engine software library.
+id: project:apache-lucene
+kind: library
+name: Apache Lucene
+type: Project

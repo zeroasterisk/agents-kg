@@ -1,0 +1,6 @@
+aliases: []
+description: Specifications that define how a particular type of DID and its associated
+  DID document are created, resolved, updated, and deactivated.
+id: capability:did-method-specifications
+name: DID Method Specifications
+type: Capability

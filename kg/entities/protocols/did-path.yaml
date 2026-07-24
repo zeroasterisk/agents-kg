@@ -1,0 +1,8 @@
+aliases:
+- DID path
+description: The portion of a DID URL that follows the DID and precedes the query
+  or fragment.
+id: protocol:did-path
+kind: standard
+name: DID Path
+type: Protocol

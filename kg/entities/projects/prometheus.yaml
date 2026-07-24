@@ -1,0 +1,7 @@
+aliases:
+- Prometheus Monitoring
+description: An open-source monitoring and alerting toolkit with a time-series database.
+id: project:prometheus
+kind: tool
+name: Prometheus
+type: Project

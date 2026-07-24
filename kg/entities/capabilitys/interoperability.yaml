@@ -1,0 +1,6 @@
+aliases: []
+description: Utilizes interoperable standards so DID infrastructure can make use of
+  existing tools and software libraries designed for interoperability.
+id: capability:interoperability
+name: Interoperability
+type: Capability

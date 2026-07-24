@@ -1,0 +1,8 @@
+aliases:
+- Payment Required
+- x402
+description: The Payment Required status code for HTTP.
+id: protocol:http-402
+kind: standard
+name: HTTP 402
+type: Protocol

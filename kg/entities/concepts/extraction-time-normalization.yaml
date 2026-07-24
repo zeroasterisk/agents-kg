@@ -1,0 +1,7 @@
+aliases: []
+description: A normalization layer where the extraction model is primed with known
+  entity identifiers to use canonical forms.
+id: concept:extraction-time-normalization
+kind: methodology
+name: Extraction-time Normalization
+type: Concept

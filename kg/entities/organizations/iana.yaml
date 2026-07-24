@@ -1,0 +1,8 @@
+aliases:
+- Internet Assigned Numbers Authority
+description: Internet Assigned Numbers Authority, responsible for coordinating unique
+  identifiers.
+id: organization:iana
+kind: standards_body
+name: IANA
+type: Organization

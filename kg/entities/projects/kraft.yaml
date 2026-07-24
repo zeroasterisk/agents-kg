@@ -1,0 +1,7 @@
+aliases:
+- Kafka Raft
+description: Kafka Raft metadata mode for managing cluster metadata.
+id: project:kraft
+kind: protocol
+name: KRaft
+type: Project

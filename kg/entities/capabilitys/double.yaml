@@ -1,0 +1,5 @@
+aliases: []
+description: A value that is often used to approximate arbitrary real numbers.
+id: capability:double
+name: double
+type: Capability

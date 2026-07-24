@@ -1,0 +1,7 @@
+aliases: []
+description: A high-performance, open-source universal RPC framework supported by
+  AGNTCY.
+id: protocol:grpc
+kind: standard
+name: gRPC
+type: Protocol

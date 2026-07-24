@@ -1,0 +1,6 @@
+aliases: []
+description: Enables sufficient security for requesting parties to depend on DID documents
+  for their required level of assurance.
+id: capability:security-assurance
+name: Security Assurance
+type: Capability

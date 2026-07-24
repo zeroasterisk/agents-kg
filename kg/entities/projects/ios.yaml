@@ -1,0 +1,8 @@
+aliases:
+- iOS operating system
+description: A mobile operating system created and developed by Apple Inc. principally
+  for its hardware.
+id: project:ios
+kind: platform
+name: iOS
+type: Project

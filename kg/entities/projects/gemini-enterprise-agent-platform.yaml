@@ -1,0 +1,6 @@
+aliases: []
+description: A platform for enterprise-grade Gemini agents.
+id: project:gemini-enterprise-agent-platform
+kind: platform
+name: Gemini Enterprise Agent Platform
+type: Project

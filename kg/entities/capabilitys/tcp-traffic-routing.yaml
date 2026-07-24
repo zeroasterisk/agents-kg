@@ -1,0 +1,5 @@
+aliases: []
+description: Expressive, extensible routing for TCP traffic.
+id: capability:tcp-traffic-routing
+name: TCP Traffic Routing
+type: Capability

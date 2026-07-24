@@ -1,0 +1,7 @@
+aliases:
+- DID scheme
+description: The formal syntax of a decentralized identifier.
+id: protocol:did-scheme
+kind: standard
+name: DID Scheme
+type: Protocol

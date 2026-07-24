@@ -1,0 +1,5 @@
+aliases: []
+description: Provides high-throughput, low-latency message queuing.
+id: capability:message-queuing
+name: Message Queuing
+type: Capability

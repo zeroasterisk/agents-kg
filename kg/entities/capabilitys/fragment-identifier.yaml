@@ -1,0 +1,6 @@
+aliases: []
+description: A part of a URI that identifies a specific resource or fragment within
+  a resource.
+id: capability:fragment-identifier
+name: Fragment Identifier
+type: Capability

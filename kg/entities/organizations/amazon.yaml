@@ -1,6 +1,6 @@
 aliases:
 - AWS
-description: Technology company providing cloud services and metadata endpoints.
+description: Provider of cloud infrastructure services via AWS.
 id: organization:amazon
 kind: company
 name: Amazon

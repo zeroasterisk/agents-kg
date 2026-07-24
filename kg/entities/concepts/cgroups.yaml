@@ -1,0 +1,8 @@
+aliases:
+- Control Groups
+description: A Linux kernel feature that limits, accounts for, and isolates resource
+  usage.
+id: concept:cgroups
+kind: property
+name: cgroups
+type: Concept

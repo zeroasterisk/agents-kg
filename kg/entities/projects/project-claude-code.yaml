@@ -1,0 +1,6 @@
+aliases: []
+description: CLI tool for developers by Anthropic
+id: rw:project-claude-code
+kind: tool
+name: Claude Code
+type: Project

@@ -1,0 +1,7 @@
+aliases: []
+description: Architectural design principle for separating a computer program into
+  distinct sections.
+id: concept:separation-of-concerns
+kind: pattern
+name: Separation of Concerns
+type: Concept

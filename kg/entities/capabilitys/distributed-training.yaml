@@ -1,0 +1,5 @@
+aliases: []
+description: Training machine learning models across multiple machines or processors.
+id: capability:distributed-training
+name: Distributed Training
+type: Capability

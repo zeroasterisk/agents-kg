@@ -1,0 +1,6 @@
+aliases:
+- verification relationship
+description: Expresses the relationship between a DID subject and a verification method.
+id: capability:verification-relationship
+name: Verification Relationship
+type: Capability

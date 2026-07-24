@@ -1,0 +1,8 @@
+aliases:
+- IaC
+description: Managing and provisioning computer datacenters through machine-readable
+  definition files.
+id: concept:infrastructure-as-code
+kind: paradigm
+name: Infrastructure as Code
+type: Concept

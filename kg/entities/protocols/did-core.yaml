@@ -1,0 +1,7 @@
+aliases:
+- DID Core issues
+description: The core specification for Decentralized Identifiers.
+id: protocol:did-core
+kind: spec
+name: DID Core
+type: Protocol

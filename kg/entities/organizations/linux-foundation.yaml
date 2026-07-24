@@ -1,8 +1,8 @@
 aliases:
-- LF
-- Linux Foundation AI
-description: The foundation hosting the Model Context Protocol project.
+- CNCF
+description: Cloud Native Computing Foundation (CNCF) is a vendor-neutral home for
+  cloud-native projects.
 id: organization:linux-foundation
 kind: foundation
-name: Linux Foundation
+name: Cloud Native Computing Foundation
 type: Organization

@@ -36,13 +36,13 @@ def _entity_to_cypher(entity: dict) -> tuple[str, dict]:
     }
     
     label = entity["type"]
-    valid_labels = {"Protocol", "Organization", "Project", "Capability", "Group", "Person"}
+    valid_labels = {"Protocol", "Organization", "Project", "Capability", "Group", "Person", "Concept"}
     if label not in valid_labels:
         label = "Entity"
-        
+
     query = f"""
     MERGE (n {{entity_id: $entity_id}})
-    REMOVE n:Protocol:Organization:Project:Capability:Group:Person
+    REMOVE n:Protocol:Organization:Project:Capability:Group:Person:Concept
     SET n:Entity, n:{label}, n.name = $name, n.type = $type, n.kind = $kind,
         n.description = $description, n.aliases = $aliases, n.source_id = $source_id
     """
@@ -82,6 +82,7 @@ def _export_yaml(entity: dict, base_dir: str = YAML_DIR):
     dir_path.mkdir(parents=True, exist_ok=True)
 
     eid = entity["entity_id"].split(":", 1)[-1] if ":" in entity["entity_id"] else entity["entity_id"]
+    eid = eid.replace("/", "_").replace("+", "_").replace(" ", "_")
     file_path = dir_path / f"{eid}.yaml"
 
     aliases = json.loads(entity["aliases"]) if isinstance(entity["aliases"], str) else entity["aliases"]
@@ -141,6 +142,27 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
                 ).fetchall()
 
             with neo4j_driver.session() as session:
+                # Create Source node with provenance
+                source_data = db.get_source(source_id)
+                session.run(
+                    """
+                    MERGE (s:Source {uri: $uri})
+                    SET s.title = $title, s.source_type = $source_type,
+                        s.submitter_email = $submitter_email,
+                        s.created_at = $created_at, s.updated_at = $updated_at,
+                        s.content_hash = $content_hash
+                    """,
+                    {
+                        "uri": source_data["uri"],
+                        "title": source_data.get("title"),
+                        "source_type": source_data.get("type"),
+                        "submitter_email": source_data.get("submitter_email"),
+                        "created_at": source_data.get("created_at"),
+                        "updated_at": source_data.get("updated_at"),
+                        "content_hash": source_data.get("content_hash"),
+                    }
+                )
+
                 # Load Chunks
                 for chunk in chunks:
                     session.run(
@@ -169,12 +191,31 @@ def run(db: Database, source: dict, neo4j_driver=None) -> bool:
                             {"entity_id": ent["entity_id"], "chunk_id": ent["chunk_id"]}
                         )
                 
+                # Link entities to Source
+                for ent in entities:
+                    session.run(
+                        """
+                        MATCH (n {entity_id: $entity_id}), (s:Source {uri: $uri})
+                        MERGE (n)-[:FROM_SOURCE]->(s)
+                        """,
+                        {"entity_id": ent["entity_id"], "uri": source_data["uri"]}
+                    )
+
                 # Load Edges
                 for edge in edges:
                     q, p = _edge_to_cypher(dict(edge))
                     session.run(q, p)
                     
             _log().info("Loaded %d entities, %d edges, %d chunks to Neo4j", len(entities), len(edges), len(chunks))
+
+            # Invalidate synthesis cache for loaded/updated entities
+            try:
+                from ..query_router import invalidate_entity_cache
+
+                for ent in entities:
+                    invalidate_entity_cache(ent["entity_id"])
+            except ImportError:
+                pass
         except Exception as e:
             _log().error("Neo4j load failed (data saved in SQLite): %s", e)
     else:

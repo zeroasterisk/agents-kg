@@ -1,0 +1,7 @@
+aliases: []
+description: A specification defining the usage of specific cryptographic primitives
+  to achieve a particular security goal.
+id: protocol:cryptographic-suite
+kind: spec
+name: Cryptographic Suite
+type: Protocol

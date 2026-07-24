@@ -1,0 +1,6 @@
+aliases: []
+description: A tool for searching for places, likely through an API.
+id: project:google-places
+kind: tool
+name: Google Places
+type: Project

@@ -4,6 +4,7 @@ import json
 import logging
 import hashlib
 from ..db import Database
+from ..model_config import MODEL_EXTRACT
 
 try:
     from prefect.logging import get_run_logger as _get_logger
@@ -19,7 +20,7 @@ def _log():
             pass
     return logging.getLogger(__name__)
 
-EXTRACT_MODEL = "gemini-3.1-flash-lite-preview"
+EXTRACT_MODEL = MODEL_EXTRACT
 
 SYSTEM_PROMPT_TEMPLATE = """You are a knowledge graph extraction engine for the agentic web ecosystem.
 
@@ -28,10 +29,14 @@ Given a text chunk, extract entities and relationships according to this ontolog
 ## NODE TYPES (use ONLY these):
 - Organization: A legal entity, standards body, or consortium (kind: company, standards_body, foundation, consortium)
 - Group: A committee, working group, or team WITHIN an organization (kind: tsc, wg, sig, task_force, team)
-- Person: A named individual human (NOT roles like "domain expert" or "human expert")
+- Person: A named individual human with a proper name (First Last, or well-known handle). MUST be a real person's name. NOT roles ("domain expert", "project lead", "human expert"), NOT job titles, NOT generic labels.
 - Project: Runnable code — has a repo, releases, or deployable artifacts (kind: framework, sdk, library, tool, platform)
 - Protocol: A specification document — has a version, authors, formal status (kind: spec, standard, rfc, draft)
-- Capability: A feature or ability that something provides — always describe what it DOES, not what it IS
+- Capability: A concrete, named ability that an agent or system can actively perform (kind: feature, skill, function). Must be actionable — something an agent DOES.
+  - IS a Capability: "Tool Use", "Multi-step Planning", "Memory Persistence", "Code Generation", "Web Browsing", "File Upload", "Function Calling"
+  - NOT a Capability: protocol features (→ Protocol), standards clauses (→ Protocol), technical requirements (→ Protocol), security properties (→ Concept), architectural patterns (→ Concept), abstract principles (→ Concept)
+- Concept: An abstract idea, principle, architectural pattern, or security property that is NOT actionable (kind: principle, pattern, property, methodology, paradigm)
+  - Examples: "Zero Trust", "Decentralized Identity", "Least Privilege", "Defense in Depth", "Separation of Concerns", "Confidentiality", "Data Minimization"
 
 ## TYPE DISAMBIGUATION (critical):
 - "MCP" the specification → protocol:mcp
@@ -42,12 +47,16 @@ Given a text chunk, extract entities and relationships according to this ontolog
 - "Vertex AI" the platform → project:vertex-ai
 - A named technique (ReAct, CoT, RAG) → Project/framework, NOT Capability
 - An abstract ability (reasoning, planning, tool use) → Capability
+- An abstract principle or property (Zero Trust, Least Privilege, Confidentiality) → Concept
+- A protocol feature or requirement ("token binding", "mutual TLS requirement", "scope validation") → part of the Protocol, NOT a Capability
+- A standards clause or normative statement → part of the Protocol, NOT a Capability or Concept
 - Example agents in a whitepaper (e.g. "SalesAgent", "MarketingAgent") → DO NOT extract as entities (they are illustrative, not real projects)
-- Generic roles ("domain expert", "human expert", "product manager") → DO NOT extract as Person entities
+- Generic roles ("domain expert", "human expert", "product manager", "Project Lead") → DO NOT extract as Person entities
+- Abbreviated author citations ("D. Hardt", "M.B. Jones") → Person, but only if they are actual named individuals
 - Headings, section titles, book titles → DO NOT extract as entities
 
-## EDGE TYPES (use ONLY these 14):
-MEMBER_OF, GOVERNS, DEVELOPS, IMPLEMENTS, COMPETES_WITH, ADDRESSES, AUTHORED, CHAIRS, SPONSORS, PART_OF, SUPERSEDES, CONTRIBUTES_TO, DEFINES, COMPLEMENTS
+## EDGE TYPES (use ONLY these 15):
+MEMBER_OF, GOVERNS, DEVELOPS, IMPLEMENTS, COMPETES_WITH, ADDRESSES, AUTHORED, CHAIRS, SPONSORS, PART_OF, SUPERSEDES, CONTRIBUTES_TO, DEFINES, COMPLEMENTS, USES
 
 ## EDGE DIRECTION RULES:
 - ADDRESSES: Use when an entity was DESIGNED TO SOLVE a capability (e.g., Protocol or Project ADDRESSES Capability)
@@ -63,6 +72,8 @@ MEMBER_OF, GOVERNS, DEVELOPS, IMPLEMENTS, COMPETES_WITH, ADDRESSES, AUTHORED, CH
 - Capability —PART_OF→ Capability (sub-capability)
 - Organization —SPONSORS→ Protocol/Project
 - Protocol —USES→ Protocol (when a protocol is built on top of another protocol)
+- Protocol —ADDRESSES→ Concept (when a protocol addresses an abstract concept)
+- Concept —PART_OF→ Concept (sub-concept relationship)
 
 ## KNOWN ENTITIES (prefer these over creating new ones):
 {seed_entities}
@@ -74,7 +85,7 @@ Respond with valid JSON:
     {{
       "entity_id": "type:kebab-case-name",
       "name": "Display Name",
-      "type": "Organization|Group|Person|Project|Protocol|Capability",
+      "type": "Organization|Group|Person|Project|Protocol|Capability|Concept",
       "kind": "specific kind or null",
       "description": "One sentence description",
       "aliases": ["alt name 1"]
@@ -103,6 +114,8 @@ Respond with valid JSON:
 - DO NOT invent edge types — use ONLY the 15 listed above
 - If nothing relevant found, return {{"entities": [], "edges": []}}
 - Prefer fewer, high-quality extractions over many low-quality ones
+- Before classifying something as Capability, ask: "Can an agent actively DO this?" If not, use Concept or Protocol
+- Person entities MUST have a proper name (e.g. "Justin Richer", "Pieter Kasselman") — never extract roles or titles as Person
 """
 
 
@@ -113,7 +126,7 @@ VALID_EDGE_TYPES = {
 }
 
 VALID_ENTITY_TYPES = {
-    "Organization", "Group", "Person", "Project", "Protocol", "Capability",
+    "Organization", "Group", "Person", "Project", "Protocol", "Capability", "Concept",
 }
 
 
@@ -142,7 +155,7 @@ def run(db: Database, source: dict) -> bool:
     import os
     kwargs = {}
     if os.environ.get("GOOGLE_CLOUD_PROJECT"):
-        kwargs["vertexai"] = True
+        kwargs["enterprise"] = True
         kwargs["project"] = os.environ["GOOGLE_CLOUD_PROJECT"]
         kwargs["location"] = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     client = genai.Client(**kwargs)
@@ -190,15 +203,21 @@ def run(db: Database, source: dict) -> bool:
 
         for edge in data.get("edges", []):
             edge_type = edge.get("edge_type", "")
+            src_eid = edge.get("source_entity_id")
+            tgt_eid = edge.get("target_entity_id")
+            if not src_eid or not tgt_eid:
+                _log().warning("Skipping edge with missing endpoint: src=%s, tgt=%s, type=%s",
+                             src_eid, tgt_eid, edge_type)
+                continue
             if edge_type not in VALID_EDGE_TYPES:
                 _log().warning("Skipping edge with invalid type %r: %s -> %s",
-                             edge_type, edge.get("source_entity_id"), edge.get("target_entity_id"))
+                             edge_type, src_eid, tgt_eid)
                 continue
-            edge_id = _make_edge_id(edge["source_entity_id"], edge["target_entity_id"], edge_type)
+            edge_id = _make_edge_id(src_eid, tgt_eid, edge_type)
             db.add_edge(
                 edge_id=edge_id,
-                source_entity_id=edge["source_entity_id"],
-                target_entity_id=edge["target_entity_id"],
+                source_entity_id=src_eid,
+                target_entity_id=tgt_eid,
                 edge_type=edge_type,
                 properties=edge.get("properties"),
                 confidence=edge.get("confidence", 0.5),

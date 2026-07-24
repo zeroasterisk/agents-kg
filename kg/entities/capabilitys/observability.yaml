@@ -2,7 +2,8 @@ aliases:
 - monitoring
 - tracing
 - logging
-description: The ability to monitor, trace, and log system operations.
+description: Ability to monitor, trace, and log agent activities.
 id: capability:observability
+kind: feature
 name: Observability
 type: Capability

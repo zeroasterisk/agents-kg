@@ -1,0 +1,7 @@
+aliases: []
+description: A fully managed service that stores, manages, and secures your build
+  artifacts.
+id: project:artifact-registry
+kind: platform
+name: Artifact Registry
+type: Project

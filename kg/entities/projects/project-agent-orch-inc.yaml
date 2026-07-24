@@ -1,0 +1,6 @@
+aliases: []
+description: Coordinates multi-agent workflows via A2A
+id: us:project-agent-orch-inc
+kind: service
+name: Agent Orchestrator
+type: Project

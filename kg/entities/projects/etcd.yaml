@@ -1,0 +1,7 @@
+aliases: []
+description: A distributed, consistent key-value store used as Kubernetes' backing
+  store.
+id: project:etcd
+kind: tool
+name: etcd
+type: Project

@@ -1,0 +1,7 @@
+aliases: []
+description: A security vulnerability where an attacker manipulates an LLM's behavior
+  via adversarial inputs.
+id: concept:prompt-injection
+kind: methodology
+name: Prompt Injection
+type: Concept

@@ -1,0 +1,7 @@
+aliases:
+- IaC
+description: The practice of managing and provisioning infrastructure through machine-readable
+  definition files.
+id: capability:infrastructure-as-code
+name: Infrastructure as Code
+type: Capability

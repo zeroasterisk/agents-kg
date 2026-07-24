@@ -1,0 +1,6 @@
+aliases: []
+description: The usability of the same software in different environments.
+id: concept:portability
+kind: property
+name: Portability
+type: Concept

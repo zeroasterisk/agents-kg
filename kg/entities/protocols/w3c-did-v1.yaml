@@ -1,0 +1,7 @@
+aliases:
+- https://www.w3.org/ns/did/v1
+description: The W3C DID v1 context.
+id: protocol:w3c-did-v1
+kind: standard
+name: W3C DID v1
+type: Protocol

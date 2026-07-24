@@ -1,0 +1,7 @@
+aliases:
+- deduplication
+description: The process of identifying and merging duplicate representations of the
+  same entity within a knowledge graph or database.
+id: capability:entity-deduplication
+name: Entity Deduplication
+type: Capability

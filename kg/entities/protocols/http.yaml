@@ -1,0 +1,6 @@
+aliases: []
+description: Hypertext Transfer Protocol
+id: protocol:http
+kind: standard
+name: HTTP
+type: Protocol

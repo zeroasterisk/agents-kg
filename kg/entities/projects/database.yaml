@@ -1,0 +1,8 @@
+aliases:
+- databases
+description: A structured collection of data, which can be used as a verifiable data
+  registry.
+id: project:database
+kind: platform
+name: Database
+type: Project
