@@ -96,9 +96,13 @@ def clean_neo4j(neo4j_driver):
 
 @pytest.fixture
 def full_clean_neo4j(neo4j_driver):
-    """Full wipe for CUJ 1 seed reset."""
+    """Clean test-scoped nodes for CUJ 1 seed reset.
+
+    ⚠️  NEVER run ``MATCH (n) DETACH DELETE n`` — that wipes production data.
+    """
     with neo4j_driver.session() as s:
-        s.run("MATCH (n) DETACH DELETE n")
+        s.run("MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n")
+        s.run("MATCH (n:_Test) DETACH DELETE n")
     yield neo4j_driver
 
 # ---------------------------------------------------------------------------

@@ -71,15 +71,19 @@ def neo4j_driver():
 
 @pytest.fixture()
 def clean_neo4j(neo4j_driver):
-    """Wipe all nodes and relationships before each test."""
+    """Clean up test-created nodes before each test.
+
+    ⚠️  IMPORTANT: This fixture must NEVER run ``MATCH (n) DETACH DELETE n``
+    against the shared Neo4j instance — that wipes all production data.
+    Only delete nodes whose entity_id starts with 'test:' (the convention
+    used by test helpers) or that carry the ``_test`` label.
+    """
     with neo4j_driver.session() as session:
-        session.run("MATCH (n) DETACH DELETE n")
-        # Drop all constraints/indexes so schema tests start fresh
-        for record in session.run("SHOW CONSTRAINTS"):
-            session.run(f"DROP CONSTRAINT {record['name']} IF EXISTS")
-        for record in session.run("SHOW INDEXES"):
-            if record["type"] != "LOOKUP":
-                session.run(f"DROP INDEX {record['name']} IF EXISTS")
+        # Only remove test-scoped nodes — never wipe the whole graph
+        session.run(
+            "MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n"
+        )
+        session.run("MATCH (n:_Test) DETACH DELETE n")
 
 
 @pytest.fixture()
@@ -5015,10 +5019,16 @@ class TestReIngestionAfterFullReset:
             assert first_entity_count >= 3, "Expected entities from first pass"
             assert first_source_count >= 3, "Expected source nodes from first pass"
 
-            # --- FULL RESET: clear Neo4j + SQLite ---
+            # --- RESET test-scoped nodes only (never wipe production data) ---
             with neo4j_driver.session() as session:
-                session.run("MATCH (n) DETACH DELETE n")
-            print("  Neo4j cleared")
+                session.run(
+                    "MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n"
+                )
+                session.run(
+                    "MATCH (s:Source) WHERE s.uri STARTS WITH $tmpdir DETACH DELETE s",
+                    {"tmpdir": tmpdir}
+                )
+            print("  Test nodes cleared")
 
             db2_path = os.path.join(tmpdir, "reset_test_2.db")
             tmp_db2 = Database(db2_path)
