@@ -84,6 +84,10 @@ def neo4j_driver():
 @pytest.fixture
 def clean_neo4j(neo4j_driver):
     """Delete test-prefixed data before and after each test."""
+    uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+    if "35.202.188.73" in uri and os.environ.get("ALLOW_PRODUCTION_NEO4J") != "true":
+        pytest.skip("Skipping clean_neo4j on production Neo4j — would wipe data")
+
     def _cleanup():
         with neo4j_driver.session() as s:
             s.run("MATCH (n) WHERE n.entity_id IS NOT NULL AND n.entity_id STARTS WITH 'test:' DETACH DELETE n")
@@ -100,6 +104,9 @@ def full_clean_neo4j(neo4j_driver):
 
     ⚠️  NEVER run ``MATCH (n) DETACH DELETE n`` — that wipes production data.
     """
+    uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+    if "35.202.188.73" in uri and os.environ.get("ALLOW_PRODUCTION_NEO4J") != "true":
+        pytest.skip("Skipping full_clean_neo4j on production Neo4j — would wipe data")
     with neo4j_driver.session() as s:
         s.run("MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n")
         s.run("MATCH (n:_Test) DETACH DELETE n")
