@@ -11,7 +11,7 @@ import logging
 import os
 
 from google.adk import Agent
-from google.adk.memory.firestore_memory_service import FirestoreMemoryService
+from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
 from google.adk.tools.load_memory_tool import load_memory_tool
 from google.adk.tools.preload_memory_tool import preload_memory_tool
 
@@ -183,10 +183,10 @@ async def after_agent_callback(callback_context, agent_response):
 # Memory service
 # ---------------------------------------------------------------------------
 
-memory_service = FirestoreMemoryService(
+memory_service = VertexAiMemoryBankService(
     project=os.environ.get("GOOGLE_CLOUD_PROJECT", "data-ingest-demo"),
-    database="(default)",
-    collection="agent-standards-memory",
+    location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1"),
+    agent_engine_id=os.environ.get("AGENT_ENGINE_ID", ""),
 )
 
 # ---------------------------------------------------------------------------
