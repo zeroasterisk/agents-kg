@@ -1,0 +1,48 @@
+{
+  "name": "Agent Standards Agent",
+  "description": "Answers questions about agentic technology standards, protocols, organizations, and people. Synthesizes reports and connects you with relevant contributors.",
+  "version": "1.0.0",
+  "provider": {
+    "organization": "agents-kg project",
+    "url": "https://github.com/zeroasterisk/agents-kg"
+  },
+  "capabilities": {
+    "streaming": true,
+    "extended_agent_card": true
+  },
+  "default_input_modes": ["text/plain"],
+  "default_output_modes": ["text/plain"],
+  "skills": [
+    {
+      "id": "answer-standards-question",
+      "name": "Answer Standards Questions",
+      "description": "Answer questions about agentic protocols, standards, organizations, and people using a live knowledge graph.",
+      "tags": ["standards", "protocols", "agents", "ietf", "w3c", "mcp", "a2a"],
+      "examples": [
+        "What protocols does Anthropic contribute to?",
+        "Who chairs the WIMSE working group?",
+        "How do MCP and A2A compare?"
+      ]
+    },
+    {
+      "id": "synthesize-report",
+      "name": "Synthesize Standards Report",
+      "description": "Generate a narrative report on a topic across the agentic standards landscape.",
+      "tags": ["report", "synthesis", "landscape"],
+      "examples": [
+        "Give me a landscape overview of agent identity standards",
+        "Summarize the current state of IETF work on agentic protocols"
+      ]
+    },
+    {
+      "id": "find-people",
+      "name": "Find Relevant Contributors",
+      "description": "Find people working on a specific protocol, standard, or topic area.",
+      "tags": ["people", "contributors", "networking"],
+      "examples": [
+        "Who are the key people working on agent authorization?",
+        "Find researchers working on both MCP and A2A"
+      ]
+    }
+  ]
+}
