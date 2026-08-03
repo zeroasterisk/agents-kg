@@ -1,8 +1,6 @@
-aliases:
-- multi-modal processing
-description: The ability to process and understand multiple types of input modalities,
-  such as text and images.
+aliases: []
+description: The ability of an AI model to process and understand information from
+  multiple modalities, such as text, images, and audio.
 id: capability:multi-modal-understanding
-kind: feature
 name: Multi-modal Understanding
 type: Capability

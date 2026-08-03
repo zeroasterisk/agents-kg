@@ -51,7 +51,7 @@ def _mock_embed(db, source):
     chunks = db.get_unembedded_chunks(source_id)
     for c in chunks:
         emb = struct.pack("3f", 0.1, 0.2, 0.3)
-        db.update_chunk_embedding(c["id"], emb, "gemini-embedding-2")
+        db.update_chunk_embedding(c["id"], emb, "gemini-embedding-2-preview")
     db.update_source(source_id, stage="extract", status="processing")
 
 

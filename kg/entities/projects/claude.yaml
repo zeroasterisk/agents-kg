@@ -1,6 +1,6 @@
 aliases:
 - Claude Desktop
-description: AI assistant and host application platform developed by Anthropic.
+description: An AI application developed by Anthropic.
 id: project:claude
 kind: platform
 name: Claude

@@ -1,7 +1,6 @@
 aliases:
 - enhanced reasoning
-- extended thinking
-description: The ability of an AI system to perform chain-of-thought and logical reasoning.
+description: The ability to think logically and draw conclusions.
 id: capability:reasoning
 kind: skill
 name: Reasoning

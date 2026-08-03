@@ -1,5 +1,7 @@
-aliases: []
-description: Official TypeScript reference implementation for MCP.
+aliases:
+- '@modelcontextprotocol/sdk'
+- MCP TS SDK
+description: The official TypeScript SDK for the Model Context Protocol.
 id: project:mcp-sdk-typescript
 kind: sdk
 name: MCP TypeScript SDK

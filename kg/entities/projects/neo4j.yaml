@@ -1,7 +1,6 @@
-aliases:
-- Neo4j graph database
-description: Widely used graph database for knowledge graph applications.
+aliases: []
+description: A widely used graph database for knowledge graph applications.
 id: project:neo4j
-kind: platform
+kind: database
 name: Neo4j
 type: Project

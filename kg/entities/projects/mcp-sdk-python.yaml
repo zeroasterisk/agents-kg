@@ -1,5 +1,6 @@
-aliases: []
-description: Official Python reference implementation for MCP.
+aliases:
+- mcp-python
+description: The official Python SDK for the Model Context Protocol.
 id: project:mcp-sdk-python
 kind: sdk
 name: MCP Python SDK

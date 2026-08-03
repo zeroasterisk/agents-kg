@@ -1,7 +1,6 @@
-aliases: []
-description: A capability allowing models to spend more compute time thinking before
-  responding.
+aliases:
+- extended thinking capabilities
+description: Advanced cognitive abilities for complex problem-solving.
 id: capability:extended-thinking
-kind: feature
 name: Extended Thinking
 type: Capability

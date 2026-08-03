@@ -1,6 +1,6 @@
 aliases:
 - x402
-description: A protocol for handling payments between agents.
+description: A protocol for agent payments.
 id: protocol:agent-payments
 kind: spec
 name: Agent Payments Protocol

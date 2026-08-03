@@ -1,6 +1,7 @@
 aliases: []
-description: An RDF query language and protocol for querying databases.
+description: A query language for databases, especially those structured as RDF (Resource
+  Description Framework) triples.
 id: protocol:sparql
-kind: standard
+kind: query_language
 name: SPARQL
 type: Protocol

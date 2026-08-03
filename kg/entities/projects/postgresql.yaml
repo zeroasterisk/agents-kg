@@ -1,8 +1,7 @@
 aliases:
-- Postgres
-description: An advanced open-source relational database management system supporting
-  JSON and extensibility.
+- PostgreSQL Database
+description: An advanced open-source relational database management system.
 id: project:postgresql
-kind: platform
+kind: database
 name: PostgreSQL
 type: Project

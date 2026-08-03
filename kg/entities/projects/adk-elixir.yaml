@@ -1,7 +1,7 @@
 aliases:
 - adk-elixir
 - ADK for Elixir
-description: The Agent Development Kit for Elixir.
+description: The ADK framework implemented in Elixir.
 id: project:adk-elixir
 kind: framework
 name: ADK Elixir

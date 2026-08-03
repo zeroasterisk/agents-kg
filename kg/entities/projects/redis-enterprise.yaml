@@ -1,7 +1,6 @@
 aliases: []
-description: A commercial version of Redis with advanced data models provided by Redis
-  Inc.
+description: Commercial offering with advanced data models.
 id: project:redis-enterprise
-kind: platform
+kind: database
 name: Redis Enterprise
 type: Project

@@ -1,8 +1,6 @@
-aliases:
-- AG UI
-description: A protocol for controlling UI via event passing and optionally shared
-  state.
+aliases: []
+description: A protocol for agent-to-UI communication.
 id: protocol:ag-ui
 kind: spec
-name: AG UI
+name: AG-UI
 type: Protocol

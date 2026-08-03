@@ -1,6 +1,6 @@
-aliases:
-- Protobuf
-description: A serialization format used by gRPC.
+aliases: []
+description: A language-neutral, platform-neutral, extensible mechanism for serializing
+  structured data.
 id: protocol:protocol-buffers
 kind: spec
 name: Protocol Buffers

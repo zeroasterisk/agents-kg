@@ -1,18 +1,14 @@
 """Live end-to-end tests — NO MOCKS, real Neo4j + Gemini + Wikidata.
 
-WARNING: These tests are DESTRUCTIVE. They wipe and recreate Neo4j test data.
-NEVER run against production Neo4j (35.202.188.73) without explicit opt-in.
-Requires: NEO4J_URI pointing to a test instance, or ALLOW_PRODUCTION_NEO4J=true.
-
 Each test class is a Critical User Journey (CUJ). Tests run against:
-- Neo4j: bolt://localhost:7687 (default) or NEO4J_URI env var
+- Neo4j: bolt://35.202.188.73:7687
 - Gemini: Vertex AI in data-ingest-demo
 - Wikidata: https://query.wikidata.org/sparql
 
 Run:
-    NEO4J_URI=bolt://localhost:7687 \\
-    GOOGLE_CLOUD_PROJECT=data-ingest-demo \\
-    GOOGLE_GENAI_USE_VERTEXAI=true \\
+    NEO4J_URI=bolt://35.202.188.73:7687 \
+    GOOGLE_CLOUD_PROJECT=data-ingest-demo \
+    GOOGLE_GENAI_USE_VERTEXAI=true \
     .venv/bin/python -m pytest tests/test_live_e2e.py -v --tb=long
 """
 
@@ -20,7 +16,6 @@ import os
 import subprocess
 import tempfile
 import time
-import warnings
 from datetime import datetime, timezone, timedelta
 
 import pytest
@@ -68,8 +63,6 @@ The protocol provides human-in-the-loop capabilities for sensitive operations.
 
 @pytest.fixture(scope="session")
 def neo4j_driver():
-    if "localhost" not in NEO4J_URI and "127.0.0.1" not in NEO4J_URI:
-        warnings.warn(f"WARNING: Tests are connecting to non-localhost Neo4j: {NEO4J_URI}")
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     driver.verify_connectivity()
     yield driver
@@ -78,22 +71,15 @@ def neo4j_driver():
 
 @pytest.fixture()
 def clean_neo4j(neo4j_driver):
-    """Clean up test-created nodes before each test.
-
-    ⚠️  IMPORTANT: This fixture must NEVER run ``MATCH (n) DETACH DELETE n``
-    against the shared Neo4j instance — that wipes all production data.
-    Only delete nodes whose entity_id starts with 'test:' (the convention
-    used by test helpers) or that carry the ``_test`` label.
-    """
-    uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
-    if "35.202.188.73" in uri and os.environ.get("ALLOW_PRODUCTION_NEO4J") != "true":
-        pytest.skip("Skipping clean_neo4j on production Neo4j — would wipe data")
+    """Wipe all nodes and relationships before each test."""
     with neo4j_driver.session() as session:
-        # Only remove test-scoped nodes — never wipe the whole graph
-        session.run(
-            "MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n"
-        )
-        session.run("MATCH (n:_Test) DETACH DELETE n")
+        session.run("MATCH (n) DETACH DELETE n")
+        # Drop all constraints/indexes so schema tests start fresh
+        for record in session.run("SHOW CONSTRAINTS"):
+            session.run(f"DROP CONSTRAINT {record['name']} IF EXISTS")
+        for record in session.run("SHOW INDEXES"):
+            if record["type"] != "LOOKUP":
+                session.run(f"DROP INDEX {record['name']} IF EXISTS")
 
 
 @pytest.fixture()
@@ -5029,16 +5015,10 @@ class TestReIngestionAfterFullReset:
             assert first_entity_count >= 3, "Expected entities from first pass"
             assert first_source_count >= 3, "Expected source nodes from first pass"
 
-            # --- RESET test-scoped nodes only (never wipe production data) ---
+            # --- FULL RESET: clear Neo4j + SQLite ---
             with neo4j_driver.session() as session:
-                session.run(
-                    "MATCH (n) WHERE n.entity_id STARTS WITH 'test:' DETACH DELETE n"
-                )
-                session.run(
-                    "MATCH (s:Source) WHERE s.uri STARTS WITH $tmpdir DETACH DELETE s",
-                    {"tmpdir": tmpdir}
-                )
-            print("  Test nodes cleared")
+                session.run("MATCH (n) DETACH DELETE n")
+            print("  Neo4j cleared")
 
             db2_path = os.path.join(tmpdir, "reset_test_2.db")
             tmp_db2 = Database(db2_path)

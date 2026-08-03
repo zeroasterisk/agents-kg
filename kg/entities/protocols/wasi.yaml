@@ -1,7 +1,6 @@
 aliases:
 - WASI
-description: A modular system interface for WebAssembly providing standardized APIs
-  for sandboxed applications.
+description: A modular system interface for WebAssembly.
 id: protocol:wasi
 kind: spec
 name: WebAssembly System Interface

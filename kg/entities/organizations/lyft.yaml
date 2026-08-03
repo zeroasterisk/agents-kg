@@ -1,6 +1,5 @@
-aliases:
-- Lyft Inc.
-description: Lyft is a transportation company that originally designed Envoy Proxy.
+aliases: []
+description: The company that originally designed Envoy Proxy.
 id: organization:lyft
 kind: company
 name: Lyft

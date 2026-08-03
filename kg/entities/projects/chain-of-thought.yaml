@@ -1,8 +1,7 @@
 aliases:
 - CoT
 - CoT prompting
-description: A prompting technique that encourages models to generate intermediate
-  reasoning steps.
+description: A prompting technique that elicits step-by-step reasoning.
 id: project:chain-of-thought
 kind: framework
 name: Chain-of-Thought

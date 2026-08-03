@@ -1,6 +1,6 @@
-aliases:
-- CNCF
-description: Cloud Native Computing Foundation (CNCF) which stewards Kubernetes.
+aliases: []
+description: A foundation dedicated to advancing the development and adoption of cloud-native
+  technologies.
 id: organization:cncf
 kind: foundation
 name: Cloud Native Computing Foundation

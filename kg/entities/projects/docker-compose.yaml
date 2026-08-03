@@ -1,5 +1,5 @@
 aliases: []
-description: A tool that enables multi-container applications.
+description: Enables multi-container applications.
 id: project:docker-compose
 kind: tool
 name: Docker Compose

@@ -329,8 +329,8 @@ class TestParameterizedQueries:
 
     def test_extract_py_validates_entity_types(self):
         """extract.py rejects entity types not in VALID_ENTITY_TYPES."""
-        assert len(extract_stage.VALID_ENTITY_TYPES) == 7
-        for t in ["Organization", "Group", "Person", "Project", "Protocol", "Capability", "Concept"]:
+        assert len(extract_stage.VALID_ENTITY_TYPES) == 6
+        for t in ["Organization", "Group", "Person", "Project", "Protocol", "Capability"]:
             assert t in extract_stage.VALID_ENTITY_TYPES
 
     def test_extract_py_validates_edge_types(self):

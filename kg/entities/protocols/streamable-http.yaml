@@ -1,6 +1,6 @@
-aliases:
-- Streamable HTTP
-description: A bidirectional communication transport protocol introduced in MCP v1.1.
+aliases: []
+description: A bidirectional HTTP transport protocol with improved connection management
+  and resumability.
 id: protocol:streamable-http
 kind: spec
 name: Streamable HTTP Transport
